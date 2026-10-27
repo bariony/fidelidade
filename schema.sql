@@ -235,3 +235,7 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- ===== v7: WhatsApp na lista de links e tamanho do símbolo =====
 -- fid_stores.whatsapp_url, fid_stores.stamp_scale (50-160, % do tamanho do símbolo); fid_state_json devolve 'scale' e o link 'whatsapp'
 -- (aplicado via migration "whatsapp_link_and_stamp_scale" no projeto).
+
+-- ===== v8: visibilidade por link =====
+-- fid_stores.links_off text[] (links escondidos do cartão); show_links passa a valer true por padrão e não é mais usado na tela.
+-- (aplicado via migration "links_per_row_visibility" no projeto).

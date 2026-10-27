@@ -163,11 +163,19 @@
   .sw input:checked+i{background:var(--primary)}
   .sw input:checked+i::after{transform:translateX(18px)}
   .sw input:focus-visible+i{outline:2px solid var(--primary);outline-offset:2px}
-  .lrow{margin-top:14px}
-  .lin{display:flex;align-items:center;gap:12px}
-  .lin input[type=text]{flex:1;min-width:0}
-  .lin .sw{flex:none}
-  .nor{flex:none;font-size:.8rem;color:var(--muted)}
+  .lrow{margin-top:12px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:#fff}
+  .lrow:first-child{margin-top:0}
+  .ltop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .ltop b{font-size:1rem}
+  .swl{color:var(--muted);font-size:.85rem}
+  .lrow.off input[type=text]{opacity:.5}
+  .lrow.off .bonus{display:none}
+  .bonus{display:block;margin:10px 0 0!important;cursor:pointer}
+  .bonus input{position:absolute;opacity:0;width:0;height:0}
+  .bonus span{display:block;padding:9px 12px;border:1.5px dashed var(--line);border-radius:10px;font-size:.88rem;color:var(--muted)}
+  .bonus input:checked+span{border:1.5px solid var(--primary);background:var(--lilac);color:var(--primary-d);font-weight:600}
+  .bonus input:focus-visible+span{outline:2px solid var(--primary);outline-offset:2px}
+  .nor{display:block;margin-top:10px;font-size:.82rem;color:var(--muted)}
   .szl{display:flex;justify-content:space-between;margin-top:18px;max-width:300px}
   input[type=range]{width:100%;max-width:300px;accent-color:var(--primary);padding:0;min-height:0}
   .hint{margin:10px 0 0;color:var(--muted);font-size:.88rem}
@@ -693,15 +701,17 @@ function viewLoja(){
             <div class="picker">${STAMPS.map(([g, list]) => `<div class="pg">${g}</div><div class="pgrid">${list.map(i => `<button type="button" class="pk" data-ic="${esc(i)}" aria-label="${esc(i)}">${i === 'star' ? '★' : i}</button>`).join('')}</div>`).join('')}</div>
             <div class="cols"><div><label for="bg">Cor do fundo do cartão</label><input id="bg" name="bg" type="color" value="${esc(s.color)}"></div>
             <div><label for="sc">Cor do carimbo</label><input id="sc" name="sc" type="color" value="${esc(s.stamp_color || '#ffffff')}"></div></div></div></section>
-        <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Botões abaixo dos carimbos. Ligue a recompensa para dar 1 carimbo bônus (uma vez por cliente).</p></div>
+        <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Botões que o cliente vê abaixo dos carimbos. Ligue só os que quiser mostrar.</p></div>
           <div class="rf">
-            <label class="sw top"><span>Mostrar links no cartão</span><input name="sl" type="checkbox" ${s.show_links ? 'checked' : ''}><i></i></label>
-            ${[['uw','WhatsApp (número com DDD)','11 99999-9999',s.whatsapp_url ? s.whatsapp_url.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '') : '',null],
-               ['ui','Instagram','@sualoja',s.instagram_url || '','bi',s.bonus_instagram],
-               ['uf','Facebook','facebook.com/sualoja',s.facebook_url || '','bf',s.bonus_facebook],
-               ['us','Site','sualoja.com.br',s.site_url || '','bs',s.bonus_site],
-               ['ug','Avaliação no Google','g.page/r/...',s.google_url || '',null]].map(([n, l, ph, v, bn, bv]) => `<div class="lrow"><label for="${n}">${l}</label><div class="lin"><input id="${n}" name="${n}" type="text" value="${esc(v)}" placeholder="${ph}">${bn ? `<label class="sw"><span>Recompensa</span><input name="${bn}" type="checkbox" ${bv ? 'checked' : ''}><i></i></label>` : '<span class="nor" title="O Google proíbe recompensa por avaliação">sem recompensa</span>'}</div></div>`).join('')}
-            <p class="hint">Google não permite recompensa por avaliação. Não dá para confirmar que a pessoa seguiu: o bônus cai quando ela abre o link e volta ao cartão.</p></div></section>
+            ${[['whatsapp','uw','WhatsApp','11 99999-9999',s.whatsapp_url ? s.whatsapp_url.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '') : '',null,false],
+               ['instagram','ui','Instagram','@sualoja',s.instagram_url || '','bi',s.bonus_instagram],
+               ['facebook','uf','Facebook','facebook.com/sualoja',s.facebook_url || '','bf',s.bonus_facebook],
+               ['site','us','Site','sualoja.com.br',s.site_url || '','bs',s.bonus_site],
+               ['google','ug','Avaliação no Google','Cole o link de avaliação',s.google_url || '',null,false]].map(([k, n, l, ph, v, bn, bv]) => `<div class="lrow" data-k="${k}">
+              <div class="ltop"><b>${l}</b><label class="sw"><span class="swl">No cartão</span><input name="on_${k}" type="checkbox" ${v && !(s.links_off || []).includes(k) ? 'checked' : ''}><i></i></label></div>
+              <input id="${n}" name="${n}" type="text" value="${esc(v)}" placeholder="${ph}">
+              ${bn ? `<label class="bonus"><input name="${bn}" type="checkbox" ${bv ? 'checked' : ''}><span>🎁 Dar 1 carimbo bônus (1 vez por cliente)</span></label>` : (k === 'google' ? '<small class="nor">Sem carimbo bônus: o Google não permite recompensa por avaliação.</small>' : '')}</div>`).join('')}
+            <p class="hint">Não dá para confirmar que a pessoa seguiu: o bônus cai quando ela abre o link e volta ao cartão.</p></div></section>
       </div>
       <div class="savebar"><button class="btn" type="submit">Salvar loja</button></div>
     </form>`;
@@ -715,9 +725,10 @@ function viewLoja(){
     ['ln', 'bg', 'sc', 'sz'].forEach(n => f[n].oninput = draw); draw();
     const wa = v => { const d = v.replace(/\D/g, ''); if(!d) return v.trim() ? url(v) : null; return 'https://wa.me/' + (d.length <= 11 ? '55' + d : d); };
     const url = (v, ig) => { v = v.trim(); if(!v) return null; if(ig && /^@?[\w.]+$/.test(v)) return 'https://instagram.com/' + v.replace('@', ''); return /^https?:\/\//i.test(v) ? v : 'https://' + v; };
+    f.querySelectorAll('.lrow').forEach(r => { const t = r.querySelector('input[type=text]'), sw = r.querySelector('.sw input'); const sync = () => r.classList.toggle('off', !sw.checked); t.oninput = () => { if(t.value.trim() && !t.dataset.had){ sw.checked = true; } t.dataset.had = t.value.trim() ? '1' : ''; sync(); }; t.dataset.had = t.value.trim() ? '1' : ''; sw.onchange = sync; sync(); });
     f.onsubmit = async ev => {
       ev.preventDefault(); const btn = f.querySelector('button[type=submit]');
-      const row = {name:f.ln.value.trim(), stamp_icon:f.ic.value, color:f.bg.value, stamp_color:f.sc.value, stamp_scale:+f.sz.value, show_links:f.sl.checked, whatsapp_url:wa(f.uw.value),
+      const row = {name:f.ln.value.trim(), stamp_icon:f.ic.value, color:f.bg.value, stamp_color:f.sc.value, stamp_scale:+f.sz.value, show_links:true, links_off:['whatsapp','instagram','facebook','site','google'].filter(k => !f['on_' + k].checked && f[{whatsapp:'uw',instagram:'ui',facebook:'uf',site:'us',google:'ug'}[k]].value.trim()), whatsapp_url:wa(f.uw.value),
         instagram_url:url(f.ui.value, true), facebook_url:url(f.uf.value), site_url:url(f.us.value), google_url:url(f.ug.value),
         bonus_instagram:f.bi.checked, bonus_facebook:f.bf.checked, bonus_site:f.bs.checked};
       if(!row.name) return toast('Informe o nome da loja.', true);
