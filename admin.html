@@ -155,7 +155,21 @@
   .pk{width:42px;height:42px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:1.25rem;cursor:pointer;color:var(--primary)}
   .pk:hover{background:var(--lilac)}
   .pk[aria-pressed=true]{border-color:var(--primary);background:var(--lilac);box-shadow:0 0 0 2px var(--primary) inset}
-  .rf .check{margin-top:12px}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;margin:0!important;color:var(--ink)!important;font-size:.88rem}
+  .sw.top{font-size:1rem;font-weight:600;margin-bottom:6px!important}
+  .sw input{position:absolute;opacity:0;width:0;height:0}
+  .sw i{position:relative;flex:none;width:42px;height:24px;border-radius:99px;background:#CFC8E3;transition:background .15s}
+  .sw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .sw input:checked+i{background:var(--primary)}
+  .sw input:checked+i::after{transform:translateX(18px)}
+  .sw input:focus-visible+i{outline:2px solid var(--primary);outline-offset:2px}
+  .lrow{margin-top:14px}
+  .lin{display:flex;align-items:center;gap:12px}
+  .lin input[type=text]{flex:1;min-width:0}
+  .lin .sw{flex:none}
+  .nor{flex:none;font-size:.8rem;color:var(--muted)}
+  .szl{display:flex;justify-content:space-between;margin-top:18px;max-width:300px}
+  input[type=range]{width:100%;max-width:300px;accent-color:var(--primary);padding:0;min-height:0}
   .hint{margin:10px 0 0;color:var(--muted);font-size:.88rem}
   .savebar{position:sticky;bottom:0;padding:14px 0;margin-top:6px;background:linear-gradient(transparent,var(--paper) 40%)}
 
@@ -171,6 +185,7 @@
     .split,.split.s13{grid-template-columns:minmax(0,1fr);gap:0}
   }
   @media (max-width:900px){
+    .lin{flex-wrap:wrap}
     .band{grid-template-columns:1fr}
     .marks{justify-content:flex-start}
   }
@@ -656,11 +671,11 @@ const STAMPS = [
   ['Pet e carro', ['🐾','🐶','🐱','🚗','🛞','⛽','🧼','🔧']]
 ];
 const lumA = h => { h = String(h || '').replace('#', ''); if(h.length !== 6) return .5; const [r, g, b] = [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); return (.299 * r + .587 * g + .114 * b) / 255; };
-function previewCard(name, goal, icon, bg, sc){
+function previewCard(name, goal, icon, bg, sc, scale){
   const fg = lumA(bg) > .62 ? '#1c1530' : '#fff', starCol = lumA(sc) > .62 ? (lumA(bg) < .62 ? bg : '#1c1530') : '#fff', n = Math.min(goal, 10), on = Math.min(3, n - 1);
   const dots = Array.from({length:n}, (_, i) => {
     const o = i < on;
-    return `<i style="background:${o ? sc : (fg === '#fff' ? 'rgba(255,255,255,.2)' : 'rgba(28,21,48,.15)')};color:${starCol}">${icon === 'star' ? (o ? '★' : '') : `<span style="${o ? '' : 'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`}</i>`;
+    return `<i style="background:${o ? sc : (fg === '#fff' ? 'rgba(255,255,255,.2)' : 'rgba(28,21,48,.15)')};color:${starCol}"><span style="font-size:${(1.05 * (scale || 100) / 100).toFixed(2)}rem;${icon === 'star' ? (o ? '' : 'display:none') : (o ? '' : 'opacity:.3;filter:grayscale(1)')}">${icon === 'star' ? '★' : esc(icon)}</span></i>`;
   }).join('');
   return `<div class="pv" style="background:${esc(bg)};color:${fg}"><b>${esc(name || 'Sua loja')}</b><small>Olá, Cliente · ${on}/${goal}</small><div class="pvg">${dots}</div></div>`;
 }
@@ -671,24 +686,22 @@ function viewLoja(){
       <div class="rbox">
         <section class="rsec"><div class="rt"><h2>Dados da loja</h2><p>O nome aparece no topo do cartão do cliente.</p></div>
           <div class="rf"><label for="ln">Nome da loja</label><input id="ln" name="ln" type="text" maxlength="60" required value="${esc(s.name)}"></div></section>
-        <section class="rsec"><div class="rt"><h2>Visual do cartão</h2><p>Escolha o símbolo do carimbo e as cores da sua marca. A prévia atualiza na hora.</p><div id="pv" style="margin-top:16px"></div></div>
+        <section class="rsec"><div class="rt"><h2>Visual do cartão</h2><p>Escolha o símbolo do carimbo e as cores da sua marca. A prévia atualiza na hora.</p><div id="pv" style="margin-top:16px"></div>
+            <label for="sz" class="szl">Tamanho do símbolo <b id="szv">${+s.stamp_scale || 100}%</b></label><input id="sz" name="sz" type="range" min="50" max="160" step="5" value="${+s.stamp_scale || 100}"></div>
           <div class="rf">
             <label>Símbolo do carimbo</label><input type="hidden" name="ic" value="${esc(s.stamp_icon || 'star')}">
             <div class="picker">${STAMPS.map(([g, list]) => `<div class="pg">${g}</div><div class="pgrid">${list.map(i => `<button type="button" class="pk" data-ic="${esc(i)}" aria-label="${esc(i)}">${i === 'star' ? '★' : i}</button>`).join('')}</div>`).join('')}</div>
             <div class="cols"><div><label for="bg">Cor do fundo do cartão</label><input id="bg" name="bg" type="color" value="${esc(s.color)}"></div>
             <div><label for="sc">Cor do carimbo</label><input id="sc" name="sc" type="color" value="${esc(s.stamp_color || '#ffffff')}"></div></div></div></section>
-        <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Mostra botões bonitos abaixo dos carimbos. Você escolhe se aparecem e quais dão carimbo bônus.</p></div>
+        <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Botões abaixo dos carimbos. Ligue a recompensa para dar 1 carimbo bônus (uma vez por cliente).</p></div>
           <div class="rf">
-            <label class="check" style="margin-top:0"><input name="sl" type="checkbox" ${s.show_links ? 'checked' : ''}> Mostrar links no cartão do cliente</label>
-            <label for="ui">Instagram (link ou @usuario)</label><input id="ui" name="ui" type="text" value="${esc(s.instagram_url || '')}" placeholder="@sualoja">
-            <label class="check"><input name="bi" type="checkbox" ${s.bonus_instagram ? 'checked' : ''}> Dar 1 carimbo bônus por seguir (uma vez por cliente)</label>
-            <label for="uf">Facebook</label><input id="uf" name="uf" type="text" value="${esc(s.facebook_url || '')}" placeholder="https://facebook.com/sualoja">
-            <label class="check"><input name="bf" type="checkbox" ${s.bonus_facebook ? 'checked' : ''}> Dar 1 carimbo bônus por curtir (uma vez por cliente)</label>
-            <label for="us">Site</label><input id="us" name="us" type="text" value="${esc(s.site_url || '')}" placeholder="https://sualoja.com.br">
-            <label class="check"><input name="bs" type="checkbox" ${s.bonus_site ? 'checked' : ''}> Dar 1 carimbo bônus por visitar (uma vez por cliente)</label>
-            <label for="ug">Avaliação no Google</label><input id="ug" name="ug" type="text" value="${esc(s.google_url || '')}" placeholder="https://g.page/r/...">
-            <p class="hint">O Google proíbe dar recompensa em troca de avaliação e pode remover avaliações ou punir o perfil. Por isso o link do Google aparece como convite, sem carimbo bônus.</p>
-            <p class="hint">Não dá para confirmar que o cliente realmente seguiu: ele abre o link, volta ao cartão e ganha o bônus uma única vez.</p></div></section>
+            <label class="sw top"><span>Mostrar links no cartão</span><input name="sl" type="checkbox" ${s.show_links ? 'checked' : ''}><i></i></label>
+            ${[['uw','WhatsApp (número com DDD)','11 99999-9999',s.whatsapp_url ? s.whatsapp_url.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '') : '',null],
+               ['ui','Instagram','@sualoja',s.instagram_url || '','bi',s.bonus_instagram],
+               ['uf','Facebook','facebook.com/sualoja',s.facebook_url || '','bf',s.bonus_facebook],
+               ['us','Site','sualoja.com.br',s.site_url || '','bs',s.bonus_site],
+               ['ug','Avaliação no Google','g.page/r/...',s.google_url || '',null]].map(([n, l, ph, v, bn, bv]) => `<div class="lrow"><label for="${n}">${l}</label><div class="lin"><input id="${n}" name="${n}" type="text" value="${esc(v)}" placeholder="${ph}">${bn ? `<label class="sw"><span>Recompensa</span><input name="${bn}" type="checkbox" ${bv ? 'checked' : ''}><i></i></label>` : '<span class="nor" title="O Google proíbe recompensa por avaliação">sem recompensa</span>'}</div></div>`).join('')}
+            <p class="hint">Google não permite recompensa por avaliação. Não dá para confirmar que a pessoa seguiu: o bônus cai quando ela abre o link e volta ao cartão.</p></div></section>
       </div>
       <div class="savebar"><button class="btn" type="submit">Salvar loja</button></div>
     </form>`;
@@ -696,14 +709,15 @@ function viewLoja(){
     const f = $('#lf');
     const draw = () => {
       f.querySelectorAll('.pk').forEach(b => b.setAttribute('aria-pressed', b.dataset.ic === f.ic.value));
-      $('#pv').innerHTML = previewCard(f.ln.value, S.store.stamps_goal, f.ic.value, f.bg.value, f.sc.value);
+      $('#pv').innerHTML = previewCard(f.ln.value, S.store.stamps_goal, f.ic.value, f.bg.value, f.sc.value, +f.sz.value); $('#szv').textContent = f.sz.value + '%';
     };
     f.querySelectorAll('.pk').forEach(b => b.onclick = () => { f.ic.value = b.dataset.ic; draw(); });
-    ['ln', 'bg', 'sc'].forEach(n => f[n].oninput = draw); draw();
+    ['ln', 'bg', 'sc', 'sz'].forEach(n => f[n].oninput = draw); draw();
+    const wa = v => { const d = v.replace(/\D/g, ''); if(!d) return v.trim() ? url(v) : null; return 'https://wa.me/' + (d.length <= 11 ? '55' + d : d); };
     const url = (v, ig) => { v = v.trim(); if(!v) return null; if(ig && /^@?[\w.]+$/.test(v)) return 'https://instagram.com/' + v.replace('@', ''); return /^https?:\/\//i.test(v) ? v : 'https://' + v; };
     f.onsubmit = async ev => {
       ev.preventDefault(); const btn = f.querySelector('button[type=submit]');
-      const row = {name:f.ln.value.trim(), stamp_icon:f.ic.value, color:f.bg.value, stamp_color:f.sc.value, show_links:f.sl.checked,
+      const row = {name:f.ln.value.trim(), stamp_icon:f.ic.value, color:f.bg.value, stamp_color:f.sc.value, stamp_scale:+f.sz.value, show_links:f.sl.checked, whatsapp_url:wa(f.uw.value),
         instagram_url:url(f.ui.value, true), facebook_url:url(f.uf.value), site_url:url(f.us.value), google_url:url(f.ug.value),
         bonus_instagram:f.bi.checked, bonus_facebook:f.bf.checked, bonus_site:f.bs.checked};
       if(!row.name) return toast('Informe o nome da loja.', true);

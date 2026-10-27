@@ -231,3 +231,7 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- fid_claims(customer_id, kind) com chave primária composta: cada bônus só uma vez por cliente. fid_claim(p_tag,p_token,p_kind) concede o carimbo.
 -- O Google fica sem bônus de propósito (política do Google proíbe recompensa por avaliação).
 -- (definições completas aplicadas via migration "store_branding_links_bonus" no projeto).
+
+-- ===== v7: WhatsApp na lista de links e tamanho do símbolo =====
+-- fid_stores.whatsapp_url, fid_stores.stamp_scale (50-160, % do tamanho do símbolo); fid_state_json devolve 'scale' e o link 'whatsapp'
+-- (aplicado via migration "whatsapp_link_and_stamp_scale" no projeto).

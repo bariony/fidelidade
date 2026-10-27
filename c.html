@@ -86,7 +86,8 @@ function card(s, justStamped){
   const starCol = lum(sc) > .62 ? (lum(bg) < .62 ? bg : '#1c1530') : '#ffffff';
   for(let i=0;i<goal;i++){
     const on = i<s.stamps, pop = justStamped && i===s.stamps-1 ? 'pop' : '';
-    const glyph = icon==='star' ? (on?'★':'') : `<span class="ic" style="${on?'':'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`;
+    const fs = (1.3*(s.scale||100)/100).toFixed(2)+'rem';
+    const glyph = icon==='star' ? (on?`<span style="font-size:${fs}">★</span>`:'') : `<span class="ic" style="font-size:${fs};${on?'':'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`;
     dots.push(`<div class="dot ${on?'on':''} ${pop}" style="${on?`background:${esc(sc)};color:${starCol}`:`background:${rgba(fg,.2)}`}">${glyph}</div>`);
   }
   return `<div class="store" style="background:${esc(bg)};color:${fg};box-shadow:0 10px 30px -10px ${esc(bg)}">
@@ -95,14 +96,15 @@ function card(s, justStamped){
 }
 
 const LKICON = {
+  whatsapp:'<svg viewBox="0 0 24 24"><path d="M4 20l1.2-4.1A8 8 0 1 1 8.2 19z"/><path d="M9 8.5c.3 2.6 2.4 4.7 5 5l1.2-1.2-1.8-1-.8.7c-.9-.4-1.6-1.1-2-2l.7-.8-1-1.8z"/></svg>',
   instagram:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6" fill="currentColor"/></svg>',
   facebook:'<svg viewBox="0 0 24 24"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v7h4v-7h3l1-4h-4V8z"/></svg>',
   site:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>',
   google:'<svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z"/></svg>'
 };
-const LKNAME = {instagram:'Instagram', facebook:'Facebook', site:'Nosso site', google:'Avaliar no Google'};
+const LKNAME = {whatsapp:'Falar no WhatsApp', instagram:'Instagram', facebook:'Facebook', site:'Nosso site', google:'Avaliar no Google'};
 function linksBox(s){
-  const L = s.links || {}, keys = ['instagram','facebook','site','google'].filter(k => L[k]);
+  const L = s.links || {}, keys = ['whatsapp','instagram','facebook','site','google'].filter(k => L[k]);
   if(!keys.length) return '';
   const open = keys.some(k => L[k].bonus && !L[k].done);
   return `<div class="box lks"><b>${open ? 'Quer nos apoiar e ganhar mais carimbos?' : 'Fique perto da gente'}</b>
