@@ -135,8 +135,17 @@
   .sec>header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
   .split.s13{grid-template-columns:minmax(280px,1fr) minmax(0,2fr)}
-  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:start}
-  .rules .panel h2{margin-bottom:6px}
+  .rform{max-width:880px}
+  .rbox{background:#fff;border:1px solid var(--line);border-radius:18px}
+  .rsec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:24px;padding:24px 28px}
+  .rsec+.rsec{border-top:1px solid var(--line)}
+  .rt h2{margin:0 0 4px;font-size:1.05rem}
+  .rt p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.45}
+  .rf label:first-child{margin-top:0}
+  .rf .btn{width:100%}
+  .rf input[type=color]{width:96px}
+  .hint{margin:10px 0 0;color:var(--muted);font-size:.88rem}
+  .savebar{position:sticky;bottom:0;padding:14px 0;margin-top:6px;background:linear-gradient(transparent,var(--paper) 40%)}
 
   .auth{min-height:100vh;display:grid;place-items:center;padding:20px}
   .auth form{width:min(100%,390px)}
@@ -165,6 +174,7 @@
   @media (max-width:640px){
     .hide-s{display:none}
     .cols{grid-template-columns:1fr}
+    .rsec{grid-template-columns:1fr;gap:14px;padding:18px}
     .cols>div+div>label:first-child{margin-top:14px!important}
     .row{gap:10px}
     .panel{padding:14px}
@@ -627,26 +637,30 @@ function viewRetiradas(){
 function viewRegras(){
   const s = S.store, hasGeo = s.geo_lat != null;
   const html = head('Regras', 'Como o cartão funciona na sua loja') + `
-    <form id="rf">
-      <div class="rules">
-        <section class="panel"><h2>Cartão</h2>
-          <label for="g">Carimbos para o prêmio</label><input id="g" name="g" type="number" min="2" max="50" value="${s.stamps_goal}">
-          <label for="r">Prêmio</label><input id="r" name="r" type="text" value="${esc(s.reward)}">
-          <label for="co">Cor do cartão do cliente</label><input id="co" name="co" type="color" value="${esc(s.color)}"></section>
-        <section class="panel"><h2>Resgate do prêmio</h2>
-          <label for="vd">Prazo para retirar depois de resgatar</label><select id="vd" name="vd">${[[1,'1 dia'],[2,'2 dias'],[3,'3 dias'],[7,'1 semana'],[15,'15 dias'],[30,'30 dias']].map(([v, l]) => `<option value="${v}" ${+s.reward_valid_days === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-          <p class="note" style="margin-top:10px">O cliente resgata no celular e tem esse prazo para ir à loja. Na aba Retiradas, o atendente toca em Entregue. Prêmio não retirado no prazo é perdido.</p></section>
-        <section class="panel"><h2>Frequência</h2>
-          <label for="cd">Intervalo entre carimbos (min)</label><input id="cd" name="cd" type="number" min="0" value="${s.cooldown_minutes}">
-          <label for="md">Máx. de carimbos por cliente por dia</label><input id="md" name="md" type="number" min="1" max="50" value="${s.max_per_day}"></section>
-        <section class="panel"><h2>Na loja</h2>
-          <label class="check" style="margin-top:14px"><input name="gr" type="checkbox" ${s.geo_required ? 'checked' : ''}> Exigir que o cliente esteja na loja (confere a localização do celular)</label>
-          <label for="gm">Raio permitido (metros)</label><input id="gm" name="gm" type="number" min="20" max="5000" value="${s.geo_radius_m}">
-          <input name="gl" type="hidden" value="${s.geo_lat ?? ''}"><input name="gn" type="hidden" value="${s.geo_lng ?? ''}">
-          <button type="button" class="btn line" id="geo" style="width:100%;margin-top:14px">${hasGeo ? 'Atualizar para o local onde estou' : 'Usar minha localização atual'}</button>
-          <p class="note" id="geost" style="margin-top:10px">${hasGeo ? 'Local salvo ✓ (' + (+s.geo_lat).toFixed(5) + ', ' + (+s.geo_lng).toFixed(5) + ')' : 'Local ainda não definido. Estando na loja, toque no botão acima e depois em Salvar regras.'}</p></section>
+    <form id="rf" class="rform">
+      <div class="rbox">
+        <section class="rsec"><div class="rt"><h2>Cartão</h2><p>O que o cliente junta e o que ele ganha.</p></div>
+          <div class="rf">
+            <label for="g">Carimbos para o prêmio</label><input id="g" name="g" type="number" min="2" max="50" value="${s.stamps_goal}">
+            <label for="r">Prêmio</label><input id="r" name="r" type="text" value="${esc(s.reward)}">
+            <label for="co">Cor do cartão do cliente</label><input id="co" name="co" type="color" value="${esc(s.color)}"></div></section>
+        <section class="rsec"><div class="rt"><h2>Resgate do prêmio</h2><p>O cliente resgata no celular e vai até a loja. O atendente toca em Entregue na aba Retiradas.</p></div>
+          <div class="rf">
+            <label for="vd">Prazo para retirar depois de resgatar</label><select id="vd" name="vd">${[[1,'1 dia'],[2,'2 dias'],[3,'3 dias'],[7,'1 semana'],[15,'15 dias'],[30,'30 dias']].map(([v, l]) => `<option value="${v}" ${+s.reward_valid_days === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+            <p class="hint">Prêmio não retirado no prazo é perdido.</p></div></section>
+        <section class="rsec"><div class="rt"><h2>Frequência</h2><p>Evita carimbos repetidos em sequência.</p></div>
+          <div class="rf"><div class="cols">
+            <div><label for="cd">Intervalo entre carimbos (min)</label><input id="cd" name="cd" type="number" min="0" value="${s.cooldown_minutes}"></div>
+            <div><label for="md">Máx. de carimbos por dia</label><input id="md" name="md" type="number" min="1" max="50" value="${s.max_per_day}"></div></div></div></section>
+        <section class="rsec"><div class="rt"><h2>Na loja</h2><p>Só carimba quem está dentro do raio da loja.</p></div>
+          <div class="rf">
+            <label class="check" style="margin-top:0"><input name="gr" type="checkbox" ${s.geo_required ? 'checked' : ''}> Exigir que o cliente esteja na loja</label>
+            <label for="gm">Raio permitido (metros)</label><input id="gm" name="gm" type="number" min="20" max="5000" value="${s.geo_radius_m}">
+            <input name="gl" type="hidden" value="${s.geo_lat ?? ''}"><input name="gn" type="hidden" value="${s.geo_lng ?? ''}">
+            <button type="button" class="btn line" id="geo" style="margin-top:14px">${hasGeo ? 'Atualizar para o local onde estou' : 'Usar minha localização atual'}</button>
+            <p class="hint" id="geost">${hasGeo ? 'Local salvo ✓ (' + (+s.geo_lat).toFixed(5) + ', ' + (+s.geo_lng).toFixed(5) + ')' : 'Local ainda não definido. Estando na loja, toque no botão acima e depois em Salvar regras.'}</p></div></section>
       </div>
-      <button class="btn" type="submit" style="margin-top:24px">Salvar regras</button>
+      <div class="savebar"><button class="btn" type="submit">Salvar regras</button></div>
     </form>`;
   return {html, bind(){
     $('#geo').onclick = () => {
