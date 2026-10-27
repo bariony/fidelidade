@@ -55,7 +55,10 @@ function login(msg){
     const a = ev.submitter?.value, e = ev.target.e.value, p = ev.target.p.value;
     const r = a==='up' ? await sb.auth.signUp({email:e,password:p}) : await sb.auth.signInWithPassword({email:e,password:p});
     if(r.error) return login(r.error.message);
-    if(!r.data.session) return login('Conta criada. Confirme o e-mail e entre.');
+    if(!r.data.session){
+      const r2 = await sb.auth.signInWithPassword({email:e,password:p});
+      if(r2.error) return login('Conta criada, mas não deu para entrar: '+r2.error.message);
+    }
     boot();
   };
 }
