@@ -144,6 +144,18 @@
   .rf label:first-child{margin-top:0}
   .rf .btn{width:100%}
   .rf input[type=color]{width:96px}
+  .pv{border-radius:18px;padding:16px 16px 18px;max-width:300px}
+  .pv b{display:block;font-size:1.05rem}
+  .pv small{opacity:.85}
+  .pvg{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+  .pvg i{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:1rem}
+  .picker{margin-bottom:6px}
+  .pg{font-size:.78rem;color:var(--muted);margin:12px 0 6px}
+  .pgrid{display:flex;flex-wrap:wrap;gap:6px}
+  .pk{width:42px;height:42px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:1.25rem;cursor:pointer;color:var(--primary)}
+  .pk:hover{background:var(--lilac)}
+  .pk[aria-pressed=true]{border-color:var(--primary);background:var(--lilac);box-shadow:0 0 0 2px var(--primary) inset}
+  .rf .check{margin-top:12px}
   .hint{margin:10px 0 0;color:var(--muted);font-size:.88rem}
   .savebar{position:sticky;bottom:0;padding:14px 0;margin-top:6px;background:linear-gradient(transparent,var(--paper) 40%)}
 
@@ -225,11 +237,12 @@ const ICON = {
   sliders:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
   out:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M16 8l4 4-4 4M20 12H9"/></svg>',
   gift:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-4-6-4-5 0 .5 1.5 3 1.2 5 0zM12 8c1.5-4 6-4 5 0-.5 1.5-3 1.2-5 0z"/></svg>',
+  store:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9c0 2 3 2 4 0 1 2 3 2 4 0 1 2 3 2 4 0 1 2 4 2 4 0M10 20v-5h4v5"/></svg>',
   chev:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'
 };
 const LOGO = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#7C3AED"/><path d="M9.5 16.5l4.5 4.5 8.5-9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['regras','Regras','sliders']];
+const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['loja','Loja','store'],['regras','Regras','sliders']];
 
 /* ---------- utilidades ---------- */
 function head(title, sub, right){
@@ -311,7 +324,7 @@ function render(){
   const col = mq.matches || S.collapsed;
   const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}</button>`;
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
-  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, regras:viewRegras})[S.view]();
+  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>Fidelidade</span></div>
     <nav class="nav" aria-label="Seções">${nav}</nav>
     <div class="foot">
@@ -494,7 +507,7 @@ function viewClientes(){
 function viewCliente(){
   const d = S.detail; if(!d) return {html: head('Cliente', '') + '<p class="note">Carregando…</p>'};
   const {c, ev} = d, s = S.store;
-  const kind = {stamp:'Carimbo', reward_earned:'Prêmio conquistado', redeem:'Prêmio entregue', redeem_request:'Resgate pedido', redeem_expired:'Prêmio expirado', adjust:'Ajuste manual'};
+  const kind = {bonus:'Carimbo bônus', stamp:'Carimbo', reward_earned:'Prêmio conquistado', redeem:'Prêmio entregue', redeem_request:'Resgate pedido', redeem_expired:'Prêmio expirado', adjust:'Ajuste manual'};
   const tagName = id => (S.tags.find(t => t.id === id) || {}).label || id || '—';
   const html = `<button class="btn line small back" id="back">Voltar para clientes</button>
     ${head(c.name, 'WhatsApp ' + c.whatsapp + ', cliente desde ' + new Date(c.created_at).toLocaleDateString('pt-BR'), `<a class="btn small" target="_blank" rel="noopener" href="${waLink(c)}">Abrir WhatsApp</a>`)}
@@ -633,6 +646,76 @@ function viewRetiradas(){
   }};
 }
 
+/* ---------- Loja (nome, aparência e links) ---------- */
+const STAMPS = [
+  ['Geral', ['star','⭐','❤️','🔥','👑','💎','🎁','🚀','✅','🌟']],
+  ['Comida', ['🍦','🍨','🍰','🧁','🍩','🍪','🥐','🥖','🍕','🍔','🌭','🌮','🥗','🍣','🍝','🍽️']],
+  ['Bebida', ['☕','🧋','🍺','🍷','🍹','🥤','🍵','🍾']],
+  ['Beleza e saúde', ['✂️','💈','💅','💄','🧴','💆','🦷','🏋️','🧘']],
+  ['Loja e casa', ['🛒','🛍️','👗','👟','🧸','🎮','📚','🌸','🪴','💍']],
+  ['Pet e carro', ['🐾','🐶','🐱','🚗','🛞','⛽','🧼','🔧']]
+];
+const lumA = h => { h = String(h || '').replace('#', ''); if(h.length !== 6) return .5; const [r, g, b] = [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); return (.299 * r + .587 * g + .114 * b) / 255; };
+function previewCard(name, goal, icon, bg, sc){
+  const fg = lumA(bg) > .62 ? '#1c1530' : '#fff', starCol = lumA(sc) > .62 ? (lumA(bg) < .62 ? bg : '#1c1530') : '#fff', n = Math.min(goal, 10), on = Math.min(3, n - 1);
+  const dots = Array.from({length:n}, (_, i) => {
+    const o = i < on;
+    return `<i style="background:${o ? sc : (fg === '#fff' ? 'rgba(255,255,255,.2)' : 'rgba(28,21,48,.15)')};color:${starCol}">${icon === 'star' ? (o ? '★' : '') : `<span style="${o ? '' : 'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`}</i>`;
+  }).join('');
+  return `<div class="pv" style="background:${esc(bg)};color:${fg}"><b>${esc(name || 'Sua loja')}</b><small>Olá, Cliente · ${on}/${goal}</small><div class="pvg">${dots}</div></div>`;
+}
+function viewLoja(){
+  const s = S.store;
+  const html = head('Loja', 'Nome, visual do cartão e links que o cliente vê') + `
+    <form id="lf" class="rform">
+      <div class="rbox">
+        <section class="rsec"><div class="rt"><h2>Dados da loja</h2><p>O nome aparece no topo do cartão do cliente.</p></div>
+          <div class="rf"><label for="ln">Nome da loja</label><input id="ln" name="ln" type="text" maxlength="60" required value="${esc(s.name)}"></div></section>
+        <section class="rsec"><div class="rt"><h2>Visual do cartão</h2><p>Escolha o símbolo do carimbo e as cores da sua marca. A prévia atualiza na hora.</p><div id="pv" style="margin-top:16px"></div></div>
+          <div class="rf">
+            <label>Símbolo do carimbo</label><input type="hidden" name="ic" value="${esc(s.stamp_icon || 'star')}">
+            <div class="picker">${STAMPS.map(([g, list]) => `<div class="pg">${g}</div><div class="pgrid">${list.map(i => `<button type="button" class="pk" data-ic="${esc(i)}" aria-label="${esc(i)}">${i === 'star' ? '★' : i}</button>`).join('')}</div>`).join('')}</div>
+            <div class="cols"><div><label for="bg">Cor do fundo do cartão</label><input id="bg" name="bg" type="color" value="${esc(s.color)}"></div>
+            <div><label for="sc">Cor do carimbo</label><input id="sc" name="sc" type="color" value="${esc(s.stamp_color || '#ffffff')}"></div></div></div></section>
+        <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Mostra botões bonitos abaixo dos carimbos. Você escolhe se aparecem e quais dão carimbo bônus.</p></div>
+          <div class="rf">
+            <label class="check" style="margin-top:0"><input name="sl" type="checkbox" ${s.show_links ? 'checked' : ''}> Mostrar links no cartão do cliente</label>
+            <label for="ui">Instagram (link ou @usuario)</label><input id="ui" name="ui" type="text" value="${esc(s.instagram_url || '')}" placeholder="@sualoja">
+            <label class="check"><input name="bi" type="checkbox" ${s.bonus_instagram ? 'checked' : ''}> Dar 1 carimbo bônus por seguir (uma vez por cliente)</label>
+            <label for="uf">Facebook</label><input id="uf" name="uf" type="text" value="${esc(s.facebook_url || '')}" placeholder="https://facebook.com/sualoja">
+            <label class="check"><input name="bf" type="checkbox" ${s.bonus_facebook ? 'checked' : ''}> Dar 1 carimbo bônus por curtir (uma vez por cliente)</label>
+            <label for="us">Site</label><input id="us" name="us" type="text" value="${esc(s.site_url || '')}" placeholder="https://sualoja.com.br">
+            <label class="check"><input name="bs" type="checkbox" ${s.bonus_site ? 'checked' : ''}> Dar 1 carimbo bônus por visitar (uma vez por cliente)</label>
+            <label for="ug">Avaliação no Google</label><input id="ug" name="ug" type="text" value="${esc(s.google_url || '')}" placeholder="https://g.page/r/...">
+            <p class="hint">O Google proíbe dar recompensa em troca de avaliação e pode remover avaliações ou punir o perfil. Por isso o link do Google aparece como convite, sem carimbo bônus.</p>
+            <p class="hint">Não dá para confirmar que o cliente realmente seguiu: ele abre o link, volta ao cartão e ganha o bônus uma única vez.</p></div></section>
+      </div>
+      <div class="savebar"><button class="btn" type="submit">Salvar loja</button></div>
+    </form>`;
+  return {html, bind(){
+    const f = $('#lf');
+    const draw = () => {
+      f.querySelectorAll('.pk').forEach(b => b.setAttribute('aria-pressed', b.dataset.ic === f.ic.value));
+      $('#pv').innerHTML = previewCard(f.ln.value, S.store.stamps_goal, f.ic.value, f.bg.value, f.sc.value);
+    };
+    f.querySelectorAll('.pk').forEach(b => b.onclick = () => { f.ic.value = b.dataset.ic; draw(); });
+    ['ln', 'bg', 'sc'].forEach(n => f[n].oninput = draw); draw();
+    const url = (v, ig) => { v = v.trim(); if(!v) return null; if(ig && /^@?[\w.]+$/.test(v)) return 'https://instagram.com/' + v.replace('@', ''); return /^https?:\/\//i.test(v) ? v : 'https://' + v; };
+    f.onsubmit = async ev => {
+      ev.preventDefault(); const btn = f.querySelector('button[type=submit]');
+      const row = {name:f.ln.value.trim(), stamp_icon:f.ic.value, color:f.bg.value, stamp_color:f.sc.value, show_links:f.sl.checked,
+        instagram_url:url(f.ui.value, true), facebook_url:url(f.uf.value), site_url:url(f.us.value), google_url:url(f.ug.value),
+        bonus_instagram:f.bi.checked, bonus_facebook:f.bf.checked, bonus_site:f.bs.checked};
+      if(!row.name) return toast('Informe o nome da loja.', true);
+      btn.disabled = true; toast('Salvando…');
+      const {error} = await sb.from('fid_stores').update(row).eq('id', S.store.id);
+      btn.disabled = false;
+      if(error) return toast('Erro ao salvar: ' + error.message, true);
+      await load(); toast('Loja salva ✓');
+    };
+  }};
+}
+
 /* ---------- Regras ---------- */
 function viewRegras(){
   const s = S.store, hasGeo = s.geo_lat != null;
@@ -642,8 +725,7 @@ function viewRegras(){
         <section class="rsec"><div class="rt"><h2>Cartão</h2><p>O que o cliente junta e o que ele ganha.</p></div>
           <div class="rf">
             <label for="g">Carimbos para o prêmio</label><input id="g" name="g" type="number" min="2" max="50" value="${s.stamps_goal}">
-            <label for="r">Prêmio</label><input id="r" name="r" type="text" value="${esc(s.reward)}">
-            <label for="co">Cor do cartão do cliente</label><input id="co" name="co" type="color" value="${esc(s.color)}"></div></section>
+            <label for="r">Prêmio</label><input id="r" name="r" type="text" value="${esc(s.reward)}"></div></section>
         <section class="rsec"><div class="rt"><h2>Resgate do prêmio</h2><p>O cliente resgata no celular e vai até a loja. O atendente toca em Entregue na aba Retiradas.</p></div>
           <div class="rf">
             <label for="vd">Prazo para retirar depois de resgatar</label><select id="vd" name="vd">${[[1,'1 dia'],[2,'2 dias'],[3,'3 dias'],[7,'1 semana'],[15,'15 dias'],[30,'30 dias']].map(([v, l]) => `<option value="${v}" ${+s.reward_valid_days === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
@@ -675,7 +757,7 @@ function viewRegras(){
       ev.preventDefault(); const f = ev.target, btn = f.querySelector('button[type=submit]');
       if(f.gr.checked && f.gl.value === ''){ return toast('Para exigir localização, defina o local da loja: estando na loja, toque em "Usar minha localização atual".', true); }
       btn.disabled = true; toast('Salvando…');
-      const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value, cooldown_minutes:+f.cd.value, reward:f.r.value, color:f.co.value,
+      const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value, cooldown_minutes:+f.cd.value, reward:f.r.value, 
         max_per_day:+f.md.value, reward_valid_days:+f.vd.value, geo_required:f.gr.checked, geo_radius_m:+f.gm.value,
         geo_lat:f.gl.value === '' ? null : +f.gl.value, geo_lng:f.gn.value === '' ? null : +f.gn.value}).eq('id', S.store.id);
       btn.disabled = false;

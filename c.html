@@ -14,6 +14,7 @@
   .store h1{margin:0 0 2px;font-size:1.25rem}
   .store p{margin:0;opacity:.85;font-size:.9rem}
   .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}
+  .store{color:#fff}
   .dot{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:1.2rem;transition:transform .3s}
   .dot.on{background:#fff;color:var(--c);transform:scale(1.04)}
   .dot.pop{animation:pop .6s}
@@ -31,6 +32,14 @@
   .reward b{display:block;font-size:1.05rem;margin-bottom:4px}
   a.link{display:block;text-align:center;margin-top:16px;color:var(--mut);font-size:.85rem}
   .hide{display:none}
+  .dot .ic{font-size:1.35rem;line-height:1}
+  .lks b{display:block;font-size:1rem}
+  .lkrow{display:grid;gap:8px;margin-top:12px}
+  .lk{display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:12px 14px;background:#f6f3fd;color:var(--ink);border:1.5px solid #e3ddf2;border-radius:12px;font-size:.95rem;font-weight:600;text-align:left}
+  .lk svg{width:22px;height:22px;flex:none;stroke:var(--c);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .lk span{flex:1}
+  .lk em{font-style:normal;font-size:.78rem;color:var(--c);background:#fff;border-radius:99px;padding:3px 9px}
+  .lk em.ok{color:#12805c}
   .reward.prize{background:#f3edff;border-color:var(--c)}
   .reward.prize b,.reward.pend b{color:var(--c)}
   .reward.pend{background:#f3edff;border-color:var(--c)}
@@ -68,15 +77,64 @@ function boom(big){
   try{ navigator.vibrate && navigator.vibrate(big?[120,60,120,60,200]:120) }catch(e){}
 }
 
+const hx = h => { h = String(h||'').replace('#',''); if(h.length!==6) h='7c3aed'; return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); };
+const lum = h => { const [r,g,b] = hx(h); return (0.299*r+0.587*g+0.114*b)/255; };
+const rgba = (h,a) => { const [r,g,b] = hx(h); return `rgba(${r},${g},${b},${a})`; };
 function card(s, justStamped){
-  const goal = s.goal, dots = [];
-  for(let i=0;i<goal;i++) dots.push(`<div class="dot ${i<s.stamps?'on':''} ${justStamped&&i===s.stamps-1?'pop':''}">${i<s.stamps?'★':''}</div>`);
-  return `<div class="store" style="--c:${esc(s.color)};background:${esc(s.color)}">
+  const goal = s.goal, dots = [], bg = s.color || '#7c3aed', sc = s.stamp_color || '#ffffff', icon = s.icon || 'star';
+  const fg = lum(bg) > .62 ? '#1c1530' : '#ffffff';
+  const starCol = lum(sc) > .62 ? (lum(bg) < .62 ? bg : '#1c1530') : '#ffffff';
+  for(let i=0;i<goal;i++){
+    const on = i<s.stamps, pop = justStamped && i===s.stamps-1 ? 'pop' : '';
+    const glyph = icon==='star' ? (on?'★':'') : `<span class="ic" style="${on?'':'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`;
+    dots.push(`<div class="dot ${on?'on':''} ${pop}" style="${on?`background:${esc(sc)};color:${starCol}`:`background:${rgba(fg,.2)}`}">${glyph}</div>`);
+  }
+  return `<div class="store" style="background:${esc(bg)};color:${fg};box-shadow:0 10px 30px -10px ${esc(bg)}">
     <h1>${esc(s.store)}</h1><p>${esc(s.name?('Olá, '+s.name.split(' ')[0]):'Cartão fidelidade')} · ${s.stamps}/${goal}</p>
     <div class="grid" style="grid-template-columns:repeat(${goal<=5?goal:5},1fr)">${dots.join('')}</div></div>`;
 }
 
-function setColor(c){ document.documentElement.style.setProperty('--c', c||'#7c3aed'); }
+const LKICON = {
+  instagram:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6" fill="currentColor"/></svg>',
+  facebook:'<svg viewBox="0 0 24 24"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v7h4v-7h3l1-4h-4V8z"/></svg>',
+  site:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>',
+  google:'<svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z"/></svg>'
+};
+const LKNAME = {instagram:'Instagram', facebook:'Facebook', site:'Nosso site', google:'Avaliar no Google'};
+function linksBox(s){
+  const L = s.links || {}, keys = ['instagram','facebook','site','google'].filter(k => L[k]);
+  if(!keys.length) return '';
+  const open = keys.some(k => L[k].bonus && !L[k].done);
+  return `<div class="box lks"><b>${open ? 'Quer nos apoiar e ganhar mais carimbos?' : 'Fique perto da gente'}</b>
+    ${open ? '<p class="sub" style="margin:4px 0 0;text-align:left">Toque, abra a página e volte aqui: o carimbo bônus cai no seu cartão. Vale uma vez por rede.</p>' : ''}
+    <div class="lkrow">${keys.map(k => `<button type="button" class="lk" data-lk="${k}" data-url="${esc(L[k].url)}">${LKICON[k]}<span>${LKNAME[k]}</span>${L[k].done ? '<em class="ok">✓ ganhou</em>' : L[k].bonus ? '<em>+1 carimbo</em>' : ''}</button>`).join('')}</div></div>`;
+}
+const CKEY = () => 'fid_claim_' + tag;
+function bindLinks(s){
+  document.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => {
+    const k = b.dataset.lk, L = (s.links||{})[k];
+    try { window.open(b.dataset.url, '_blank', 'noopener'); } catch(e){}
+    if(L && L.bonus && !L.done) save(CKEY(), JSON.stringify({k, ts:Date.now()}));
+  });
+}
+async function checkClaim(){
+  let p = null; try { p = JSON.parse(store(CKEY()) || 'null'); } catch(e){}
+  if(!p) return;
+  const wait = 5000 - (Date.now() - p.ts);
+  if(wait > 0) return setTimeout(checkClaim, wait + 50);
+  try { localStorage.removeItem(CKEY()); } catch(e){}
+  const tk = store(KEY); if(!tk) return;
+  const r = await rpc('fid_claim',{p_tag:tag,p_token:tk,p_kind:p.k});
+  if(r && r.claimed){ render(r,{viewOnly:true,bonus:true}); boom(!!r.earned); }
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden) checkClaim(); });
+
+function setColor(c){
+  c = c || '#7c3aed';
+  // acento legível: se o fundo escolhido for claro, escurece para usar em textos e bordas
+  if(lum(c) > .55){ c = '#' + hx(c).map(v => Math.round(v*.45).toString(16).padStart(2,'0')).join(''); }
+  document.documentElement.style.setProperty('--c', c);
+}
 
 async function showRegister(info){
   setColor(info.color);
@@ -106,6 +164,7 @@ function render(s, opts={}){
   let h = card(s, opts.stamped);
   if(opts.stamped && opts.earned) h += `<p class="msg">🎉 Você ganhou: ${esc(s.reward)}!</p><p class="sub">Mostre esta tela ao atendente.</p>`;
   else if(opts.stamped) h += `<p class="msg">Carimbo registrado!</p><p class="sub">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
+  else if(opts.bonus) h += `<p class="msg">🎉 Carimbo bônus!</p><p class="sub">Obrigado por apoiar a ${esc(s.store)}.</p>`;
   else if(opts.note) h += `<p class="msg">${esc(opts.note)}</p>${opts.sub?`<p class="sub">${esc(opts.sub)}</p>`:''}${opts.retry?'<button id="retry" class="ghost">Tentar de novo</button>':''}`;
   else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Carimbo recente 😉</p><p class="sub">O próximo carimbo libera em ${m} min.</p>`; }
   else h += `<p class="sub" style="margin-top:18px">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>${opts.viewOnly?'<p class="sub" style="margin-top:6px">Para ganhar um carimbo, encoste o celular no bastão.</p>':''}`;
@@ -119,7 +178,9 @@ function render(s, opts={}){
   } else if(s.last_expired){
     h += `<p class="sub" style="margin-top:14px">Seu último prêmio expirou 😕 Continue juntando carimbos para ganhar outro!</p>`;
   }
+  h += linksBox(s);
   app.innerHTML = h;
+  bindLinks(s);
   const rt = document.getElementById('retry');
   if(rt) rt.onclick = () => stampNow(s.token);
   const rd = document.getElementById('rd');
@@ -204,6 +265,7 @@ function getPos(){
 }
 
 (async function init(){
+  setTimeout(checkClaim, 1500);
   if(!tag){ app.innerHTML = '<p class="err">Tag inválida. Encoste o celular no bastão novamente.</p>'; return; }
   const info = await rpc('fid_get_store',{p_tag:tag});
   if(!info || info.error){ app.innerHTML = '<p class="err">Esta tag não está ativa.</p>'; return; }

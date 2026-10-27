@@ -225,3 +225,9 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- Funções: fid_expire (interna), fid_redeem (cliente pede o resgate e abre o prazo), fid_confirm_redeem (atendente com PIN no celular do cliente),
 -- fid_admin_pending e fid_admin_redeem (painel, aba Retiradas). fid_state_json passa a devolver 'pending', 'valid_days', 'has_pin'.
 -- (definições completas aplicadas via migration "pending_redemption_flow" no projeto).
+
+-- ===== v6: visual da loja, links e carimbo bônus =====
+-- fid_stores: stamp_icon (emoji ou 'star'), stamp_color, show_links, instagram_url, facebook_url, site_url, google_url, bonus_instagram, bonus_facebook, bonus_site.
+-- fid_claims(customer_id, kind) com chave primária composta: cada bônus só uma vez por cliente. fid_claim(p_tag,p_token,p_kind) concede o carimbo.
+-- O Google fica sem bônus de propósito (política do Google proíbe recompensa por avaliação).
+-- (definições completas aplicadas via migration "store_branding_links_bonus" no projeto).
