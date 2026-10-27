@@ -609,11 +609,10 @@ function leftTxt(iso){
 function viewRetiradas(){
   const s = S.store, P = S.pending;
   const list = P.length ? P.map(r => `<div class="panel pend"><div><b>${esc(r.name)}</b><br><small class="note">${esc(s.reward)} · pediu ${rel(r.created_at)} · expira em ${leftTxt(r.expires_at)}</small></div>
-      <div class="code" title="Código que o cliente mostra na tela">${esc(r.code)}</div>
       <button class="btn small" data-ent="${r.id}">Entregue</button></div>`).join('')
     : '<p class="note">Nenhum resgate pendente. Quando um cliente tocar em "Resgatar prêmio", ele aparece aqui até ser entregue ou expirar.</p>';
   const html = head('Retiradas', 'Prêmios resgatados pelos clientes, esperando a retirada na loja') + list
-    + '<p class="note" style="margin-top:14px">Confira o nome e o código na tela do cliente, entregue o prêmio e toque em Entregue. Também dá para confirmar direto no celular do cliente com o PIN da loja (defina em Regras).</p>';
+    + '<p class="note" style="margin-top:14px">Confira o nome do cliente, entregue o prêmio e toque em Entregue. O cartão dele atualiza sozinho.</p>';
   return {html, bind(){
     root.querySelectorAll('[data-ent]').forEach(b => b.onclick = async () => {
       b.disabled = true;
@@ -636,8 +635,7 @@ function viewRegras(){
           <label for="co">Cor do cartão do cliente</label><input id="co" name="co" type="color" value="${esc(s.color)}"></section>
         <section class="panel"><h2>Resgate do prêmio</h2>
           <label for="vd">Prazo para retirar depois de resgatar</label><select id="vd" name="vd">${[[1,'1 dia'],[2,'2 dias'],[3,'3 dias'],[7,'1 semana'],[15,'15 dias'],[30,'30 dias']].map(([v, l]) => `<option value="${v}" ${+s.reward_valid_days === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-          <label for="pn">PIN do atendente (4 a 6 números, opcional)</label><input id="pn" name="pn" type="text" inputmode="numeric" pattern="\\d{4,6}" maxlength="6" value="${esc(s.attendant_pin || '')}" placeholder="Ex.: 1234">
-          <p class="note" style="margin-top:10px">Com PIN, o atendente confirma a entrega no celular do cliente. Sem PIN, confirma pela aba Retiradas.</p></section>
+          <p class="note" style="margin-top:10px">O cliente resgata no celular e tem esse prazo para ir à loja. Na aba Retiradas, o atendente toca em Entregue. Prêmio não retirado no prazo é perdido.</p></section>
         <section class="panel"><h2>Frequência</h2>
           <label for="cd">Intervalo entre carimbos (min)</label><input id="cd" name="cd" type="number" min="0" value="${s.cooldown_minutes}">
           <label for="md">Máx. de carimbos por cliente por dia</label><input id="md" name="md" type="number" min="1" max="50" value="${s.max_per_day}"></section>
@@ -664,7 +662,7 @@ function viewRegras(){
       if(f.gr.checked && f.gl.value === ''){ return toast('Para exigir localização, defina o local da loja: estando na loja, toque em "Usar minha localização atual".', true); }
       btn.disabled = true; toast('Salvando…');
       const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value, cooldown_minutes:+f.cd.value, reward:f.r.value, color:f.co.value,
-        max_per_day:+f.md.value, reward_valid_days:+f.vd.value, attendant_pin:f.pn.value.trim() || null, geo_required:f.gr.checked, geo_radius_m:+f.gm.value,
+        max_per_day:+f.md.value, reward_valid_days:+f.vd.value, geo_required:f.gr.checked, geo_radius_m:+f.gm.value,
         geo_lat:f.gl.value === '' ? null : +f.gl.value, geo_lng:f.gn.value === '' ? null : +f.gn.value}).eq('id', S.store.id);
       btn.disabled = false;
       if(error){ toast('Erro ao salvar: ' + error.message, true); return; }

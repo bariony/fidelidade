@@ -165,18 +165,11 @@ function done(s){
 function present(s){
   setColor(s.color);
   app.innerHTML = `<div class="store" style="background:${esc(s.color)};text-align:center"><p>Apresente ao atendente</p><h1 style="font-size:1.5rem;margin:6px 0">${esc(s.reward)}</h1>
-    <p>${esc(s.store)} · ${esc(s.name)}</p><div class="code">${esc(s.pending.code)}</div><p>Expira em <b id="cd"></b></p></div>
-    ${s.has_pin?`<form id="pf"><label>Atendente: digite o PIN da loja para entregar</label><input name="p" inputmode="numeric" maxlength="6" autocomplete="off" required><button>Confirmar entrega</button><p class="err hide" id="pe">PIN incorreto.</p></form>`:`<p class="sub" style="margin-top:18px">O atendente confirma a entrega pelo painel da loja.</p>`}
+    <p>${esc(s.store)} · ${esc(s.name)}</p><p style="margin-top:16px">Expira em <b id="cd"></b></p></div>
+    <p class="sub" style="margin-top:18px">O atendente confere seu nome e confirma a entrega pelo painel da loja. Esta tela atualiza sozinha.</p>
     <button class="ghost" id="bk">Voltar</button>`;
   startCountdown(s, document.getElementById('cd'), () => refresh(s));
   document.getElementById('bk').onclick = () => render(s,{viewOnly:true});
-  const pf = document.getElementById('pf');
-  if(pf) pf.onsubmit = async ev => {
-    ev.preventDefault(); const b = pf.querySelector('button'); b.disabled = true;
-    const r = await rpc('fid_confirm_redeem',{p_tag:tag,p_token:s.token,p_pin:pf.p.value.trim()});
-    if(r.confirmed) return done(r);
-    b.disabled = false; document.getElementById('pe').classList.remove('hide');
-  };
 }
 
 async function stampNow(token){
