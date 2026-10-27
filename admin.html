@@ -365,7 +365,7 @@ function render(){
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;
   const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}</button>`;
-  const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Superadmin" aria-label="Superadmin">${ICON.users}<span class="lb">Superadmin</span></a>` : '';
+  const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Admin" aria-label="Admin">${ICON.users}<span class="lb">Admin</span></a>` : '';
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
   const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>Fidelidade</span></div>

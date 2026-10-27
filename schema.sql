@@ -246,3 +246,7 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- Funções: fid_is_super, fid_super_overview, fid_super_store, fid_super_sale, fid_super_renew, fid_super_trial, fid_super_block, fid_super_update,
 -- fid_plan_status (ativa/trial/tolerancia 7 dias/vencida/bloqueada) e fid_store_active; fid_stamp e fid_claim param quando a loja está suspensa.
 -- (aplicado via migrations "superadmin_plans_billing" e "superadmin_rpcs" no projeto). Painel: super.html.
+
+-- ===== v10: visão geral do admin com mini-gráficos =====
+-- fid_super_overview passa a devolver 'spark' (14 dias) por loja e 'spark_total' (todas as lojas)
+-- (aplicado via migration "super_overview_spark" no projeto).
