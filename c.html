@@ -31,6 +31,10 @@
   .reward b{display:block;font-size:1.05rem;margin-bottom:4px}
   a.link{display:block;text-align:center;margin-top:16px;color:var(--mut);font-size:.85rem}
   .hide{display:none}
+  .reward.pend{background:#f3edff;border-color:var(--c)}
+  .reward.ok{background:#e8f8ef;border-color:#34c27a}
+  .cd{font-weight:700;margin:8px 0 0}
+  .code{font-size:3rem;font-weight:800;letter-spacing:.3em;margin:16px 0 8px;padding-left:.3em;background:rgba(255,255,255,.18);border-radius:16px}
   .err{color:#b42318;text-align:center;margin-top:14px}
 </style>
 </head>
@@ -103,15 +107,75 @@ function render(s, opts={}){
   else if(opts.note) h += `<p class="msg">${esc(opts.note)}</p>${opts.sub?`<p class="sub">${esc(opts.sub)}</p>`:''}${opts.retry?'<button id="retry" class="ghost">Tentar de novo</button>':''}`;
   else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Carimbo recente 😉</p><p class="sub">O próximo carimbo libera em ${m} min.</p>`; }
   else h += `<p class="sub" style="margin-top:18px">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>${opts.viewOnly?'<p class="sub" style="margin-top:6px">Para ganhar um carimbo, encoste o celular no bastão.</p>':''}`;
-  if(s.rewards_available>0) h += `<div class="reward"><b>🎁 ${s.rewards_available} prêmio(s) disponível(is)</b>${esc(s.reward)}<button id="rd">Resgatar agora (atendente confirma)</button></div>`;
+  if(s.pending){
+    h += `<div class="reward pend"><b>⏳ Resgate pendente</b>${esc(s.reward)}<p class="sub" style="margin-top:6px">Vá até a loja para retirar seu prêmio.</p>
+      <p class="cd">Expira em <span id="cd"></span></p><button id="pr">Apresentar no balcão</button></div>`;
+  } else if(s.rewards_available>0){
+    h += `<div class="reward"><b>🎁 ${s.rewards_available>1?'Você tem '+s.rewards_available+' prêmios':'Você ganhou um prêmio'}!</b>${esc(s.reward)}
+      <p class="sub" style="margin-top:6px">Resgate quando estiver na loja. Depois de resgatar, você tem ${s.valid_days||7} dia(s) para retirar.</p>
+      <button id="rd">Resgatar prêmio</button></div>`;
+  } else if(s.last_expired){
+    h += `<p class="sub" style="margin-top:14px">Seu último prêmio expirou 😕 Continue juntando carimbos para ganhar outro!</p>`;
+  }
   app.innerHTML = h;
   const rt = document.getElementById('retry');
   if(rt) rt.onclick = () => stampNow(s.token);
   const rd = document.getElementById('rd');
   if(rd) rd.onclick = async () => {
-    if(!confirm('Atendente: confirmar resgate de "'+s.reward+'"?')) return;
+    if(!confirm('Resgatar "'+s.reward+'"? Você terá '+(s.valid_days||7)+' dia(s) para retirar na loja.')) return;
+    rd.disabled = true;
     const r = await rpc('fid_redeem',{p_tag:tag,p_token:s.token});
-    if(r.redeemed){ boom(true); render(r,{}); } else render(r,{});
+    if(r.error){ rd.disabled=false; alert('Não foi possível resgatar. Tente de novo.'); return; }
+    render(r,{viewOnly:true});
+  };
+  const pr = document.getElementById('pr');
+  if(pr) pr.onclick = () => present(s);
+  if(s.pending) startCountdown(s, document.getElementById('cd'), () => refresh());
+}
+
+let timers = [];
+function clearTimers(){ timers.forEach(clearInterval); timers = []; }
+function fmtLeft(sec){
+  const d = Math.floor(sec/86400), h = Math.floor(sec%86400/3600), m = Math.floor(sec%3600/60), x = sec%60;
+  if(d>0) return d+'d '+h+'h';
+  if(h>0) return h+'h '+String(m).padStart(2,'0')+'min';
+  return m+'min '+String(x).padStart(2,'0')+'s';
+}
+function startCountdown(s, el, onEnd){
+  clearTimers();
+  const end = Date.now() + s.pending.seconds_left*1000;
+  const tick = () => { const left = Math.max(0, Math.round((end-Date.now())/1000)); if(el) el.textContent = fmtLeft(left); if(left<=0){ clearTimers(); onEnd(); } };
+  tick(); timers.push(setInterval(tick,1000));
+  // enquanto pendente, confere de tempos em tempos se o atendente já validou
+  timers.push(setInterval(async()=>{ const n = await rpc('fid_state',{p_tag:tag,p_token:s.token}); if(!n.error && !n.pending) refresh(s); }, 6000));
+}
+async function refresh(prev){
+  clearTimers();
+  const n = await rpc('fid_state',{p_tag:tag,p_token:store(KEY)});
+  if(n.error) return;
+  if(prev && prev.pending && !n.pending && n.rewards_redeemed > prev.rewards_redeemed) return done(n);
+  render(n,{viewOnly:true});
+}
+function done(s){
+  clearTimers(); setColor(s.color);
+  app.innerHTML = card(s,false) + `<div class="reward ok"><b>✅ Prêmio entregue!</b>${esc(s.reward)}<p class="sub" style="margin-top:6px">Obrigado pela visita! Seus novos carimbos já podem começar.</p><button id="back">Voltar ao cartão</button></div>`;
+  boom(true);
+  document.getElementById('back').onclick = () => render(s,{viewOnly:true});
+}
+function present(s){
+  setColor(s.color);
+  app.innerHTML = `<div class="store" style="background:${esc(s.color)};text-align:center"><p>Apresente ao atendente</p><h1 style="font-size:1.5rem;margin:6px 0">${esc(s.reward)}</h1>
+    <p>${esc(s.store)} · ${esc(s.name)}</p><div class="code">${esc(s.pending.code)}</div><p>Expira em <b id="cd"></b></p></div>
+    ${s.has_pin?`<form id="pf"><label>Atendente: digite o PIN da loja para entregar</label><input name="p" inputmode="numeric" maxlength="6" autocomplete="off" required><button>Confirmar entrega</button><p class="err hide" id="pe">PIN incorreto.</p></form>`:`<p class="sub" style="margin-top:18px">O atendente confirma a entrega pelo painel da loja.</p>`}
+    <button class="ghost" id="bk">Voltar</button>`;
+  startCountdown(s, document.getElementById('cd'), () => refresh(s));
+  document.getElementById('bk').onclick = () => render(s,{viewOnly:true});
+  const pf = document.getElementById('pf');
+  if(pf) pf.onsubmit = async ev => {
+    ev.preventDefault(); const b = pf.querySelector('button'); b.disabled = true;
+    const r = await rpc('fid_confirm_redeem',{p_tag:tag,p_token:s.token,p_pin:pf.p.value.trim()});
+    if(r.confirmed) return done(r);
+    b.disabled = false; document.getElementById('pe').classList.remove('hide');
   };
 }
 

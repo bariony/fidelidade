@@ -38,6 +38,10 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
   .err{color:var(--alert);margin-top:12px;min-height:1.2em}
   .note{color:var(--muted)}
+  .bdg{margin-left:auto;background:#DC2626;color:#fff;border-radius:99px;min-width:20px;padding:1px 6px;font-size:.75rem;font-weight:700;text-align:center}
+  .collapsed .bdg{position:absolute;top:4px;right:6px;margin:0;min-width:16px;font-size:.65rem;padding:0 4px}
+  .pend{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
+  .pend .code{font-size:1.4rem;font-weight:800;letter-spacing:.2em;color:var(--primary-d)}
   .sub{display:block;color:var(--muted);font-size:.85rem}
   .nw{white-space:nowrap}
 
@@ -188,7 +192,7 @@ const mq = window.matchMedia('(max-width:820px)');
 const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
 
-const S = { user:null, store:null, tags:[], customers:[], stats:null, view:'hoje', detail:null,
+const S = { user:null, store:null, tags:[], customers:[], stats:null, pending:[], view:'hoje', detail:null,
   chart:{kind:'stamps', range:'dias'}, filter:'todos', q:'', camp:{seg:'risco', msg:null}, firstPaint:true,
   collapsed: lsGet('fid_rail') === '1' };
 
@@ -210,11 +214,12 @@ const ICON = {
   tap:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="1.6"/><path d="M6 12a6 6 0 0 1 6 6"/><path d="M6 6.5A11.5 11.5 0 0 1 17.5 18"/></svg>',
   sliders:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
   out:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M16 8l4 4-4 4M20 12H9"/></svg>',
+  gift:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8c-1.5-4-6-4-5 0 .5 1.5 3 1.2 5 0zM12 8c1.5-4 6-4 5 0-.5 1.5-3 1.2-5 0z"/></svg>',
   chev:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'
 };
 const LOGO = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#7C3AED"/><path d="M9.5 16.5l4.5 4.5 8.5-9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['regras','Regras','sliders']];
+const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['regras','Regras','sliders']];
 
 /* ---------- utilidades ---------- */
 function head(title, sub, right){
@@ -267,11 +272,13 @@ async function load(){
   if(e0){ toast('Não foi possível carregar: ' + e0.message, true); return; }
   if(!stores || !stores.length){ S.store = null; render(); return; }
   S.store = stores[0];
-  const [t, c, st] = await Promise.all([
+  const [t, c, st, pe] = await Promise.all([
     sb.from('fid_tags').select('*').eq('store_id', S.store.id).order('created_at'),
     sb.from('fid_customers').select('*').eq('store_id', S.store.id).order('last_stamp_at', {ascending:false, nullsFirst:false}).range(0, 4999),
-    sb.rpc('fid_stats', {p_store: S.store.id})
+    sb.rpc('fid_stats', {p_store: S.store.id}),
+    sb.rpc('fid_admin_pending', {p_store: S.store.id})
   ]);
+  S.pending = (pe.data && pe.data.items) || [];
   S.tags = t.data || []; S.customers = c.data || [];
   S.stats = (st.data && !st.data.error) ? st.data : null;
   render();
@@ -292,9 +299,9 @@ function render(){
   if(!S.user) return viewLogin();
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;
-  const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span></button>`;
+  const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}</button>`;
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
-  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, campanhas:viewCampanhas, tags:viewTags, regras:viewRegras})[S.view]();
+  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, regras:viewRegras})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>Fidelidade</span></div>
     <nav class="nav" aria-label="Seções">${nav}</nav>
     <div class="foot">
@@ -477,7 +484,7 @@ function viewClientes(){
 function viewCliente(){
   const d = S.detail; if(!d) return {html: head('Cliente', '') + '<p class="note">Carregando…</p>'};
   const {c, ev} = d, s = S.store;
-  const kind = {stamp:'Carimbo', reward_earned:'Prêmio conquistado', redeem:'Resgate', adjust:'Ajuste manual'};
+  const kind = {stamp:'Carimbo', reward_earned:'Prêmio conquistado', redeem:'Prêmio entregue', redeem_request:'Resgate pedido', redeem_expired:'Prêmio expirado', adjust:'Ajuste manual'};
   const tagName = id => (S.tags.find(t => t.id === id) || {}).label || id || '—';
   const html = `<button class="btn line small back" id="back">Voltar para clientes</button>
     ${head(c.name, 'WhatsApp ' + c.whatsapp + ', cliente desde ' + new Date(c.created_at).toLocaleDateString('pt-BR'), `<a class="btn small" target="_blank" rel="noopener" href="${waLink(c)}">Abrir WhatsApp</a>`)}
@@ -594,6 +601,29 @@ function viewTags(){
   }};
 }
 
+/* ---------- Retiradas (resgates pendentes) ---------- */
+function leftTxt(iso){
+  const sec = Math.max(0, Math.floor((new Date(iso) - Date.now()) / 1000)), d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), m = Math.floor(sec % 3600 / 60);
+  return d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'min' : m + ' min';
+}
+function viewRetiradas(){
+  const s = S.store, P = S.pending;
+  const list = P.length ? P.map(r => `<div class="panel pend"><div><b>${esc(r.name)}</b><br><small class="note">${esc(s.reward)} · pediu ${rel(r.created_at)} · expira em ${leftTxt(r.expires_at)}</small></div>
+      <div class="code" title="Código que o cliente mostra na tela">${esc(r.code)}</div>
+      <button class="btn small" data-ent="${r.id}">Entregue</button></div>`).join('')
+    : '<p class="note">Nenhum resgate pendente. Quando um cliente tocar em "Resgatar prêmio", ele aparece aqui até ser entregue ou expirar.</p>';
+  const html = head('Retiradas', 'Prêmios resgatados pelos clientes, esperando a retirada na loja') + list
+    + '<p class="note" style="margin-top:14px">Confira o nome e o código na tela do cliente, entregue o prêmio e toque em Entregue. Também dá para confirmar direto no celular do cliente com o PIN da loja (defina em Regras).</p>';
+  return {html, bind(){
+    root.querySelectorAll('[data-ent]').forEach(b => b.onclick = async () => {
+      b.disabled = true;
+      const {data, error} = await sb.rpc('fid_admin_redeem', {p_redemption:b.dataset.ent});
+      if(error || (data && data.error)){ b.disabled = false; return toast('Não foi possível confirmar: ' + (error ? error.message : data.error), true); }
+      await load(); toast('Entrega registrada ✓');
+    });
+  }};
+}
+
 /* ---------- Regras ---------- */
 function viewRegras(){
   const s = S.store, hasGeo = s.geo_lat != null;
@@ -604,6 +634,10 @@ function viewRegras(){
           <label for="g">Carimbos para o prêmio</label><input id="g" name="g" type="number" min="2" max="50" value="${s.stamps_goal}">
           <label for="r">Prêmio</label><input id="r" name="r" type="text" value="${esc(s.reward)}">
           <label for="co">Cor do cartão do cliente</label><input id="co" name="co" type="color" value="${esc(s.color)}"></section>
+        <section class="panel"><h2>Resgate do prêmio</h2>
+          <label for="vd">Prazo para retirar depois de resgatar</label><select id="vd" name="vd">${[[1,'1 dia'],[2,'2 dias'],[3,'3 dias'],[7,'1 semana'],[15,'15 dias'],[30,'30 dias']].map(([v, l]) => `<option value="${v}" ${+s.reward_valid_days === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+          <label for="pn">PIN do atendente (4 a 6 números, opcional)</label><input id="pn" name="pn" type="text" inputmode="numeric" pattern="\\d{4,6}" maxlength="6" value="${esc(s.attendant_pin || '')}" placeholder="Ex.: 1234">
+          <p class="note" style="margin-top:10px">Com PIN, o atendente confirma a entrega no celular do cliente. Sem PIN, confirma pela aba Retiradas.</p></section>
         <section class="panel"><h2>Frequência</h2>
           <label for="cd">Intervalo entre carimbos (min)</label><input id="cd" name="cd" type="number" min="0" value="${s.cooldown_minutes}">
           <label for="md">Máx. de carimbos por cliente por dia</label><input id="md" name="md" type="number" min="1" max="50" value="${s.max_per_day}"></section>
@@ -630,7 +664,7 @@ function viewRegras(){
       if(f.gr.checked && f.gl.value === ''){ return toast('Para exigir localização, defina o local da loja: estando na loja, toque em "Usar minha localização atual".', true); }
       btn.disabled = true; toast('Salvando…');
       const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value, cooldown_minutes:+f.cd.value, reward:f.r.value, color:f.co.value,
-        max_per_day:+f.md.value, geo_required:f.gr.checked, geo_radius_m:+f.gm.value,
+        max_per_day:+f.md.value, reward_valid_days:+f.vd.value, attendant_pin:f.pn.value.trim() || null, geo_required:f.gr.checked, geo_radius_m:+f.gm.value,
         geo_lat:f.gl.value === '' ? null : +f.gl.value, geo_lng:f.gn.value === '' ? null : +f.gn.value}).eq('id', S.store.id);
       btn.disabled = false;
       if(error){ toast('Erro ao salvar: ' + error.message, true); return; }

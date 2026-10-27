@@ -219,3 +219,9 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- ===== v4: estatísticas do painel =====
 -- fid_stats(p_store uuid) -> jsonb (hoje, 7 dias, 30 dias, séries diárias e mensais). Só o dono da loja consegue chamar.
 -- (definição completa aplicada via migration "fid_stats_dashboard" no projeto).
+
+-- ===== v5: resgate pendente com prazo =====
+-- fid_stores.reward_valid_days (1-90) e attendant_pin (opcional); tabela fid_redemptions (pending/redeemed/expired, code, expires_at).
+-- Funções: fid_expire (interna), fid_redeem (cliente pede o resgate e abre o prazo), fid_confirm_redeem (atendente com PIN no celular do cliente),
+-- fid_admin_pending e fid_admin_redeem (painel, aba Retiradas). fid_state_json passa a devolver 'pending', 'valid_days', 'has_pin'.
+-- (definições completas aplicadas via migration "pending_redemption_flow" no projeto).
