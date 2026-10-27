@@ -252,6 +252,7 @@ async function stampNow(token){
   if(r.stamped){ render(r,{stamped:true,earned:r.earned}); boom(r.earned); }
   else if(r.geo === 'far') render(r,{note:'Você precisa estar na loja para carimbar',sub:'Você está a cerca de '+r.distance_m+' m. Chegue ao balcão e tente de novo.',retry:true});
   else if(r.geo === 'needed') render(r,{note:'Precisamos confirmar que você está na loja',sub:'Permita o acesso à localização e tente de novo.',retry:true});
+  else if(r.suspended) render(r,{note:'Esta loja não está carimbando agora',sub:'Fale com o atendente. Seus carimbos e prêmios continuam guardados.'});
   else if(r.daily_limit) render(r,{note:'Limite de carimbos de hoje atingido',sub:'Volte amanhã para continuar juntando 😉'});
   else render(r,{wait:r.wait_seconds});
 }

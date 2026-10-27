@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#4C1D95">
+<title>Superadmin · Fidelidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#F7F5FC;--ink:#1E1235;--primary:#7C3AED;--primary-d:#5B21B6;--deep:#4C1D95;--lilac:#EDE9FE;--line:#E3DDF2;--muted:#6B6485;--alert:#C0392B;--good:#1B7F5A;--warn:#B45309;color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+  button,input,select,textarea{font:inherit;color:inherit}
+  h1,h2{margin:0}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px clamp(16px,3vw,36px) 60px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem}
+  .brand i{width:30px;height:30px;border-radius:50%;background:var(--primary);display:grid;place-items:center;color:#fff;font-style:normal;font-size:1rem}
+  .tag{font-size:.72rem;background:var(--deep);color:#fff;border-radius:99px;padding:2px 9px;margin-left:6px;font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:9px 18px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;text-decoration:none}
+  .btn:hover{background:var(--primary-d)}
+  .btn.line{background:#fff;color:var(--primary-d);border:1.5px solid var(--primary)}
+  .btn.line:hover{background:var(--lilac)}
+  .btn.danger{background:#fff;color:var(--alert);border:1.5px solid var(--alert)}
+  .btn.danger:hover{background:#FDECEA}
+  .btn.small{min-height:34px;padding:5px 12px;font-size:.9rem}
+  .btn:disabled{opacity:.55;cursor:default}
+  input[type=text],input[type=number],input[type=date],input[type=email],input[type=password],input[type=search],select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;min-height:42px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+  label{display:block;font-size:.85rem;color:var(--muted);margin:12px 0 5px}
+  .muted{color:var(--muted)}
+  .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .kpi b{display:block;font-size:1.7rem;line-height:1.1}
+  .kpi span{font-size:.85rem;color:var(--muted)}
+  .kpi.warn b{color:var(--warn)} .kpi.bad b{color:var(--alert)}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .bar input[type=search]{flex:1;min-width:200px;max-width:340px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px;cursor:pointer;font-size:.9rem}
+  .chip[aria-pressed=true]{background:var(--primary);border-color:var(--primary);color:#fff}
+  .chip small{opacity:.75;margin-left:5px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:#fff}
+  table{width:100%;border-collapse:collapse;min-width:940px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;background:#FBFAFE}
+  tbody tr{cursor:pointer} tbody tr:hover{background:#FAF8FF}
+  tr:last-child td{border-bottom:0}
+  td.n,th.n{text-align:right}
+  .pill{display:inline-block;border-radius:99px;padding:3px 11px;font-size:.8rem;font-weight:600;white-space:nowrap}
+  .st-ativa{background:#DDF5EA;color:#0F6B49}.st-trial{background:#E0ECFF;color:#1D4ED8}
+  .st-tolerancia{background:#FEF0D0;color:#92400E}.st-vencida{background:#FDE1DE;color:#A52A1E}.st-bloqueada{background:#2B2140;color:#fff}
+  .dl{font-size:.82rem;color:var(--muted)} .dl.bad{color:var(--alert);font-weight:600} .dl.warn{color:var(--warn);font-weight:600}
+  .grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;margin-top:18px}
+  .tl{display:flex;align-items:stretch;gap:0;margin:14px 0 4px;flex-wrap:wrap}
+  .tl div{flex:1 1 120px;background:var(--lilac);padding:10px 12px;border-right:2px solid #fff}
+  .tl div:first-child{border-radius:10px 0 0 10px}.tl div:last-child{border-radius:0 10px 10px 0;border:0;background:var(--primary);color:#fff}
+  .tl small{display:block;font-size:.75rem;opacity:.8}.tl b{font-size:1rem}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .hbar{display:flex;align-items:flex-end;gap:3px;height:130px;margin-top:12px}
+  .hbar i{flex:1;background:var(--primary);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+  .hbar i.z{background:var(--line)}
+  .hlab{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px}
+  .mrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:12px}
+  .mrow div{background:var(--lilac);border-radius:10px;padding:8px 10px;text-align:center}.mrow b{display:block;font-size:1.15rem}.mrow small{color:var(--muted)}
+  code{background:var(--lilac);color:var(--deep);padding:2px 7px;border-radius:6px;font-size:.8rem;overflow-wrap:anywhere}
+  .trow{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .trow:last-child{border-bottom:0}
+  .trow .l{min-width:0;flex:1 1 240px}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .sect{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .auth{max-width:380px;margin:12vh auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px}
+  .err{color:var(--alert);min-height:1.2em}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;padding:11px 20px;border-radius:10px;z-index:99;display:none;max-width:90vw}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
+const root = document.getElementById('app');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pl = (n, a, b) => n === 1 ? a : b;
+const MES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const STATUS = {ativa:'Ativa', trial:'Em teste', tolerancia:'Em tolerância', vencida:'Vencida', bloqueada:'Bloqueada'};
+const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+const fmtDT = d => new Date(d).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+const money = v => v == null ? '—' : 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const baseUrl = () => location.origin + location.pathname.replace(/[^/]*$/, '');
+
+const S = {user:null, today:null, stores:[], filter:'todas', q:'', detail:null, loading:false};
+
+function toast(msg, bad){
+  let t = $('#toast');
+  if(!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.style.background = bad ? '#B42318' : '#12805C'; t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+window.addEventListener('unhandledrejection', e => toast('Erro: ' + ((e.reason && e.reason.message) || e.reason), true));
+
+async function rpc(fn, args){
+  const {data, error} = await sb.rpc(fn, args || {});
+  if(error){ toast('Erro: ' + error.message, true); return null; }
+  if(data && data.error){ toast('Não foi possível: ' + data.error, true); return null; }
+  return data;
+}
+
+/* ---------- entrada ---------- */
+function viewLogin(msg){
+  root.innerHTML = `<div class="auth"><div class="brand"><i>✓</i>Superadmin</div><h1 style="margin-top:16px;font-size:1.3rem">Entrar</h1>
+    <form id="f"><label for="e">E-mail</label><input id="e" type="email" required autocomplete="email">
+    <label for="p">Senha</label><input id="p" type="password" required autocomplete="current-password">
+    <p class="err">${esc(msg || '')}</p><button class="btn" style="width:100%">Entrar</button></form></div>`;
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await sb.auth.signInWithPassword({email:$('#e').value, password:$('#p').value});
+    if(r.error) return viewLogin('E-mail ou senha incorretos.');
+    boot();
+  };
+}
+async function boot(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) return viewLogin();
+  S.user = session.user;
+  const {data:ok} = await sb.rpc('fid_is_super');
+  if(!ok){ root.innerHTML = `<div class="auth"><h1 style="font-size:1.2rem">Sem acesso</h1><p class="muted">Esta conta não é de superadmin.</p><button class="btn line" id="o">Sair</button></div>`; $('#o').onclick = async () => { await sb.auth.signOut(); boot(); }; return; }
+  await loadAll(); render();
+}
+async function loadAll(){
+  const r = await rpc('fid_super_overview'); if(!r) return;
+  S.today = r.today; S.stores = r.items || [];
+}
+
+/* ---------- lista ---------- */
+const soon = s => s.status === 'ativa' && s.days_left <= 7 || s.status === 'trial' && s.days_left <= 3;
+function filtered(){
+  const q = S.q.trim().toLowerCase();
+  return S.stores.filter(s => {
+    if(S.filter === 'vencem7' ? !soon(s) : S.filter !== 'todas' && s.status !== S.filter) return false;
+    return !q || [s.name, s.email, s.referred_by].some(v => (v || '').toLowerCase().includes(q));
+  });
+}
+function dueText(s){
+  if(s.status === 'bloqueada') return '<span class="dl bad">acesso bloqueado</span>';
+  const n = s.days_left;
+  if(n > 0) return `<span class="dl ${n <= 7 ? 'warn' : ''}">em ${n} ${pl(n, 'dia', 'dias')}</span>`;
+  if(n === 0) return '<span class="dl warn">vence hoje</span>';
+  return `<span class="dl bad">venceu há ${-n} ${pl(-n, 'dia', 'dias')}</span>`;
+}
+function viewList(){
+  const L = S.stores, c = k => L.filter(s => s.status === k).length;
+  const sum = k => L.reduce((a, s) => a + (+s[k] || 0), 0);
+  const rows = filtered();
+  const chips = [['todas', 'Todas', L.length], ['ativa', 'Ativas', c('ativa')], ['trial', 'Em teste', c('trial')], ['vencem7', 'Vencem em 7 dias', L.filter(soon).length],
+    ['tolerancia', 'Em tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')]]
+    .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
+  root.innerHTML = `<div class="wrap">
+    <div class="top"><div class="brand"><i>✓</i>Fidelidade <span class="tag">Superadmin</span></div>
+      <div style="display:flex;gap:8px"><a class="btn line small" href="admin.html">Meu painel de loja</a><button class="btn line small" id="out">Sair</button></div></div>
+    <div class="strip">
+      <div class="kpi"><b>${L.length}</b><span>lojas cadastradas</span></div>
+      <div class="kpi"><b>${c('ativa')}</b><span>ativas (pagantes)</span></div>
+      <div class="kpi"><b>${c('trial')}</b><span>em teste</span></div>
+      <div class="kpi warn"><b>${L.filter(soon).length}</b><span>vencem em até 7 dias</span></div>
+      <div class="kpi bad"><b>${c('tolerancia') + c('vencida') + c('bloqueada')}</b><span>em tolerância, vencidas ou bloqueadas</span></div>
+      <div class="kpi"><b>${sum('stamps_today')}</b><span>carimbos hoje</span></div>
+      <div class="kpi"><b>${sum('stamps_30d')}</b><span>carimbos em 30 dias</span></div>
+      <div class="kpi"><b>${sum('customers')}</b><span>clientes finais</span></div>
+    </div>
+    <div class="bar"><input type="search" id="q" placeholder="Buscar por loja, e-mail ou afiliado" value="${esc(S.q)}">${chips}</div>
+    <div class="tw"><table><thead><tr><th>Loja</th><th>Status</th><th>Aquisição</th><th>Renovação</th><th>Indicou</th><th class="n">Hoje</th><th class="n">7 dias</th><th class="n">30 dias</th><th class="n">Total</th><th class="n">Clientes</th></tr></thead><tbody>
+    ${rows.length ? rows.map(s => `<tr data-id="${s.id}"><td><b>${esc(s.name)}</b><br><span class="dl">${esc(s.email || '')}</span></td>
+      <td><span class="pill st-${s.status}">${STATUS[s.status]}</span></td>
+      <td>${fmtDate(s.acquired_at)}</td>
+      <td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td>
+      <td>${esc(s.referred_by || '—')}</td>
+      <td class="n">${s.stamps_today}</td><td class="n">${s.stamps_7d}</td><td class="n">${s.stamps_30d}</td><td class="n">${s.stamps_total}</td><td class="n">${s.customers}</td></tr>`).join('')
+      : '<tr><td colspan="10" class="muted" style="text-align:center;padding:30px">Nenhuma loja neste filtro.</td></tr>'}
+    </tbody></table></div></div>`;
+  $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
+  $('#q').oninput = e => { S.q = e.target.value; const p = e.target.selectionStart; render(); const q = $('#q'); q.focus(); q.setSelectionRange(p, p); };
+  root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
+  root.querySelectorAll('tbody tr[data-id]').forEach(r => r.onclick = () => openStore(r.dataset.id));
+}
+
+/* ---------- detalhe ---------- */
+async function openStore(id){
+  const s = S.stores.find(x => x.id === id); if(!s) return;
+  S.detail = {s, d:null}; render();
+  const d = await rpc('fid_super_store', {p_store:id}); if(!d) return;
+  S.detail.d = d; render();
+}
+async function refreshDetail(){
+  const id = S.detail.s.id; await loadAll();
+  const s = S.stores.find(x => x.id === id); const d = await rpc('fid_super_store', {p_store:id});
+  S.detail = {s, d}; render();
+}
+function bars(rows, key, lab){
+  const max = Math.max(1, ...rows.map(r => r.stamps));
+  return `<div class="hbar">${rows.map(r => `<i class="${r.stamps ? '' : 'z'}" style="height:${Math.max(2, r.stamps / max * 100)}%" title="${lab(r)}: ${r.stamps} ${pl(r.stamps, 'carimbo', 'carimbos')}"></i>`).join('')}</div>
+    <div class="hlab"><span>${lab(rows[0])}</span><span>${lab(rows[rows.length - 1])}</span></div>`;
+}
+function viewDetail(){
+  const {s, d} = S.detail, today = S.today;
+  const sale = {acq:s.acquired_at, ship:s.ship_days, plan:s.plan_days};
+  const tl = `<div class="tl"><div><small>Aquisição</small><b>${fmtDate(sale.acq)}</b></div><div><small>+ ${sale.ship} ${pl(sale.ship, 'dia', 'dias')} de envio</small><b>${fmtDate(addDays(sale.acq, sale.ship))}</b></div><div><small>+ ${sale.plan} dias de plano</small><b>${fmtDate(addDays(sale.acq, sale.ship + sale.plan))}</b></div><div><small>Renovação atual</small><b>${fmtDate(s.renews_at)}</b></div></div>`;
+  const dd = d && d.daily, mm = d && d.monthly;
+  const html = `<div class="wrap">
+    <button class="btn line small" id="back">← Todas as lojas</button>
+    <div class="top" style="margin-top:16px"><div><h1 style="font-size:1.7rem">${esc(s.name)}</h1><span class="muted">${esc(s.email || '')} · cadastrada em ${fmtDate(s.created_at.slice(0, 10))}</span></div>
+      <div><span class="pill st-${s.status}" style="font-size:.95rem;padding:6px 16px">${STATUS[s.status]}</span> ${dueText(s)}</div></div>
+    <div class="strip">
+      <div class="kpi"><b>${s.stamps_today}</b><span>carimbos hoje</span></div><div class="kpi"><b>${s.stamps_7d}</b><span>em 7 dias</span></div>
+      <div class="kpi"><b>${s.stamps_30d}</b><span>em 30 dias</span></div><div class="kpi"><b>${s.stamps_total}</b><span>no total</span></div>
+      <div class="kpi"><b>${s.customers}</b><span>clientes</span></div>
+      <div class="kpi"><b>${s.last_stamp_at ? fmtDT(s.last_stamp_at) : '—'}</b><span>último carimbo</span></div></div>
+    <div class="grid2">
+      <section class="panel"><h2>Plano e renovação</h2>${tl}
+        <p class="muted" style="font-size:.88rem;margin:6px 0 0">Data da renovação = aquisição + dias de envio + dias de plano. Depois de vencer, há 7 dias de tolerância antes de parar os carimbos.</p>
+        <div class="sect"><h2 style="font-size:1rem">Renovar manualmente</h2>
+          <div class="cols"><div><label for="rd">Dias a adicionar</label><input id="rd" type="number" min="1" max="400" value="30"></div><div><label for="ra">Valor recebido (R$)</label><input id="ra" type="number" step="0.01" min="0" value="39.90"></div></div>
+          <label for="rn">Observação (opcional)</label><input id="rn" type="text" maxlength="200" placeholder="Ex.: pagou por PIX">
+          <div class="acts"><button class="btn" id="renew">Renovar</button></div></div>
+        <div class="sect"><h2 style="font-size:1rem">Teste e bloqueio</h2>
+          <div class="cols"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="90" value="7"></div><div></div></div>
+          <div class="acts"><button class="btn line" id="trial">Dar período de teste</button>
+          ${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger" id="block">Bloquear acesso</button>'}</div>
+          <p class="muted" style="font-size:.85rem;margin:8px 0 0">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div></section>
+      <section class="panel"><h2>Registrar venda do kit</h2>
+        <p class="muted" style="font-size:.88rem;margin:6px 0 0">Define aquisição, envio, plano e quem indicou. Troca o status para Ativa.</p>
+        <div class="cols"><div><label for="sd">Data da aquisição</label><input id="sd" type="date" value="${s.acquired_at}"></div><div><label for="sa">Valor da venda (R$)</label><input id="sa" type="number" step="0.01" min="0" value="79.90"></div>
+        <div><label for="ss">Dias de envio</label><input id="ss" type="number" min="0" max="60" value="${s.ship_days}"></div><div><label for="sp">Dias de plano</label><input id="sp" type="number" min="1" max="400" value="${s.plan_days}"></div></div>
+        <p id="sprev" class="muted" style="margin:8px 0 0"></p>
+        <label for="sr">Quem indicou (afiliado)</label><input id="sr" type="text" maxlength="60" value="${esc(s.referred_by || '')}" placeholder="Nome ou código do afiliado">
+        <div class="acts"><button class="btn" id="sale">Registrar venda</button></div>
+        <div class="sect"><label for="an" style="margin-top:0">Anotações internas</label><textarea id="an" rows="3" maxlength="500">${esc(s.note || '')}</textarea>
+          <div class="acts"><button class="btn line small" id="savenote">Salvar afiliado e anotações</button></div></div></section></div>
+    <div class="grid2">
+      <section class="panel"><h2>Carimbos por dia (30 dias)</h2>${dd ? bars(dd, 'd', r => r.d.slice(8, 10) + '/' + r.d.slice(5, 7)) : '<p class="muted">Carregando…</p>'}
+        <h2 style="margin-top:22px">Carimbos por mês</h2>${mm ? bars(mm, 'm', r => MES[+r.m.slice(5, 7) - 1] + '/' + r.m.slice(2, 4)) : ''}
+        ${mm ? `<div class="mrow">${mm.slice().reverse().map(r => `<div><b>${r.stamps}</b><small>${MES[+r.m.slice(5, 7) - 1]}/${r.m.slice(2, 4)}</small></div>`).join('')}</div>` : ''}</section>
+      <section class="panel"><h2>Links de carimbo (tags)</h2>
+        ${d ? (d.tags.length ? d.tags.map(t => `<div class="trow"><div class="l"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' <span class="muted">(desativada)</span>'}</b> · ${t.stamps} ${pl(t.stamps, 'carimbo', 'carimbos')}<br><code>${esc(baseUrl())}c.html?t=${esc(t.id)}</code></div>
+          <div style="display:flex;gap:6px"><button class="btn line small" data-copy="${esc(t.id)}">Copiar</button><a class="btn line small" target="_blank" rel="noopener" href="c.html?t=${esc(t.id)}">Abrir</a></div></div>`).join('') : '<p class="muted">Nenhuma tag criada.</p>') : '<p class="muted">Carregando…</p>'}
+        <h2 style="margin-top:22px">Histórico de cobrança</h2>
+        ${d && d.billing.length ? `<table style="min-width:0;margin-top:8px"><tbody>${d.billing.map(b => `<tr style="cursor:default"><td>${fmtDT(b.created_at)}</td><td><b>${{sale:'Venda', renewal:'Renovação', trial:'Teste', block:'Bloqueio', unblock:'Desbloqueio', adjust:'Ajuste'}[b.kind] || b.kind}</b><br><span class="dl">${esc(b.note || '')}</span></td><td class="n">${b.amount != null ? money(b.amount) : ''}</td><td class="n">${b.renews_after ? 'até ' + fmtDate(b.renews_after) : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="muted" style="margin-top:8px">Sem lançamentos ainda.</p>'}</section></div></div>`;
+  return {html, bind(){
+    $('#back').onclick = () => { S.detail = null; render(); };
+    const prev = () => { const a = $('#sd').value, sh = +$('#ss').value, pn = +$('#sp').value; $('#sprev').innerHTML = a ? `Renovação em <b>${fmtDate(addDays(a, sh + pn))}</b> (${sh} de envio + ${pn} de plano).` : ''; };
+    ['sd', 'ss', 'sp'].forEach(i => $('#' + i).oninput = prev); prev();
+    const run = async (btn, fn, args, ok) => { btn.disabled = true; const r = await rpc(fn, args); btn.disabled = false; if(r){ await refreshDetail(); toast(ok); } };
+    $('#renew').onclick = e => run(e.target, 'fid_super_renew', {p_store:s.id, p_days:+$('#rd').value, p_amount:$('#ra').value === '' ? null : +$('#ra').value, p_note:$('#rn').value}, 'Plano renovado ✓');
+    $('#trial').onclick = e => run(e.target, 'fid_super_trial', {p_store:s.id, p_days:+$('#td').value}, 'Teste liberado ✓');
+    const bk = $('#block'), ub = $('#unblock');
+    if(bk) bk.onclick = e => { if(confirm('Bloquear o acesso de "' + s.name + '"? Os cartões dos clientes param de carimbar.')) run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:true, p_note:'Bloqueio manual'}, 'Loja bloqueada'); };
+    if(ub) ub.onclick = e => run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:false, p_note:'Desbloqueio manual'}, 'Loja desbloqueada ✓');
+    $('#sale').onclick = e => run(e.target, 'fid_super_sale', {p_store:s.id, p_acquired:$('#sd').value, p_ship:+$('#ss').value, p_plan:+$('#sp').value, p_amount:$('#sa').value === '' ? null : +$('#sa').value, p_ref:$('#sr').value}, 'Venda registrada ✓');
+    $('#savenote').onclick = e => run(e.target, 'fid_super_update', {p_store:s.id, p_ref:$('#sr').value, p_note:$('#an').value}, 'Salvo ✓');
+    root.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(baseUrl() + 'c.html?t=' + b.dataset.copy); toast('Link copiado ✓'); } catch(e){ toast('Não foi possível copiar', true); } });
+  }};
+}
+
+function render(){
+  if(S.detail){ const v = viewDetail(); root.innerHTML = v.html; v.bind(); window.scrollTo(0, 0); }
+  else viewList();
+}
+boot();
+</script>
+</body>
+</html>

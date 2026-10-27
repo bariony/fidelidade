@@ -38,6 +38,10 @@
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
   .err{color:var(--alert);margin-top:12px;min-height:1.2em}
   .note{color:var(--muted)}
+  .pbanner{border-radius:12px;padding:11px 16px;margin-bottom:18px;font-weight:500}
+  .pbanner.info{background:var(--lilac);color:var(--deep)}
+  .pbanner.warn{background:#FEF0D0;color:#92400E}
+  .pbanner.bad{background:#FDE1DE;color:#A52A1E}
   .bdg{margin-left:auto;background:#DC2626;color:#fff;border-radius:99px;min-width:20px;padding:1px 6px;font-size:.75rem;font-weight:700;text-align:center}
   .collapsed .bdg{position:absolute;top:4px;right:6px;margin:0;min-width:16px;font-size:.65rem;padding:0 4px}
   .pend{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
@@ -52,6 +56,7 @@
   .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.15rem;letter-spacing:-.01em;padding:2px 8px 22px;color:var(--ink)}
   .brand svg{flex:none;transform:rotate(-8deg)}
   .nav{display:flex;flex-direction:column;gap:4px}
+  a.navbtn{text-decoration:none;box-sizing:border-box}
   .navbtn{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:12px;background:none;color:var(--muted);font-weight:500;cursor:pointer;text-align:left}
   .navbtn svg{width:21px;height:21px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
   .navbtn:hover{background:var(--lilac);color:var(--primary-d)}
@@ -237,7 +242,7 @@ const mq = window.matchMedia('(max-width:820px)');
 const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
 
-const S = { user:null, store:null, tags:[], customers:[], stats:null, pending:[], view:'hoje', detail:null,
+const S = { isSuper:false, user:null, store:null, tags:[], customers:[], stats:null, pending:[], view:'hoje', detail:null,
   chart:{kind:'stamps', range:'dias'}, filter:'todos', q:'', camp:{seg:'risco', msg:null}, firstPaint:true,
   collapsed: lsGet('fid_rail') === '1' };
 
@@ -325,6 +330,7 @@ async function load(){
     sb.rpc('fid_admin_pending', {p_store: S.store.id})
   ]);
   S.pending = (pe.data && pe.data.items) || [];
+  if(!S.superChecked){ S.superChecked = true; const r = await sb.rpc('fid_is_super'); S.isSuper = r.data === true; }
   S.tags = t.data || []; S.customers = c.data || [];
   S.stats = (st.data && !st.data.error) ? st.data : null;
   render();
@@ -340,21 +346,35 @@ async function openCustomer(cid, stay){
 }
 function go(view){ S.view = view; render(); window.scrollTo(0, 0); }
 
+/* ---------- aviso de plano ---------- */
+function planBanner(){
+  const s = S.store; if(!s || !s.renews_at) return '';
+  const d = Math.round((new Date(s.renews_at + 'T12:00:00') - new Date(new Date().toISOString().slice(0, 10) + 'T12:00:00')) / DAY);
+  let tone = '', msg = '';
+  if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
+  else if(d < -7) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
+  else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Renove em até ' + (7 + d) + ' ' + pl(7 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
+  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
+  else if(d <= 7) { tone = 'info'; msg = 'Seu plano renova em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
+  return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
+}
+
 /* ---------- renderização geral ---------- */
 function render(){
   if(!S.user) return viewLogin();
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;
   const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}</button>`;
+  const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Superadmin" aria-label="Superadmin">${ICON.users}<span class="lb">Superadmin</span></a>` : '';
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
   const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>Fidelidade</span></div>
-    <nav class="nav" aria-label="Seções">${nav}</nav>
+    <nav class="nav" aria-label="Seções">${nav}${sup}</nav>
     <div class="foot">
       ${mq.matches ? '' : `<button class="navbtn" id="col" data-tip="Expandir menu" aria-label="Recolher ou expandir o menu">${ICON.chev}<span class="lb">Recolher menu</span></button>`}
       <button class="navbtn" id="out" data-tip="Sair" aria-label="Sair">${ICON.out}<span class="lb">Sair</span></button>
       <div class="email">${esc(S.user.email || '')}</div>
-    </div></aside><main>${v.html}</main></div>`;
+    </div></aside><main>${planBanner()}${v.html}</main></div>`;
   root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
   $('#out').onclick = async () => { await sb.auth.signOut(); S.user = null; S.store = null; render(); };
   const cb = $('#col');

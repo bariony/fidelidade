@@ -239,3 +239,10 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- ===== v8: visibilidade por link =====
 -- fid_stores.links_off text[] (links escondidos do cartão); show_links passa a valer true por padrão e não é mais usado na tela.
 -- (aplicado via migration "links_per_row_visibility" no projeto).
+
+-- ===== v9: superadmin, planos e cobrança manual =====
+-- fid_superadmins(user_id); fid_stores: acquired_at, ship_days, plan_days, renews_at, is_trial, blocked, referred_by, admin_note.
+-- fid_billing: histórico (venda, renovação, teste, bloqueio). O lojista só atualiza colunas de configuração (grant por coluna).
+-- Funções: fid_is_super, fid_super_overview, fid_super_store, fid_super_sale, fid_super_renew, fid_super_trial, fid_super_block, fid_super_update,
+-- fid_plan_status (ativa/trial/tolerancia 7 dias/vencida/bloqueada) e fid_store_active; fid_stamp e fid_claim param quando a loja está suspensa.
+-- (aplicado via migrations "superadmin_plans_billing" e "superadmin_rpcs" no projeto). Painel: super.html.
