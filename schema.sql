@@ -202,3 +202,16 @@ grant execute on function public.fid_admin_adjust(uuid, int, int) to authenticat
 
 -- ===== v1 (auto-confirmação de e-mail no MVP; remover antes de abrir para muitos lojistas) =====
 -- create trigger fid_auto_confirm_email before insert on auth.users for each row execute function public.fid_auto_confirm_email();
+
+-- ===== v3: limite diário por cliente e checagem de localização (raio da loja) =====
+alter table public.fid_stores
+  add column if not exists max_per_day int not null default 3 check (max_per_day between 1 and 50),
+  add column if not exists geo_required boolean not null default false,
+  add column if not exists geo_lat double precision,
+  add column if not exists geo_lng double precision,
+  add column if not exists geo_radius_m int not null default 150 check (geo_radius_m between 20 and 5000);
+alter table public.fid_stores drop constraint if exists fid_stores_geo_chk;
+alter table public.fid_stores add constraint fid_stores_geo_chk
+  check (not geo_required or (geo_lat is not null and geo_lng is not null));
+-- fid_get_store passa a devolver 'geo_required'; fid_stamp(p_tag, p_token, p_lat, p_lng, p_acc) substitui a versão de 2 argumentos
+-- (definições completas aplicadas via migration "daily_limit_and_geofence" no projeto).

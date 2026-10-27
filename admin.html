@@ -100,16 +100,30 @@ async function panel(user){
     <div><label>Intervalo entre carimbos (min)</label><input name="cd" type="number" min="0" value="${s.cooldown_minutes}"></div></div>
     <label>Prêmio</label><input name="r" value="${esc(s.reward)}">
     <label>Cor</label><input name="co" type="color" value="${esc(s.color)}">
+    <label>Máx. de carimbos por cliente por dia</label><input name="md" type="number" min="1" max="50" value="${s.max_per_day}">
+    <label style="display:flex;gap:8px;align-items:center"><input name="gr" type="checkbox" style="width:auto" ${s.geo_required?'checked':''}> Exigir que o cliente esteja na loja (confere a localização do celular)</label>
+    <div class="row"><div><label>Raio permitido (metros)</label><input name="gm" type="number" min="20" max="5000" value="${s.geo_radius_m}"></div>
+    <div><label>Local da loja</label><input name="gl" type="hidden" value="${s.geo_lat??''}"><input name="gn" type="hidden" value="${s.geo_lng??''}"><button type="button" class="sec" id="geo" style="margin-top:0;width:100%">${s.geo_lat!=null?'Atualizar para o local onde estou':'Usar minha localização atual'}</button></div></div>
+    <p class="mut" id="geost">${s.geo_lat!=null?'Local salvo ✓ ('+(+s.geo_lat).toFixed(5)+', '+(+s.geo_lng).toFixed(5)+')':'Local ainda não definido. Estando na loja, toque no botão acima e depois em Salvar regras.'}</p>
     <button>Salvar regras</button></form></div>`;
   document.getElementById('out').onclick = async()=>{await sb.auth.signOut();boot()};
   app.querySelectorAll('tr[data-c]').forEach(tr=>tr.onclick=()=>customerView(user,s,tags||[],tr.dataset.c));
+  document.getElementById('geo').onclick = ()=>{
+    const st = document.getElementById('geost'); st.textContent = 'Obtendo localização…';
+    if(!navigator.geolocation){ st.textContent = 'Este navegador não oferece localização.'; return; }
+    navigator.geolocation.getCurrentPosition(p=>{
+      const f = document.getElementById('rf'); f.gl.value = p.coords.latitude; f.gn.value = p.coords.longitude;
+      st.textContent = 'Local capturado ✓ (precisão ~'+Math.round(p.coords.accuracy)+' m). Toque em "Salvar regras".';
+    }, ()=>{ st.textContent = 'Não foi possível obter a localização (permita o acesso no navegador).'; }, {enableHighAccuracy:true,timeout:15000});
+  };
   document.getElementById('addtag').onclick = async()=>{
     const {error} = await sb.from('fid_tags').insert({id:code(),store_id:s.id,label:document.getElementById('lbl').value||'Tag'});
     if(error) alert(error.message); panel(user);
   };
   document.getElementById('rf').onsubmit = async ev=>{
     ev.preventDefault(); const f=ev.target;
-    const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value,cooldown_minutes:+f.cd.value,reward:f.r.value,color:f.co.value}).eq('id',s.id);
+    if(f.gr.checked && f.gl.value===''){ return alert('Para exigir localização, defina o local da loja: estando na loja, toque em "Usar minha localização atual".'); }
+    const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value,cooldown_minutes:+f.cd.value,reward:f.r.value,color:f.co.value,max_per_day:+f.md.value,geo_required:f.gr.checked,geo_radius_m:+f.gm.value,geo_lat:f.gl.value===''?null:+f.gl.value,geo_lng:f.gn.value===''?null:+f.gn.value}).eq('id',s.id);
     if(error) alert(error.message); else panel(user);
   };
 }

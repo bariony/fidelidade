@@ -44,6 +44,7 @@ const tag = new URLSearchParams(location.search).get('t') || '';
 const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
 const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
+let INFO = null;
 const store = k => { try { return localStorage.getItem(k) } catch(e){ return null } };
 const save = (k,v) => { try { localStorage.setItem(k,v) } catch(e){} };
 const rpc = async (fn, args) => { const {data,error} = await sb.rpc(fn,args); if(error) return {error:error.message}; return data; };
@@ -99,10 +100,13 @@ function render(s, opts={}){
   let h = card(s, opts.stamped);
   if(opts.stamped && opts.earned) h += `<p class="msg">🎉 Você ganhou: ${esc(s.reward)}!</p><p class="sub">Mostre esta tela ao atendente.</p>`;
   else if(opts.stamped) h += `<p class="msg">Carimbo registrado!</p><p class="sub">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
-  else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Você já carimbou hoje 😉</p><p class="sub">Volte em ${m} min para o próximo carimbo.</p>`; }
+  else if(opts.note) h += `<p class="msg">${esc(opts.note)}</p>${opts.sub?`<p class="sub">${esc(opts.sub)}</p>`:''}${opts.retry?'<button id="retry" class="ghost">Tentar de novo</button>':''}`;
+  else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Carimbo recente 😉</p><p class="sub">O próximo carimbo libera em ${m} min.</p>`; }
   else h += `<p class="sub" style="margin-top:18px">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>${opts.viewOnly?'<p class="sub" style="margin-top:6px">Para ganhar um carimbo, encoste o celular no bastão.</p>':''}`;
   if(s.rewards_available>0) h += `<div class="reward"><b>🎁 ${s.rewards_available} prêmio(s) disponível(is)</b>${esc(s.reward)}<button id="rd">Resgatar agora (atendente confirma)</button></div>`;
   app.innerHTML = h;
+  const rt = document.getElementById('retry');
+  if(rt) rt.onclick = () => stampNow(s.token);
   const rd = document.getElementById('rd');
   if(rd) rd.onclick = async () => {
     if(!confirm('Atendente: confirmar resgate de "'+s.reward+'"?')) return;
@@ -112,16 +116,40 @@ function render(s, opts={}){
 }
 
 async function stampNow(token){
-  const r = await rpc('fid_stamp',{p_tag:tag,p_token:token});
+  const args = {p_tag:tag,p_token:token};
+  if(INFO && INFO.geo_required){
+    app.innerHTML = '<p class="sub" style="margin-top:40vh">Confirmando que você está na loja…</p>';
+    const p = await getPos();
+    if(p.err){
+      return render({token,stamps:0,goal:INFO.goal,reward:INFO.reward,store:INFO.store,color:INFO.color,name:'',rewards_available:0},
+        {note:'Precisamos confirmar que você está na loja',sub:'Permita o acesso à localização no navegador e toque em tentar de novo.',retry:true});
+    }
+    args.p_lat = p.lat; args.p_lng = p.lng; args.p_acc = p.acc;
+  }
+  const r = await rpc('fid_stamp',args);
   if(r.error){ app.innerHTML = '<p class="err">Cartão não encontrado. <a href="">Tentar de novo</a></p>'; return; }
   if(r.stamped){ render(r,{stamped:true,earned:r.earned}); boom(r.earned); }
+  else if(r.geo === 'far') render(r,{note:'Você precisa estar na loja para carimbar',sub:'Você está a cerca de '+r.distance_m+' m. Chegue ao balcão e tente de novo.',retry:true});
+  else if(r.geo === 'needed') render(r,{note:'Precisamos confirmar que você está na loja',sub:'Permita o acesso à localização e tente de novo.',retry:true});
+  else if(r.daily_limit) render(r,{note:'Limite de carimbos de hoje atingido',sub:'Volte amanhã para continuar juntando 😉'});
   else render(r,{wait:r.wait_seconds});
+}
+
+function getPos(){
+  return new Promise(res=>{
+    if(!navigator.geolocation) return res({err:'unsupported'});
+    navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude,lng:p.coords.longitude,acc:p.coords.accuracy}),
+      e=>res({err:e.code===1?'denied':'fail'}),
+      {enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+  });
 }
 
 (async function init(){
   if(!tag){ app.innerHTML = '<p class="err">Tag inválida. Encoste o celular no bastão novamente.</p>'; return; }
   const info = await rpc('fid_get_store',{p_tag:tag});
   if(!info || info.error){ app.innerHTML = '<p class="err">Esta tag não está ativa.</p>'; return; }
+  INFO = info;
   const token = store(KEY);
   if(!token) return showRegister(info);
   const st = await rpc('fid_state',{p_tag:tag,p_token:token});
