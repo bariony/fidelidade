@@ -172,3 +172,33 @@ grant execute on function public.fid_state(text, uuid) to anon, authenticated;
 grant execute on function public.fid_stamp(text, uuid) to anon, authenticated;
 grant execute on function public.fid_redeem(text, uuid) to anon, authenticated;
 grant execute on function public.fid_recover(text, text) to anon, authenticated;
+
+-- ===== v2: ajuste manual pelo lojista + detalhe nos eventos =====
+alter table public.fid_events drop constraint if exists fid_events_kind_check;
+alter table public.fid_events add constraint fid_events_kind_check check (kind in ('stamp','reward_earned','redeem','adjust'));
+alter table public.fid_events add column if not exists detail text;
+
+create or replace function public.fid_admin_adjust(p_customer uuid, p_stamps int, p_rewards int)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare s fid_stores; c fid_customers; old_s int; old_r int;
+begin
+  if auth.uid() is null then return jsonb_build_object('error','nao_autenticado'); end if;
+  select * into c from fid_customers where id = p_customer for update;
+  if not found then return jsonb_build_object('error','cliente_nao_encontrado'); end if;
+  select * into s from fid_stores where id = c.store_id and owner = auth.uid();
+  if not found then return jsonb_build_object('error','sem_permissao'); end if;
+  if p_stamps is null or p_stamps < 0 or p_stamps >= s.stamps_goal or p_rewards is null or p_rewards < 0 then
+    return jsonb_build_object('error','valores_invalidos');
+  end if;
+  old_s := c.stamps; old_r := c.rewards_available;
+  update fid_customers set stamps = p_stamps, rewards_available = p_rewards where id = c.id;
+  insert into fid_events (store_id, customer_id, kind, detail)
+    values (s.id, c.id, 'adjust', format('Carimbos %s→%s · Prêmios %s→%s', old_s, p_stamps, old_r, p_rewards));
+  return jsonb_build_object('ok', true);
+end $$;
+
+revoke all on function public.fid_admin_adjust(uuid, int, int) from public, anon;
+grant execute on function public.fid_admin_adjust(uuid, int, int) to authenticated;
+
+-- ===== v1 (auto-confirmação de e-mail no MVP; remover antes de abrir para muitos lojistas) =====
+-- create trigger fid_auto_confirm_email before insert on auth.users for each row execute function public.fid_auto_confirm_email();

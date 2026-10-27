@@ -90,7 +90,7 @@ async function panel(user){
 
   <div class="card"><h2>Clientes</h2>
     <table><tr><th>Nome</th><th>WhatsApp</th><th>Carimbos</th><th>Prêmios</th><th>Último</th></tr>
-    ${cust.map(c=>`<tr><td>${esc(c.name)}</td><td><a href="https://wa.me/${esc(c.whatsapp.length<=11?'55'+c.whatsapp:c.whatsapp)}" target="_blank">${esc(c.whatsapp)}</a></td>
+    ${cust.map(c=>`<tr data-c="${c.id}" style="cursor:pointer"><td><b>${esc(c.name)}</b> ›</td><td><a onclick="event.stopPropagation()" href="https://wa.me/${esc(c.whatsapp.length<=11?'55'+c.whatsapp:c.whatsapp)}" target="_blank">${esc(c.whatsapp)}</a></td>
       <td>${c.stamps}/${s.stamps_goal}</td><td>${c.rewards_available}</td>
       <td>${c.last_stamp_at?new Date(c.last_stamp_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'-'}</td></tr>`).join('')||'<tr><td colspan=5 class="mut">Sem clientes ainda.</td></tr>'}
     </table></div>
@@ -102,6 +102,7 @@ async function panel(user){
     <label>Cor</label><input name="co" type="color" value="${esc(s.color)}">
     <button>Salvar regras</button></form></div>`;
   document.getElementById('out').onclick = async()=>{await sb.auth.signOut();boot()};
+  app.querySelectorAll('tr[data-c]').forEach(tr=>tr.onclick=()=>customerView(user,s,tags||[],tr.dataset.c));
   document.getElementById('addtag').onclick = async()=>{
     const {error} = await sb.from('fid_tags').insert({id:code(),store_id:s.id,label:document.getElementById('lbl').value||'Tag'});
     if(error) alert(error.message); panel(user);
@@ -110,6 +111,40 @@ async function panel(user){
     ev.preventDefault(); const f=ev.target;
     const {error} = await sb.from('fid_stores').update({stamps_goal:+f.g.value,cooldown_minutes:+f.cd.value,reward:f.r.value,color:f.co.value}).eq('id',s.id);
     if(error) alert(error.message); else panel(user);
+  };
+}
+
+async function customerView(user, s, tags, cid){
+  const [{data:c},{data:ev}] = await Promise.all([
+    sb.from('fid_customers').select('*').eq('id',cid).single(),
+    sb.from('fid_events').select('*').eq('customer_id',cid).order('created_at',{ascending:false}).limit(500)
+  ]);
+  if(!c) return panel(user);
+  const events = ev||[];
+  const tagName = id => (tags.find(t=>t.id===id)||{}).label || id || '-';
+  const kind = {stamp:'Carimbo',reward_earned:'Prêmio conquistado',redeem:'Resgate',adjust:'Ajuste manual'};
+  const fmt = d => new Date(d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  app.innerHTML = `<div class="top"><h1>${esc(c.name)}</h1><button class="sec" id="back">← Voltar</button></div>
+  <div class="card"><p class="mut">WhatsApp ${esc(c.whatsapp)} · cliente desde ${fmt(c.created_at)}</p>
+    <div class="kpis">
+      <div class="kpi"><b>${c.stamps}/${s.stamps_goal}</b><span>no cartão</span></div>
+      <div class="kpi"><b>${c.rewards_available}</b><span>prêmios disponíveis</span></div>
+      <div class="kpi"><b>${c.total_stamps}</b><span>carimbos total</span></div>
+      <div class="kpi"><b>${c.rewards_redeemed}</b><span>resgates</span></div></div></div>
+  <div class="card"><h2>Ajustar manualmente</h2><form id="af"><div class="row">
+    <div><label>Carimbos no cartão (0 a ${s.stamps_goal-1})</label><input name="s" type="number" min="0" max="${s.stamps_goal-1}" value="${c.stamps}" required></div>
+    <div><label>Prêmios disponíveis</label><input name="r" type="number" min="0" value="${c.rewards_available}" required></div></div>
+    <button>Salvar ajuste</button></form><p class="mut">Todo ajuste fica registrado no histórico.</p></div>
+  <div class="card"><h2>Histórico (${events.length})</h2>
+    <table><tr><th>Data e hora</th><th>Evento</th><th>Tag</th></tr>
+    ${events.map(e=>`<tr><td>${fmt(e.created_at)}</td><td>${esc(kind[e.kind]||e.kind)}${e.detail?`<br><span class="mut">${esc(e.detail)}</span>`:''}</td><td>${e.kind==='adjust'?'-':esc(tagName(e.tag_id))}</td></tr>`).join('')||'<tr><td colspan=3 class="mut">Sem eventos.</td></tr>'}
+    </table></div>`;
+  document.getElementById('back').onclick = ()=>panel(user);
+  document.getElementById('af').onsubmit = async ev2=>{
+    ev2.preventDefault(); const f=ev2.target;
+    const {data,error} = await sb.rpc('fid_admin_adjust',{p_customer:cid,p_stamps:+f.s.value,p_rewards:+f.r.value});
+    if(error || data?.error) return alert('Não foi possível salvar: '+(error?.message||data.error));
+    customerView(user,s,tags,cid);
   };
 }
 

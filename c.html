@@ -100,7 +100,7 @@ function render(s, opts={}){
   if(opts.stamped && opts.earned) h += `<p class="msg">🎉 Você ganhou: ${esc(s.reward)}!</p><p class="sub">Mostre esta tela ao atendente.</p>`;
   else if(opts.stamped) h += `<p class="msg">Carimbo registrado!</p><p class="sub">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
   else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Você já carimbou hoje 😉</p><p class="sub">Volte em ${m} min para o próximo carimbo.</p>`; }
-  else h += `<p class="sub" style="margin-top:18px">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
+  else h += `<p class="sub" style="margin-top:18px">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>${opts.viewOnly?'<p class="sub" style="margin-top:6px">Para ganhar um carimbo, encoste o celular no bastão.</p>':''}`;
   if(s.rewards_available>0) h += `<div class="reward"><b>🎁 ${s.rewards_available} prêmio(s) disponível(is)</b>${esc(s.reward)}<button id="rd">Resgatar agora (atendente confirma)</button></div>`;
   app.innerHTML = h;
   const rd = document.getElementById('rd');
@@ -126,8 +126,16 @@ async function stampNow(token){
   if(!token) return showRegister(info);
   const st = await rpc('fid_state',{p_tag:tag,p_token:token});
   if(st.error){ return showRegister(info); }
+  // Só carimba em abertura nova (toque no bastão ou link aberto). Recarregar (F5/puxar para atualizar),
+  // voltar/avançar ou aba restaurada só mostram o cartão, sem carimbar.
+  let navType = 'navigate';
+  try { const n = performance.getEntriesByType('navigation')[0]; if(n) navType = n.type; } catch(e){}
+  if(navType === 'reload' || navType === 'back_forward') return render(st,{viewOnly:true});
   stampNow(token);
 })();
+
+// Página restaurada do cache do navegador (botão voltar): não carimba, só mostra.
+window.addEventListener('pageshow', e => { if(e.persisted){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(s=>{ if(!s.error) render(s,{viewOnly:true}); }); } });
 </script>
 </body>
 </html>
