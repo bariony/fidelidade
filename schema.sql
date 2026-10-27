@@ -215,3 +215,7 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
   check (not geo_required or (geo_lat is not null and geo_lng is not null));
 -- fid_get_store passa a devolver 'geo_required'; fid_stamp(p_tag, p_token, p_lat, p_lng, p_acc) substitui a versão de 2 argumentos
 -- (definições completas aplicadas via migration "daily_limit_and_geofence" no projeto).
+
+-- ===== v4: estatísticas do painel =====
+-- fid_stats(p_store uuid) -> jsonb (hoje, 7 dias, 30 dias, séries diárias e mensais). Só o dono da loja consegue chamar.
+-- (definição completa aplicada via migration "fid_stats_dashboard" no projeto).
