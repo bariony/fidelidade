@@ -31,6 +31,8 @@
   .reward b{display:block;font-size:1.05rem;margin-bottom:4px}
   a.link{display:block;text-align:center;margin-top:16px;color:var(--mut);font-size:.85rem}
   .hide{display:none}
+  .reward.prize{background:#f3edff;border-color:var(--c)}
+  .reward.prize b,.reward.pend b{color:var(--c)}
   .reward.pend{background:#f3edff;border-color:var(--c)}
   .reward.ok{background:#e8f8ef;border-color:#34c27a}
   .cd{font-weight:700;margin:8px 0 0}
@@ -111,9 +113,9 @@ function render(s, opts={}){
     h += `<div class="reward pend"><b>⏳ Resgate pendente</b>${esc(s.reward)}<p class="sub" style="margin-top:6px">Vá até a loja para retirar seu prêmio.</p>
       <p class="cd">Expira em <span id="cd"></span></p><button id="pr">Apresentar no balcão</button></div>`;
   } else if(s.rewards_available>0){
-    h += `<div class="reward"><b>🎁 ${s.rewards_available>1?'Você tem '+s.rewards_available+' prêmios':'Você ganhou um prêmio'}!</b>${esc(s.reward)}
-      <p class="sub" style="margin-top:6px">Resgate quando estiver na loja. Depois de resgatar, você tem ${s.valid_days||7} dia(s) para retirar.</p>
-      <button id="rd">Resgatar prêmio</button></div>`;
+    h += `<div class="reward prize"><b>🎁 ${s.rewards_available>1?'Você tem '+s.rewards_available+' prêmios':'Você ganhou um prêmio!'}</b>${esc(s.reward)}
+      <p class="sub" style="margin-top:6px">Ao resgatar, você tem ${s.valid_days||7} dia(s) para retirar na loja.</p>
+      <button id="rd">Resgatar agora</button></div>`;
   } else if(s.last_expired){
     h += `<p class="sub" style="margin-top:14px">Seu último prêmio expirou 😕 Continue juntando carimbos para ganhar outro!</p>`;
   }
@@ -122,7 +124,6 @@ function render(s, opts={}){
   if(rt) rt.onclick = () => stampNow(s.token);
   const rd = document.getElementById('rd');
   if(rd) rd.onclick = async () => {
-    if(!confirm('Resgatar "'+s.reward+'"? Você terá '+(s.valid_days||7)+' dia(s) para retirar na loja.')) return;
     rd.disabled = true;
     const r = await rpc('fid_redeem',{p_tag:tag,p_token:s.token});
     if(r.error){ rd.disabled=false; alert('Não foi possível resgatar. Tente de novo.'); return; }
