@@ -319,6 +319,26 @@
   @media (max-width:1000px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:760px){.lr{grid-template-columns:36px minmax(0,1fr) auto}.lr .lcard{display:none}}
   @media (max-width:640px){.cgrid{grid-template-columns:minmax(0,1fr)}.hero .ha,.hero .ha .btn{width:100%}.stats{grid-template-columns:1fr 1fr}}
+
+  /* ---------- lista compacta de clientes ---------- */
+  .clist{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard);overflow:hidden}
+  .chead,.crow{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(150px,1.3fr) minmax(0,1fr) minmax(0,1.1fr) 84px;gap:14px;align-items:center;padding:0 18px}
+  .chead{padding-top:10px;padding-bottom:10px;background:var(--kraft);border-bottom:3px solid var(--ink);font-size:.78rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+  .crow{min-height:60px;padding-top:8px;padding-bottom:8px;border-bottom:1px solid var(--line);cursor:pointer}
+  .crow:last-child{border-bottom:0}
+  .crow:hover,.crow:focus-visible{background:#FFF6DD;outline:none}
+  .c-name{display:flex;align-items:center;gap:12px;min-width:0}
+  .c-name .cname b{display:flex;align-items:center;gap:8px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.02rem}
+  .c-name .cname b .pill{flex:none;font-family:'Nunito',sans-serif}
+  .crow .cname{min-width:0}
+  .c-card{display:flex;align-items:center;gap:10px}
+  .c-card b{font-family:'Fredoka',sans-serif;font-size:1.05rem;min-width:34px}
+  .c-since,.c-last{font-size:.92rem;font-weight:600}
+  .crow .lab{display:none}
+  .c-go{text-align:right}
+  .more{display:flex;justify-content:center;margin-top:16px}
+  @media (max-width:1100px){.chead,.crow{grid-template-columns:minmax(0,2fr) minmax(150px,1.2fr) minmax(0,1.1fr) 84px}.c-since{display:none}}
+  @media (max-width:760px){.chead{display:none}.crow{grid-template-columns:minmax(0,1fr) auto;row-gap:6px;padding:12px 14px}.c-card{grid-column:1;order:2}.c-last{grid-column:1;order:3}.c-go{grid-column:2;grid-row:1;order:1}.c-last .lab{display:inline;color:var(--muted);font-weight:400}.c-last .lab::after{content:": "}.c-since{display:none}.c-name .cname b .pill{display:none}}
 </style>
 </head>
 <body>
@@ -671,15 +691,17 @@ function viewClientes(){
   const keys = ['todos', 'fieis', 'regulares', 'ocasionais', 'risco', 'faltapouco', 'premio'];
   const chips = keys.map(k => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${SEGINFO[k].n}<small>${sg[k].length}</small></button>`).join('');
   const novos = S.customers.filter(c => Date.now() - new Date(c.created_at) <= 30 * DAY).length;
-  const cards = list.map(c => {
-    const bs = badgesFor(c, tier[c.id], sg).slice(0, 3);
-    return `<article class="ccard" tabindex="0" role="button" data-c="${c.id}" aria-label="Abrir ${esc(c.name)}">
-      <div class="ctop">${avatar(c, 46)}<div class="cname"><b>${esc(c.name)}</b><span class="sub">${esc(c.whatsapp)}</span></div>
-        <a class="wa" target="_blank" rel="noopener" href="${waLink(c)}" aria-label="WhatsApp de ${esc(c.name)}" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.1A8 8 0 1 1 8.2 19z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1.3-1.3-1.8-1-.8.7c-.8-.3-1.6-1.1-1.9-1.9l.7-.8-1-1.8z"/></svg></a></div>
-      <div class="cprog">${cardDots(c.stamps, goal)}<div class="cnum"><b>${c.stamps}/${goal}</b>${c.rewards_available ? `<span class="pill good">${c.rewards_available} ${pl(c.rewards_available, 'prêmio', 'prêmios')}</span>` : ''}</div></div>
-      <div class="cfoot"><span>Última visita <b>${rel(c.last_stamp_at)}</b></span><span><b>${c.total_stamps}</b> ${pl(c.total_stamps, 'carimbo', 'carimbos')}</span></div>
-      ${bs.length ? `<div class="pills">${bs.map(badge).join('')}</div>` : ''}</article>`;
+  const LIM = S.shown || 25, vis = list.slice(0, LIM);
+  const rows = vis.map(c => {
+    const b = badgesFor(c, tier[c.id], sg)[0];
+    return `<div class="crow" tabindex="0" role="button" data-c="${c.id}" aria-label="Abrir ${esc(c.name)}">
+      <div class="c-name">${avatar(c, 38)}<div class="cname"><b>${esc(c.name)}${b ? ' ' + badge(b) : ''}</b><span class="sub">${esc(c.whatsapp)}</span></div></div>
+      <div class="c-card"><b>${c.stamps}/${goal}</b>${cardDots(c.stamps, goal, false, true)}</div>
+      <div class="c-since"><span class="lab">Cliente desde</span>${new Date(c.created_at).toLocaleDateString('pt-BR')}</div>
+      <div class="c-last"><span class="lab">Último carimbo</span>${rel(c.last_stamp_at)}</div>
+      <div class="c-go"><button class="btn line small" tabindex="-1">Abrir</button></div></div>`;
   }).join('');
+  const more = list.length > LIM ? `<div class="more"><button class="btn line" id="more">Mostrar mais (${Math.min(25, list.length - LIM)} de ${list.length - LIM} restantes)</button></div>` : '';
   const empty = !S.customers.length
     ? '<p class="note" style="margin-top:18px">Ainda não há clientes. Grave o link de uma tag no bastão e peça para o primeiro cliente encostar o celular.</p>'
     : '<p class="note" style="margin-top:18px">Nenhum cliente neste filtro.</p>';
@@ -690,13 +712,13 @@ function viewClientes(){
       <div><label for="so" class="sr">Ordenar por</label><select id="so">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>Ordenar: ${v[0]}</option>`).join('')}</select></div></div>
     <div class="chips" role="group" aria-label="Filtro">${chips}</div>
     ${SEGINFO[S.filter].d ? `<p class="note" style="margin:-4px 0 14px">${esc(SEGINFO[S.filter].n)}: ${esc(SEGINFO[S.filter].d)}.</p>` : ''}
-    ${list.length ? `<div class="cgrid">${cards}</div>` : empty}`;
+    ${list.length ? `<div class="clist"><div class="chead"><span>Cliente</span><span>Cartão</span><span class="c-since">Cliente desde</span><span class="c-last">Último carimbo</span><span></span></div>${rows}</div>${more}` : empty}`;
   return {html, bind(){
-    root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
-    root.querySelectorAll('.ccard').forEach(el => { el.onclick = () => openCustomer(el.dataset.c); el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomer(el.dataset.c); } }; });
-    root.querySelectorAll('.ccard a').forEach(a => a.onclick = e => e.stopPropagation());
-    $('#so').onchange = e => { S.sort = e.target.value; render(); };
-    const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const pos = qi.selectionStart; render(); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
+    root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.shown = 25; render(); });
+    root.querySelectorAll('.crow').forEach(el => { el.onclick = () => openCustomer(el.dataset.c); el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomer(el.dataset.c); } }; });
+    const mb = $('#more'); if(mb) mb.onclick = () => { S.shown = (S.shown || 25) + 25; render(); };
+    $('#so').onchange = e => { S.sort = e.target.value; S.shown = 25; render(); };
+    const qi = $('#q'); qi.oninput = () => { S.q = qi.value; S.shown = 25; const pos = qi.selectionStart; render(); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
   }};
 }
 
