@@ -226,6 +226,96 @@
     .seg{display:flex;width:100%}
     .seg button{flex:1;padding:7px 6px;font-size:.92rem}
   }
+
+  /* ---------- hoje: últimos carimbos ---------- */
+  .dash{align-items:stretch}
+  .dl{display:flex;flex-direction:column;gap:24px;min-width:0}
+  .panel.last{flex:1;display:flex;flex-direction:column;padding:16px 18px 14px}
+  .panel.last .phead{margin-bottom:8px}
+  .lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-template-rows:repeat(4,auto);column-gap:22px}
+  .lr{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:7px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px}
+  .lr:hover{background:#FFFDF7}
+  .lr .ln{min-width:0}.lr .ln b{display:block;font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lr .ln small{display:block;color:var(--muted);font-size:.78rem;line-height:1.1}
+  .lr .lc{font-family:'Fredoka',sans-serif;font-weight:600;background:var(--kraft);border:2px solid var(--ink);border-radius:99px;padding:1px 9px;font-size:.82rem}
+  .lr .lw{color:var(--muted);font-size:.8rem;white-space:nowrap;min-width:78px;text-align:right}
+  .av{display:inline-grid;place-items:center;border-radius:50%;border:2.5px solid var(--ink);font-family:'Fredoka',sans-serif;font-weight:600;flex:none;line-height:1}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ---------- cartão de carimbos (bolinhas) ---------- */
+  .cdots{display:flex;flex-wrap:wrap;gap:6px}
+  .cdots i{width:24px;height:24px;border-radius:50%;border:2px dashed #8A93B5;display:grid;place-items:center;flex:none}
+  .cdots i.on{border:2px solid var(--ink);background:var(--ink);color:#fff}
+  .cdots i svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  .cdots.big{gap:10px}
+  .cdots.big i{width:42px;height:42px;border-width:2.5px}
+  .cdots.big i.on{box-shadow:3px 3px 0 var(--red)}
+  .cdots.big i svg{width:22px;height:22px}
+  .cbar{height:12px;border-radius:7px;background:var(--track);border:2px solid var(--ink);overflow:hidden}
+  .cbar i{display:block;height:100%;background:var(--ink)}
+  .cbar.big{height:20px;border-radius:10px}
+
+  .pills{display:flex;gap:6px;flex-wrap:wrap}
+  .pill{display:inline-block;font-size:.74rem;font-weight:800;padding:2px 9px;border-radius:99px;border:2px solid var(--ink);background:#fff;white-space:nowrap}
+  .pill.good{background:#D8F0E3;color:#0A5C35}.pill.bad{background:#FDE1DE;color:#A52A1E}.pill.warn{background:#FEF0D0;color:#8A5A00}
+  .pill.navy{background:var(--ink);color:#fff}.pill.info{background:var(--kraft);color:var(--ink)}
+
+  /* ---------- lista de clientes ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .kp{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 16px;box-shadow:3px 3px 0 var(--ink)}
+  .kp b{display:block;font-family:'Fredoka',sans-serif;font-size:1.9rem;line-height:1.1}
+  .kp span{color:var(--muted);font-size:.86rem}
+  .ctools{display:flex;gap:12px;flex-wrap:wrap}
+  .ctools .grow{flex:1 1 280px;max-width:560px}
+  .ctools select{min-width:210px;font-weight:600}
+  .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+  .ccard{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:16px 18px;box-shadow:var(--hard);cursor:pointer;display:flex;flex-direction:column;gap:12px;transition:transform .1s,box-shadow .1s}
+  .ccard:hover,.ccard:focus-visible{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--red)}
+  .ccard:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+  .ctop{display:flex;align-items:center;gap:12px}
+  .cname{min-width:0;flex:1}.cname b{display:block;font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wa{display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);flex:none}
+  .wa:hover{background:#D8F0E3}
+  .wa svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .cprog{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .cnum{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+  .cnum b{font-family:'Fredoka',sans-serif;font-size:1.25rem}
+  .cfoot{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line);padding-top:10px}
+  .cfoot b{color:var(--ink)}
+
+  /* ---------- ficha do cliente ---------- */
+  .hero{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;background:var(--kraft);border:3px solid var(--ink);border-radius:24px;box-shadow:6px 6px 0 var(--ink);padding:22px clamp(18px,3vw,30px);margin-bottom:26px}
+  .hero .hl{display:flex;align-items:center;gap:18px;min-width:0}
+  .hero h1{overflow-wrap:anywhere}
+  .cd{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px;align-items:start}
+  .loyal{background:var(--ink);color:#fff;border:3px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--red);padding:22px 24px}
+  .loyal .cdots.big i{border-color:#EAD9B6;color:#EAD9B6;background:none;border-style:dashed}
+  .loyal .cdots.big i.on{background:var(--red);border:2.5px solid #fff;color:#fff;border-style:solid;box-shadow:none}
+  .loyal .cbar{background:#0E1D4E;border-color:#EAD9B6}.loyal .cbar i{background:var(--red)}
+  .lt{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+  .lt h2{font-size:2rem;margin-top:2px}
+  .eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#EAD9B6}
+  .lmsg{margin-top:16px;color:#EAD9B6}.lmsg b{color:#fff}
+  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:22px 0 14px}
+  .st{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 16px}
+  .st b{display:block;font-family:'Fredoka',sans-serif;font-size:1.5rem;line-height:1.15}
+  .st span{color:var(--muted);font-size:.86rem}
+  .adj{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:0 18px}
+  .adj summary{padding:14px 0;font-family:'Fredoka',sans-serif;font-weight:600;cursor:pointer}
+  .adj[open] summary{border-bottom:1px solid var(--line);margin-bottom:6px}
+  .adj form{padding:6px 0 18px}
+  .tg h3{font-size:.8rem;color:var(--muted);margin:18px 0 6px;letter-spacing:.01em}
+  .te{position:relative;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0}
+  .te+.te::before{content:"";position:absolute;left:16px;top:-14px;height:22px;border-left:2px dashed var(--line)}
+  .tdot{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2.5px solid var(--ink);background:#fff;font-style:normal;flex:none}
+  .tdot svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .tdot.navy{background:var(--ink);color:#fff}.tdot.warn{background:#FEF0D0}.tdot.red{background:var(--red);color:#fff}.tdot.good{background:#D8F0E3;color:#0A5C35}.tdot.info{background:var(--kraft)}.tdot.mute{background:#F1EADB;color:var(--muted)}
+  .tt b{font-weight:700}
+  .tw{text-align:right;font-weight:700;font-size:.9rem;white-space:nowrap}.tw .sub{font-weight:400}
+  @media (max-width:1180px){.cd{grid-template-columns:minmax(0,1fr)}}
+  @media (max-width:1000px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:760px){.lgrid{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-flow:row}}
+  @media (max-width:640px){.lr .lw{min-width:0}.cgrid{grid-template-columns:minmax(0,1fr)}.hero .ha,.hero .ha .btn{width:100%}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -309,6 +399,7 @@ function segments(){
     if(goal >= 3 && c.stamps > 0 && goal - c.stamps <= 2) out.faltapouco.push(c);
     if(c.rewards_available > 0) out.premio.push(c);
   });
+  out._tier = tier;
   return out;
 }
 const SEGINFO = {
@@ -327,14 +418,16 @@ async function load(){
   if(e0){ toast('Não foi possível carregar: ' + e0.message, true); return; }
   if(!stores || !stores.length){ S.store = null; render(); return; }
   S.store = stores[0];
-  const [t, c, st, pe] = await Promise.all([
+  const [t, c, st, pe, rc] = await Promise.all([
     sb.from('fid_tags').select('*').eq('store_id', S.store.id).order('created_at'),
     sb.from('fid_customers').select('*').eq('store_id', S.store.id).order('last_stamp_at', {ascending:false, nullsFirst:false}).range(0, 4999),
     sb.rpc('fid_stats', {p_store: S.store.id}),
-    sb.rpc('fid_admin_pending', {p_store: S.store.id})
+    sb.rpc('fid_admin_pending', {p_store: S.store.id}),
+    sb.from('fid_events').select('id,customer_id,kind,created_at,tag_id').eq('store_id', S.store.id).in('kind', ['stamp', 'bonus']).order('created_at', {ascending:false}).limit(8)
   ]);
+  S.recent = (rc.data) || [];
   S.pending = (pe.data && pe.data.items) || [];
-  if(!S.superChecked){ S.superChecked = true; const r = await sb.rpc('fid_is_super'); S.isSuper = r.data === true; }
+  if(S.superFor !== (S.user && S.user.id)){ S.superFor = S.user && S.user.id; S.isSuper = false; const r = await sb.rpc('fid_is_super'); S.isSuper = r.data === true; }
   S.tags = t.data || []; S.customers = c.data || [];
   S.stats = (st.data && !st.data.error) ? st.data : null;
   render();
@@ -380,7 +473,7 @@ function render(){
       <div class="email">${esc(S.user.email || '')}</div>
     </div></aside><main>${planBanner()}${v.html}</main></div>`;
   root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
-  $('#out').onclick = async () => { await sb.auth.signOut(); S.user = null; S.store = null; render(); };
+  $('#out').onclick = async () => { await sb.auth.signOut(); S.user = null; S.store = null; S.isSuper = false; S.superFor = null; S.customers = []; S.detail = null; render(); };
   const cb = $('#col');
   if(cb) cb.onclick = () => {
     S.collapsed = !S.collapsed; lsSet('fid_rail', S.collapsed ? '1' : '0');
@@ -448,6 +541,10 @@ function viewHoje(){
   const tiers = ['fieis', 'regulares', 'ocasionais'], attn = ['risco', 'faltapouco', 'premio'];
   const barHtml = n ? `<div class="bar" role="img" aria-label="Distribuição dos clientes por frequência">${tiers.map(k => `<i style="width:${sg[k].length / n * 100}%;background:${SEGINFO[k].c}"></i>`).join('')}</div>` : '';
   const row = (k, btn) => `<div class="row"><div class="t"><b><span class="dot" style="background:${SEGINFO[k].c}"></span>${SEGINFO[k].n}</b><small>${SEGINFO[k].d}</small></div><span class="n">${sg[k].length}</span>${btn}</div>`;
+  const byId = Object.fromEntries(S.customers.map(c => [c.id, c]));
+  const rec = (S.recent || []).filter(e => byId[e.customer_id]);
+  const recentHtml = `<section class="panel last" aria-label="Últimos carimbos"><div class="phead"><h2>Últimos carimbos</h2>${S.customers.length ? '<button class="btn line small" data-go-c>Ver clientes</button>' : ''}</div>
+    ${rec.length ? `<div class="lgrid">${rec.map(e => { const c = byId[e.customer_id]; return `<button class="lr" data-cust="${c.id}" title="${esc(c.name)}">${avatar(c, 34)}<span class="ln"><b>${esc(c.name)}</b><small>${e.kind === 'bonus' ? 'carimbo bônus' : 'carimbo'}</small></span><span class="lc">${c.stamps}/${s.stamps_goal}</span><span class="lw">${whenShort(e.created_at)}</span></button>`; }).join('')}</div>` : '<p class="note" style="margin-top:8px">Os últimos carimbos aparecem aqui assim que o primeiro cliente encostar no bastão.</p>'}</section>`;
   const html = head(s.name, 'Como está a loja agora') + `
     <section class="band ${S.firstPaint ? 'play' : ''}" aria-label="Carimbos de hoje">
       <div><h2>${t.stamps} ${pl(t.stamps, 'carimbo', 'carimbos')} hoje</h2>
@@ -461,13 +558,15 @@ function viewHoje(){
       <div><b>${ret}</b><span>voltaram (2 ou mais carimbos)</span></div>
     </div>
     <div class="dash">
-      <section class="panel" aria-label="Movimento">
+      <div class="dl"><section class="panel" aria-label="Movimento">
         <div class="phead"><h2>Movimento</h2><div class="tools">
           <div class="seg" role="group" aria-label="O que mostrar">${[['signups','Cadastros'],['stamps','Carimbos'],['redeems','Resgates']].map(([k, l]) => `<button data-kind="${k}" aria-pressed="${S.chart.kind === k}">${l}</button>`).join('')}</div>
           <div class="seg" role="group" aria-label="Período">${[['dias','14 dias'],['meses','6 meses']].map(([k, l]) => `<button data-range="${k}" aria-pressed="${S.chart.range === k}">${l}</button>`).join('')}</div>
         </div></div>
         <div id="csum"></div><div id="chart"></div>
       </section>
+      ${recentHtml}
+      </div>
       <aside class="panel side">
         <h2>Seus clientes por frequência</h2>
         ${n ? barHtml + tiers.map(k => row(k, `<button class="btn line small" data-filter="${k}">Ver</button>`)).join('') : '<p class="note" style="margin-top:10px">Ainda não há clientes. Grave o link de uma tag no bastão e peça para o primeiro cliente encostar o celular.</p>'}
@@ -479,6 +578,8 @@ function viewHoje(){
     root.querySelectorAll('[data-range]').forEach(b => b.onclick = () => { S.chart.range = b.dataset.range; render(); });
     root.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { S.filter = b.dataset.filter; go('clientes'); });
     root.querySelectorAll('[data-camp]').forEach(b => b.onclick = () => { S.camp = {seg:b.dataset.camp, msg:null}; go('campanhas'); });
+    root.querySelectorAll('[data-cust]').forEach(b => b.onclick = () => openCustomer(b.dataset.cust));
+    const gc = root.querySelector('[data-go-c]'); if(gc) gc.onclick = () => { S.filter = 'todos'; go('clientes'); };
     drawChart();
   }};
 }
@@ -494,7 +595,7 @@ function drawChart(){
   const noun = {signups:['novo cliente','novos clientes'], stamps:['carimbo','carimbos'], redeems:['resgate','resgates']}[kind];
   const total = vals.reduce((a, b) => a + b, 0);
   $('#csum').innerHTML = `<b>${total}</b> ${pl(total, noun[0], noun[1])} nos últimos ${range === 'dias' ? '14 dias' : '6 meses'}`;
-  const W = Math.max(280, el.clientWidth), H = W < 520 ? 240 : 310, pl_ = 34, pr = 6, pt = 34, pb = 34;
+  const W = Math.max(280, el.clientWidth), H = W < 520 ? 230 : 270, pl_ = 34, pr = 6, pt = 34, pb = 34;
   const max = niceMax(Math.max(0, ...vals)), iw = W - pl_ - pr, ih = H - pt - pb, bw = iw / Math.max(1, vals.length);
   const barW = Math.min(48, bw * .62), every = Math.max(1, Math.ceil(40 / bw));
   let g = '';
@@ -524,57 +625,121 @@ function drawChart(){
 }
 let _rz; window.addEventListener('resize', () => { clearTimeout(_rz); _rz = setTimeout(() => { if(S.user && S.view === 'hoje') drawChart(); }, 150); });
 
+/* ---------- peças visuais: avatar, cartão de carimbos, tempo ---------- */
+const AVC = [['#14296B','#fff'],['#E03A2F','#fff'],['#EAD9B6','#14296B'],['#6A7DC4','#fff'],['#0E7A47','#fff'],['#E0A100','#14296B']];
+function initials(n){ const p = String(n || '?').trim().split(/\s+/); return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase(); }
+function avatar(c, size){
+  let h = 0; for(const ch of String(c.name || '')) h = (h * 31 + ch.charCodeAt(0)) % 997;
+  const [bg, fg] = AVC[h % AVC.length];
+  return `<span class="av" style="width:${size}px;height:${size}px;background:${bg};color:${fg};font-size:${Math.round(size * .38)}px" aria-hidden="true">${esc(initials(c.name))}</span>`;
+}
+function whenShort(d){
+  if(!d) return '—';
+  const dt = new Date(d), now = new Date(), hm = dt.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())) / DAY);
+  if(days <= 0) return 'hoje ' + hm;
+  if(days === 1) return 'ontem ' + hm;
+  return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0') + ' ' + hm;
+}
+function cardDots(n, goal, big){
+  if(goal > 14) return `<div class="cbar${big ? ' big' : ''}" role="img" aria-label="${n} de ${goal} carimbos"><i style="width:${Math.min(100, n / goal * 100)}%"></i></div>`;
+  return `<div class="cdots${big ? ' big' : ''}" role="img" aria-label="${n} de ${goal} carimbos">${Array.from({length:goal}, (_, i) => `<i class="${i < n ? 'on' : ''}">${i < n ? CHECK : ''}</i>`).join('')}</div>`;
+}
+function badgesFor(c, tier, sg){
+  const out = [];
+  if(c.rewards_available > 0) out.push(['Prêmio disponível', 'good']);
+  if(sg.risco.includes(c)) out.push(['Em risco', 'bad']);
+  if(sg.faltapouco.includes(c)) out.push(['Quase lá', 'warn']);
+  if(tier === 'fieis') out.push(['Fiel', 'navy']);
+  const daysSince = (Date.now() - new Date(c.created_at)) / DAY;
+  if(daysSince <= 7) out.push(['Novo', 'info']);
+  return out;
+}
+const badge = ([t, k]) => `<span class="pill ${k}">${t}</span>`;
+
 /* ---------- Clientes ---------- */
+const SORTS = {recente:['Última visita', (a, b) => new Date(b.last_stamp_at || 0) - new Date(a.last_stamp_at || 0)], mais:['Mais carimbos', (a, b) => b.total_stamps - a.total_stamps],
+  novos:['Mais novos', (a, b) => new Date(b.created_at) - new Date(a.created_at)], nome:['Nome (A a Z)', (a, b) => a.name.localeCompare(b.name, 'pt-BR')]};
 function viewClientes(){
-  const sg = segments(), goal = S.store.stamps_goal;
+  const sg = segments(), goal = S.store.stamps_goal, tier = sg._tier;
   const q = S.q.trim().toLowerCase();
-  const list = sg[S.filter].filter(c => !q || c.name.toLowerCase().includes(q) || c.whatsapp.includes(q.replace(/\D/g, '') || '§'));
+  S.sort = S.sort || 'recente';
+  const list = sg[S.filter].filter(c => !q || c.name.toLowerCase().includes(q) || c.whatsapp.includes(q.replace(/\D/g, '') || '§')).sort(SORTS[S.sort][1]);
   const keys = ['todos', 'fieis', 'regulares', 'ocasionais', 'risco', 'faltapouco', 'premio'];
   const chips = keys.map(k => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${SEGINFO[k].n}<small>${sg[k].length}</small></button>`).join('');
-  const rows = list.map(c => `<tr data-c="${c.id}"><td><b>${esc(c.name)}</b><span class="sub">${esc(c.whatsapp)}</span></td>
-    <td class="hide-s"><a href="${waLink(c)}" target="_blank" rel="noopener">WhatsApp</a></td>
-    <td class="nw">${c.stamps}/${goal}${c.rewards_available ? `<span class="sub">${c.rewards_available} ${pl(c.rewards_available, 'prêmio', 'prêmios')}</span>` : ''}</td><td class="nw">${rel(c.last_stamp_at)}</td></tr>`).join('');
+  const novos = S.customers.filter(c => Date.now() - new Date(c.created_at) <= 30 * DAY).length;
+  const cards = list.map(c => {
+    const bs = badgesFor(c, tier[c.id], sg).slice(0, 3);
+    return `<article class="ccard" tabindex="0" role="button" data-c="${c.id}" aria-label="Abrir ${esc(c.name)}">
+      <div class="ctop">${avatar(c, 46)}<div class="cname"><b>${esc(c.name)}</b><span class="sub">${esc(c.whatsapp)}</span></div>
+        <a class="wa" target="_blank" rel="noopener" href="${waLink(c)}" aria-label="WhatsApp de ${esc(c.name)}" title="Abrir WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.1A8 8 0 1 1 8.2 19z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1.3-1.3-1.8-1-.8.7c-.8-.3-1.6-1.1-1.9-1.9l.7-.8-1-1.8z"/></svg></a></div>
+      <div class="cprog">${cardDots(c.stamps, goal)}<div class="cnum"><b>${c.stamps}/${goal}</b>${c.rewards_available ? `<span class="pill good">${c.rewards_available} ${pl(c.rewards_available, 'prêmio', 'prêmios')}</span>` : ''}</div></div>
+      <div class="cfoot"><span>Última visita <b>${rel(c.last_stamp_at)}</b></span><span><b>${c.total_stamps}</b> ${pl(c.total_stamps, 'carimbo', 'carimbos')}</span></div>
+      ${bs.length ? `<div class="pills">${bs.map(badge).join('')}</div>` : ''}</article>`;
+  }).join('');
   const empty = !S.customers.length
     ? '<p class="note" style="margin-top:18px">Ainda não há clientes. Grave o link de uma tag no bastão e peça para o primeiro cliente encostar o celular.</p>'
     : '<p class="note" style="margin-top:18px">Nenhum cliente neste filtro.</p>';
-  const html = head('Clientes', S.customers.length + ' ' + pl(S.customers.length, 'cliente', 'clientes')) + `
-    <div style="max-width:520px"><label for="q" style="margin-top:0">Buscar por nome ou WhatsApp</label><input id="q" type="search" value="${esc(S.q)}" autocomplete="off"></div>
+  const kp = (b, l, c) => `<div class="kp"><b${c ? ` style="color:${c}"` : ''}>${b}</b><span>${l}</span></div>`;
+  const html = head('Clientes', S.customers.length + ' ' + pl(S.customers.length, 'cliente', 'clientes') + ' no seu cartão fidelidade') + `
+    <div class="kpis">${kp(S.customers.length, 'no total')}${kp(novos, pl(novos, 'novo', 'novos') + ' em 30 dias')}${kp(sg.premio.length, 'com prêmio esperando', '#0E7A47')}${kp(sg.risco.length, 'em risco de sumir', '#E03A2F')}</div>
+    <div class="ctools"><div class="grow"><label for="q" class="sr">Buscar por nome ou WhatsApp</label><input id="q" type="search" placeholder="Buscar por nome ou WhatsApp" value="${esc(S.q)}" autocomplete="off"></div>
+      <div><label for="so" class="sr">Ordenar por</label><select id="so">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>Ordenar: ${v[0]}</option>`).join('')}</select></div></div>
     <div class="chips" role="group" aria-label="Filtro">${chips}</div>
-    ${SEGINFO[S.filter].d ? `<p class="note" style="margin:-4px 0 12px">${esc(SEGINFO[S.filter].n)}: ${esc(SEGINFO[S.filter].d)}.</p>` : ''}
-    ${list.length ? `<div class="panel"><table><thead><tr><th>Cliente</th><th class="hide-s">Contato</th><th>Cartão</th><th>Última visita</th></tr></thead><tbody>${rows}</tbody></table></div>` : empty}`;
+    ${SEGINFO[S.filter].d ? `<p class="note" style="margin:-4px 0 14px">${esc(SEGINFO[S.filter].n)}: ${esc(SEGINFO[S.filter].d)}.</p>` : ''}
+    ${list.length ? `<div class="cgrid">${cards}</div>` : empty}`;
   return {html, bind(){
     root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
-    root.querySelectorAll('tr[data-c]').forEach(tr => tr.onclick = () => openCustomer(tr.dataset.c));
-    root.querySelectorAll('td a').forEach(a => a.onclick = e => e.stopPropagation());
+    root.querySelectorAll('.ccard').forEach(el => { el.onclick = () => openCustomer(el.dataset.c); el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomer(el.dataset.c); } }; });
+    root.querySelectorAll('.ccard a').forEach(a => a.onclick = e => e.stopPropagation());
+    $('#so').onchange = e => { S.sort = e.target.value; render(); };
     const qi = $('#q'); qi.oninput = () => { S.q = qi.value; const pos = qi.selectionStart; render(); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); };
   }};
 }
 
 /* ---------- Detalhe do cliente ---------- */
+const EVK = {
+  stamp:['Carimbo', 'navy', 'check'], bonus:['Carimbo bônus', 'warn', 'plus'], reward_earned:['Prêmio conquistado', 'red', 'gift'], redeem:['Prêmio entregue', 'good', 'gift'],
+  redeem_request:['Resgate pedido', 'info', 'clock'], redeem_expired:['Prêmio expirado', 'mute', 'x'], adjust:['Ajuste manual', 'mute', 'sliders']
+};
+const EVI = {
+  check:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  gift:ICON.gift, clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>', x:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>', sliders:ICON.sliders
+};
 function viewCliente(){
   const d = S.detail; if(!d) return {html: head('Cliente', '') + '<p class="note">Carregando…</p>'};
-  const {c, ev} = d, s = S.store;
-  const kind = {bonus:'Carimbo bônus', stamp:'Carimbo', reward_earned:'Prêmio conquistado', redeem:'Prêmio entregue', redeem_request:'Resgate pedido', redeem_expired:'Prêmio expirado', adjust:'Ajuste manual'};
+  const {c, ev} = d, s = S.store, goal = s.stamps_goal, sg = segments(), tier = sg._tier[c.id];
   const tagName = id => (S.tags.find(t => t.id === id) || {}).label || id || '—';
-  const html = `<button class="btn line small back" id="back">Voltar para clientes</button>
-    ${head(c.name, 'WhatsApp ' + c.whatsapp + ', cliente desde ' + new Date(c.created_at).toLocaleDateString('pt-BR'), `<a class="btn small" target="_blank" rel="noopener" href="${waLink(c)}">Abrir WhatsApp</a>`)}
-    <div class="strip" style="margin-top:0">
-      <div><b>${c.stamps}/${s.stamps_goal}</b><span>no cartão</span></div>
-      <div><b>${c.rewards_available}</b><span>${pl(c.rewards_available, 'prêmio disponível', 'prêmios disponíveis')}</span></div>
-      <div><b>${c.total_stamps}</b><span>carimbos no total</span></div>
-      <div><b>${c.rewards_redeemed}</b><span>${pl(c.rewards_redeemed, 'resgate', 'resgates')}</span></div>
-    </div>
-    <div class="split s13" style="margin-top:30px">
-      <section><h2 style="margin-bottom:12px">Ajustar manualmente</h2>
-        <form id="af" class="panel"><div class="cols">
-          <div><label for="as" style="margin-top:0">Carimbos (0 a ${s.stamps_goal - 1})</label><input id="as" name="s" type="number" min="0" max="${s.stamps_goal - 1}" value="${c.stamps}" required></div>
-          <div><label for="ar" style="margin-top:0">Prêmios disponíveis</label><input id="ar" name="r" type="number" min="0" value="${c.rewards_available}" required></div></div>
-          <p class="note" style="margin-top:10px">Todo ajuste fica registrado no histórico.</p>
-          <button class="btn" style="margin-top:14px">Salvar ajuste</button></form></section>
-      <section class="hist"><h2 style="margin:0 0 12px">Histórico (${ev.length})</h2>
-        ${ev.length ? `<div class="panel"><table><thead><tr><th>Data e hora</th><th>Evento</th><th>Tag</th></tr></thead><tbody>
-        ${ev.map(e => `<tr><td class="nw">${fmtFull(e.created_at)}</td><td>${esc(kind[e.kind] || e.kind)}${e.detail ? `<span class="sub">${esc(e.detail)}</span>` : ''}</td><td>${e.kind === 'adjust' ? '—' : esc(tagName(e.tag_id))}</td></tr>`).join('')}
-        </tbody></table></div>` : '<p class="note">Ainda sem eventos.</p>'}</section>
+  const stampEv = ev.filter(e => e.kind === 'stamp' || e.kind === 'bonus').map(e => +new Date(e.created_at)).sort((a, b) => a - b);
+  let avg = null; if(stampEv.length > 1) avg = Math.round((stampEv[stampEv.length - 1] - stampEv[0]) / (stampEv.length - 1) / DAY * 10) / 10;
+  const since = Math.max(0, Math.round((Date.now() - new Date(c.created_at)) / DAY));
+  const tagCount = {}; ev.filter(e => e.kind === 'stamp' && e.tag_id).forEach(e => { tagCount[e.tag_id] = (tagCount[e.tag_id] || 0) + 1; });
+  const topTag = Object.entries(tagCount).sort((a, b) => b[1] - a[1])[0];
+  const falta = Math.max(0, goal - c.stamps);
+  const bs = badgesFor(c, tier, sg);
+  const stat = (b, l) => `<div class="st"><b>${b}</b><span>${l}</span></div>`;
+  const groups = []; ev.forEach(e => { const k0 = new Date(e.created_at).toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'}), k = k0.charAt(0).toUpperCase() + k0.slice(1); let g = groups[groups.length - 1]; if(!g || g.k !== k){ g = {k, items:[]}; groups.push(g); } g.items.push(e); });
+  const tl = groups.map(g => `<div class="tg"><h3>${esc(g.k)}</h3>${g.items.map(e => { const [lb, tone, ic] = EVK[e.kind] || [e.kind, 'mute', 'check']; return `<div class="te"><i class="tdot ${tone}">${EVI[ic]}</i><div class="tt"><b>${esc(lb)}</b>${e.detail ? `<span class="sub">${esc(e.detail)}</span>` : ''}</div><div class="tw">${new Date(e.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}${e.kind !== 'adjust' && e.tag_id ? `<span class="sub">${esc(tagName(e.tag_id))}</span>` : ''}</div></div>`; }).join('')}</div>`).join('');
+  const html = `<button class="btn line small back" id="back">← Clientes</button>
+    <section class="hero"><div class="hl">${avatar(c, 84)}<div><h1>${esc(c.name)}</h1><p class="sub" style="font-size:.95rem">WhatsApp ${esc(c.whatsapp)} · cliente há ${since} ${pl(since, 'dia', 'dias')} (desde ${new Date(c.created_at).toLocaleDateString('pt-BR')})</p>${bs.length ? `<div class="pills" style="margin-top:8px">${bs.map(badge).join('')}</div>` : ''}</div></div>
+      <div class="ha"><a class="btn" target="_blank" rel="noopener" href="${waLink(c)}">Abrir WhatsApp</a></div></section>
+    <div class="cd">
+      <div class="cdl">
+        <section class="loyal" aria-label="Cartão do cliente">
+          <div class="lt"><div><span class="eyebrow">Cartão de carimbos</span><h2>${c.stamps} de ${goal}</h2></div><div class="lnum">${c.rewards_available ? `<span class="pill good">${c.rewards_available} ${pl(c.rewards_available, 'prêmio disponível', 'prêmios disponíveis')}</span>` : ''}</div></div>
+          ${cardDots(c.stamps, goal, true)}
+          <p class="lmsg">${falta === 0 ? 'Cartão completo.' : `Faltam <b>${falta}</b> ${pl(falta, 'carimbo', 'carimbos')} para ganhar <b>${esc(s.reward)}</b>.`}</p>
+        </section>
+        <div class="stats">${stat(c.total_stamps, pl(c.total_stamps, 'carimbo no total', 'carimbos no total'))}${stat(c.rewards_redeemed, pl(c.rewards_redeemed, 'prêmio resgatado', 'prêmios resgatados'))}${stat(avg === null ? '—' : avg + ' d', 'entre visitas, em média')}${stat(c.last_stamp_at ? rel(c.last_stamp_at) : 'nunca', 'última visita')}</div>
+        ${topTag ? `<p class="note" style="margin:-2px 0 16px;font-size:.9rem">Carimba mais em <b>${esc(tagName(topTag[0]))}</b> (${topTag[1]} ${pl(topTag[1], 'vez', 'vezes')}).</p>` : ''}
+        <details class="adj"><summary>Ajustar manualmente</summary>
+          <form id="af"><div class="cols">
+            <div><label for="as" style="margin-top:0">Carimbos (0 a ${goal - 1})</label><input id="as" name="s" type="number" min="0" max="${goal - 1}" value="${c.stamps}" required></div>
+            <div><label for="ar" style="margin-top:0">Prêmios disponíveis</label><input id="ar" name="r" type="number" min="0" value="${c.rewards_available}" required></div></div>
+            <p class="note" style="margin-top:10px">Todo ajuste fica registrado no histórico.</p>
+            <button class="btn" style="margin-top:12px">Salvar ajuste</button></form></details>
+      </div>
+      <section class="cdr"><div class="panel"><h2 style="margin-bottom:6px">Histórico <small class="note" style="font-family:Nunito;font-weight:600">(${ev.length})</small></h2>${ev.length ? `<div class="tl">${tl}</div>` : '<p class="note" style="margin-top:8px">Ainda sem eventos.</p>'}</div></section>
     </div>`;
   return {html, bind(){
     $('#back').onclick = () => go('clientes');
