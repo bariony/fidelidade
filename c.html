@@ -3,54 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#7c3aed">
-<title>Cartão fidelidade</title>
+<meta name="theme-color" content="#14296B">
+<title>Carimbô · seu cartão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--c:#7c3aed;--bg:#f6f4fb;--ink:#1c1530;--mut:#6b6485}
+  :root{--c:#14296B;--bg:#FBF7EE;--ink:#14296B;--mut:#3D4C80;--red:#E03A2F;--kraft:#EAD9B6}
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center}
-  main{width:100%;max-width:420px;padding:20px 16px 40px}
-  .store{background:var(--c);color:#fff;border-radius:22px;padding:22px 20px;box-shadow:0 10px 30px -10px var(--c)}
-  .store h1{margin:0 0 2px;font-size:1.25rem}
-  .store p{margin:0;opacity:.85;font-size:.9rem}
+  body{margin:0;font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  h1,.msg,button,.cd,.brand{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+  main{width:100%;max-width:420px;margin:0 auto;padding:20px 16px 12px}
+  .brand{max-width:420px;margin:0 auto;padding:6px 16px 32px;text-align:center;font-weight:700;font-size:1.05rem;color:var(--ink);opacity:.8}
+  .brand span{color:var(--red)}
+  .store{background:var(--c);color:#fff;border:3px solid #14296B;border-radius:24px;padding:22px 20px;box-shadow:6px 6px 0 #14296B}
+  .store h1{margin:0 0 2px;font-size:1.35rem;font-weight:700}
+  .store p{margin:0;opacity:.9;font-size:.95rem}
   .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}
-  .store{color:#fff}
   .dot{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:1.2rem;transition:transform .3s}
-  .dot.on{background:#fff;color:var(--c);transform:scale(1.04)}
+  .dot.on{transform:scale(1.04)}
+  .dot svg{width:66%;height:66%}
   .dot.pop{animation:pop .6s}
-  @keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.3)}100%{transform:scale(1.04)}}
-  .msg{margin:18px 4px 6px;font-size:1.15rem;font-weight:700;text-align:center}
-  .sub{margin:0 4px;text-align:center;color:var(--mut);font-size:.92rem}
-  form,.box{background:#fff;border-radius:18px;padding:18px;margin-top:18px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
-  label{display:block;font-size:.8rem;color:var(--mut);margin:10px 0 4px}
-  input{width:100%;padding:13px 14px;border:1.5px solid #ddd6ee;border-radius:12px;font-size:1rem;background:#fff;color:var(--ink)}
-  input:focus{outline:none;border-color:var(--c)}
-  button{width:100%;margin-top:14px;padding:15px;border:0;border-radius:14px;background:var(--c);color:#fff;font-size:1.02rem;font-weight:700;cursor:pointer}
-  button.ghost{background:transparent;color:var(--c);border:1.5px solid var(--c)}
+  @keyframes pop{0%{transform:scale(.3) rotate(-12deg)}60%{transform:scale(1.3) rotate(4deg)}100%{transform:scale(1.04)}}
+  @media (prefers-reduced-motion:reduce){.dot.pop{animation:none}}
+  .msg{margin:20px 4px 6px;font-size:1.3rem;font-weight:700;text-align:center}
+  .sub{margin:0 4px;text-align:center;color:var(--mut);font-size:.95rem}
+  form,.box{background:#fff;border:3px solid #14296B;border-radius:20px;padding:18px;margin-top:20px;box-shadow:5px 5px 0 #14296B}
+  label{display:block;font-size:.85rem;font-weight:700;color:var(--ink);margin:10px 0 4px}
+  input{width:100%;padding:13px 14px;border:3px solid #14296B;border-radius:14px;font-size:1rem;font-family:inherit;background:var(--bg);color:var(--ink)}
+  input:focus{outline:none;border-color:var(--red);box-shadow:3px 3px 0 var(--red)}
+  button{width:100%;margin-top:14px;padding:14px;border:3px solid #14296B;border-radius:14px;background:var(--red);color:#fff;font-size:1.2rem;font-weight:600;cursor:pointer;box-shadow:4px 4px 0 #14296B;transition:transform .08s,box-shadow .08s}
+  button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #14296B}
+  button.ghost{background:#fff;color:var(--ink)}
   button:disabled{opacity:.6}
-  .reward{background:#fff8e1;border:1.5px solid #f5c542;border-radius:18px;padding:16px;margin-top:18px;text-align:center}
-  .reward b{display:block;font-size:1.05rem;margin-bottom:4px}
-  a.link{display:block;text-align:center;margin-top:16px;color:var(--mut);font-size:.85rem}
+  .reward{background:var(--kraft);border:3px solid #14296B;border-radius:20px;padding:16px;margin-top:20px;text-align:center;box-shadow:5px 5px 0 #14296B}
+  .reward b{display:block;font-size:1.15rem;margin-bottom:4px;font-family:'Fredoka',sans-serif;font-weight:600}
+  a.link{display:block;text-align:center;margin-top:18px;color:var(--mut);font-size:.9rem;font-weight:600}
   .hide{display:none}
   .dot .ic{font-size:1.35rem;line-height:1}
-  .lks b{display:block;font-size:1rem}
-  .lkrow{display:grid;gap:8px;margin-top:12px}
-  .lk{display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:12px 14px;background:#f6f3fd;color:var(--ink);border:1.5px solid #e3ddf2;border-radius:12px;font-size:.95rem;font-weight:600;text-align:left}
-  .lk svg{width:22px;height:22px;flex:none;stroke:var(--c);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .lks b{display:block;font-size:1.05rem;font-family:'Fredoka',sans-serif;font-weight:600}
+  .lkrow{display:grid;gap:10px;margin-top:12px}
+  .lk{display:flex;align-items:center;gap:10px;width:100%;margin:0;padding:11px 14px;background:#fff;color:var(--ink);border:3px solid #14296B;border-radius:14px;font-family:'Nunito',sans-serif;font-size:.98rem;font-weight:700;text-align:left;box-shadow:3px 3px 0 #14296B}
+  .lk svg{width:22px;height:22px;flex:none;stroke:var(--ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
   .lk span{flex:1}
-  .lk em{font-style:normal;font-size:.78rem;color:var(--c);background:#fff;border-radius:99px;padding:3px 9px}
-  .lk em.ok{color:#12805c}
-  .reward.prize{background:#f3edff;border-color:var(--c)}
-  .reward.prize b,.reward.pend b{color:var(--c)}
-  .reward.pend{background:#f3edff;border-color:var(--c)}
-  .reward.ok{background:#e8f8ef;border-color:#34c27a}
-  .cd{font-weight:700;margin:8px 0 0}
-  .code{font-size:3rem;font-weight:800;letter-spacing:.3em;margin:16px 0 8px;padding-left:.3em;background:rgba(255,255,255,.18);border-radius:16px}
-  .err{color:#b42318;text-align:center;margin-top:14px}
+  .lk em{font-style:normal;font-size:.8rem;font-weight:700;color:#fff;background:var(--red);border-radius:99px;padding:3px 10px}
+  .lk em.ok{background:#CDEBD9;color:#0E4A2D}
+  .reward.prize,.reward.pend{background:#fff}
+  .reward.ok{background:#CDEBD9}
+  .cd{font-weight:600;margin:8px 0 0}
+  .err{color:#B42318;text-align:center;margin-top:14px;font-weight:600}
 </style>
 </head>
 <body>
 <main id="app"><p class="sub" style="margin-top:40vh">Carregando…</p></main>
+<div class="brand">carimb<span>ô</span></div>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -67,7 +72,7 @@ const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 
 function boom(big){
   const end = Date.now() + (big?2500:1200);
-  const colors = ['#7c3aed','#f59e0b','#10b981','#ef4444','#3b82f6','#ec4899'];
+  const colors = ['#14296B','#E03A2F','#EAD9B6','#FBF7EE','#FFC83D'];
   (function f(){
     confetti({particleCount:big?9:5,angle:60,spread:70,origin:{x:0,y:.7},colors});
     confetti({particleCount:big?9:5,angle:120,spread:70,origin:{x:1,y:.7},colors});
@@ -77,20 +82,22 @@ function boom(big){
   try{ navigator.vibrate && navigator.vibrate(big?[120,60,120,60,200]:120) }catch(e){}
 }
 
-const hx = h => { h = String(h||'').replace('#',''); if(h.length!==6) h='7c3aed'; return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); };
+const hx = h => { h = String(h||'').replace('#',''); if(h.length!==6) h='14296B'; return [0,2,4].map(i=>parseInt(h.substr(i,2),16)); };
 const lum = h => { const [r,g,b] = hx(h); return (0.299*r+0.587*g+0.114*b)/255; };
 const rgba = (h,a) => { const [r,g,b] = hx(h); return `rgba(${r},${g},${b},${a})`; };
+const stampSvg = c => `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="${c}"/><rect x="44" y="30" width="12" height="26" fill="${c}"/><rect x="22" y="54" width="56" height="16" rx="6" fill="${c}"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>`;
 function card(s, justStamped){
-  const goal = s.goal, dots = [], bg = s.color || '#7c3aed', sc = s.stamp_color || '#ffffff', icon = s.icon || 'star';
-  const fg = lum(bg) > .62 ? '#1c1530' : '#ffffff';
-  const starCol = lum(sc) > .62 ? (lum(bg) < .62 ? bg : '#1c1530') : '#ffffff';
+  const goal = s.goal, dots = [], bg = s.color || '#14296B', sc = s.stamp_color || '#FBF7EE', icon = s.icon || 'star';
+  const fg = lum(bg) > .62 ? '#14296B' : '#ffffff';
+  const starCol = lum(sc) > .62 ? (lum(bg) < .62 ? bg : '#14296B') : '#ffffff';
+  const dark = lum(sc) <= .62;
   for(let i=0;i<goal;i++){
     const on = i<s.stamps, pop = justStamped && i===s.stamps-1 ? 'pop' : '';
     const fs = (1.3*(s.scale||100)/100).toFixed(2)+'rem';
-    const glyph = icon==='star' ? (on?`<span style="font-size:${fs}">★</span>`:'') : `<span class="ic" style="font-size:${fs};${on?'':'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`;
-    dots.push(`<div class="dot ${on?'on':''} ${pop}" style="${on?`background:${esc(sc)};color:${starCol}`:`background:${rgba(fg,.2)}`}">${glyph}</div>`);
+    const glyph = icon==='star' ? (on?stampSvg(dark?'#FBF7EE':'#14296B'):'') : `<span class="ic" style="font-size:${fs};${on?'':'opacity:.3;filter:grayscale(1)'}">${esc(icon)}</span>`;
+    dots.push(`<div class="dot ${on?'on':''} ${pop}" style="${on?`background:${esc(sc)};color:${starCol}`:`background:transparent;border:2.5px dashed ${rgba(fg,.5)}`}">${glyph}</div>`);
   }
-  return `<div class="store" style="background:${esc(bg)};color:${fg};box-shadow:0 10px 30px -10px ${esc(bg)}">
+  return `<div class="store" style="background:${esc(bg)};color:${fg}">
     <h1>${esc(s.store)}</h1><p>${esc(s.name?('Olá, '+s.name.split(' ')[0]):'Cartão fidelidade')} · ${s.stamps}/${goal}</p>
     <div class="grid" style="grid-template-columns:repeat(${goal<=5?goal:5},1fr)">${dots.join('')}</div></div>`;
 }
@@ -132,7 +139,7 @@ async function checkClaim(){
 document.addEventListener('visibilitychange', () => { if(!document.hidden) checkClaim(); });
 
 function setColor(c){
-  c = c || '#7c3aed';
+  c = c || '#14296B';
   // acento legível: se o fundo escolhido for claro, escurece para usar em textos e bordas
   if(lum(c) > .55){ c = '#' + hx(c).map(v => Math.round(v*.45).toString(16).padStart(2,'0')).join(''); }
   document.documentElement.style.setProperty('--c', c);
@@ -165,7 +172,7 @@ function render(s, opts={}){
   setColor(s.color);
   let h = card(s, opts.stamped);
   if(opts.stamped && opts.earned) h += `<p class="msg">🎉 Você ganhou: ${esc(s.reward)}!</p><p class="sub">Mostre esta tela ao atendente.</p>`;
-  else if(opts.stamped) h += `<p class="msg">Carimbo registrado!</p><p class="sub">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
+  else if(opts.stamped) h += `<p class="msg">Tum! Carimbo batido!</p><p class="sub">Faltam ${s.goal-s.stamps} para ganhar: ${esc(s.reward)}</p>`;
   else if(opts.bonus) h += `<p class="msg">🎉 Carimbo bônus!</p><p class="sub">Obrigado por apoiar a ${esc(s.store)}.</p>`;
   else if(opts.note) h += `<p class="msg">${esc(opts.note)}</p>${opts.sub?`<p class="sub">${esc(opts.sub)}</p>`:''}${opts.retry?'<button id="retry" class="ghost">Tentar de novo</button>':''}`;
   else if(opts.wait) { const m=Math.ceil(opts.wait/60); h += `<p class="msg">Carimbo recente 😉</p><p class="sub">O próximo carimbo libera em ${m} min.</p>`; }

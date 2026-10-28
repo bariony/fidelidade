@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#7C3AED">
-<title>Painel da loja</title>
+<meta name="theme-color" content="#14296B">
+<title>Carimbô · painel da loja</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F7F5FC;--ink:#1E1235;--primary:#7C3AED;--primary-d:#5B21B6;--deep:#4C1D95;--lilac:#EDE9FE;--track:#F1EEFB;--line:#E3DDF2;--muted:#6B6485;--alert:#C0392B;--good:#1B7F5A;color-scheme:light}
+  :root{--paper:#FBF7EE;--ink:#14296B;--primary:#14296B;--primary-d:#0E1D4E;--deep:#14296B;--lilac:#F3EAD6;--track:#F1EADB;--line:#E4D9C0;--muted:#3D4C80;--alert:#C0392B;--good:#0E7A47;--red:#E03A2F;--kraft:#EAD9B6;--hard:4px 4px 0 #14296B;color-scheme:light}
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
-  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.015em;line-height:1.15}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+  h1,h2,h3,.btn,.brand,.strip b,.band h2,.row .n,.seg button,.chip,.navbtn{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+  h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em;line-height:1.15}
   h1{font-size:clamp(1.55rem,3vw,2.1rem)}
   h2{font-size:1.15rem}
   h3{font-size:1rem}
@@ -21,28 +22,29 @@
   button,input,select,textarea{font:inherit;color:inherit}
   :focus-visible{outline:3px solid var(--primary-d);outline-offset:2px}
 
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:0;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;cursor:pointer;min-height:44px;text-decoration:none}
-  .btn:hover{background:var(--primary-d)}
-  .btn.line{background:transparent;color:var(--primary-d);box-shadow:inset 0 0 0 1.5px var(--primary)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:2.5px solid var(--ink);border-radius:12px;background:var(--red);color:#fff;font-weight:600;font-size:1.02rem;cursor:pointer;min-height:44px;text-decoration:none;box-shadow:var(--hard);transition:transform .08s,box-shadow .08s}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+  .btn.line{background:#fff;color:var(--ink)}
   .btn.line:hover{background:var(--lilac)}
-  .btn.small{padding:7px 13px;min-height:36px;font-size:.92rem}
+  .btn.small{padding:6px 13px;min-height:36px;font-size:.92rem;box-shadow:3px 3px 0 var(--ink)}
   .btn:disabled{opacity:.55;cursor:default}
 
-  label{display:block;font-size:.86rem;color:var(--muted);margin:14px 0 5px}
-  input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;min-height:44px}
+  label{display:block;font-size:.88rem;font-weight:700;color:var(--ink);margin:14px 0 5px}
+  input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{width:100%;padding:10px 12px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;min-height:44px}
   textarea{min-height:120px;resize:vertical;line-height:1.5}
-  input[type=color]{width:100%;height:44px;padding:4px;border:1.5px solid var(--line);border-radius:8px;background:#fff}
-  input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+  input[type=color]{width:100%;height:44px;padding:4px;border:2.5px solid var(--ink);border-radius:12px;background:#fff}
+  input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:3px 3px 0 var(--red);outline:none}
   .check{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:1rem;margin:4px 0}
-  .check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--primary)}
+  .check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--red)}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
   .err{color:var(--alert);margin-top:12px;min-height:1.2em}
   .note{color:var(--muted)}
-  .pbanner{border-radius:12px;padding:11px 16px;margin-bottom:18px;font-weight:500}
+  .pbanner{border:2.5px solid var(--ink);border-radius:14px;padding:11px 16px;margin-bottom:18px;font-weight:600}
   .pbanner.info{background:var(--lilac);color:var(--deep)}
   .pbanner.warn{background:#FEF0D0;color:#92400E}
   .pbanner.bad{background:#FDE1DE;color:#A52A1E}
-  .bdg{margin-left:auto;background:#DC2626;color:#fff;border-radius:99px;min-width:20px;padding:1px 6px;font-size:.75rem;font-weight:700;text-align:center}
+  .bdg{margin-left:auto;background:var(--red);color:#fff;border-radius:99px;min-width:20px;padding:1px 6px;font-size:.75rem;font-weight:700;text-align:center}
   .collapsed .bdg{position:absolute;top:4px;right:6px;margin:0;min-width:16px;font-size:.65rem;padding:0 4px}
   .pend{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
   .pend .code{font-size:1.4rem;font-weight:800;letter-spacing:.2em;color:var(--primary-d)}
@@ -52,15 +54,16 @@
   /* ---------- estrutura e menu ---------- */
   .shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;transition:grid-template-columns .2s ease}
   .shell.collapsed{grid-template-columns:76px minmax(0,1fr)}
-  .rail{background:#fff;border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:30}
-  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.15rem;letter-spacing:-.01em;padding:2px 8px 22px;color:var(--ink)}
-  .brand svg{flex:none;transform:rotate(-8deg)}
+  .rail{background:#fff;border-right:3px solid var(--ink);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:30}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.3rem;letter-spacing:-.01em;padding:2px 8px 22px;color:var(--ink)}
+  .brand svg{flex:none}
+  .brand em{font-style:normal;color:var(--red)}
   .nav{display:flex;flex-direction:column;gap:4px}
   a.navbtn{text-decoration:none;box-sizing:border-box}
   .navbtn{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:12px;background:none;color:var(--muted);font-weight:500;cursor:pointer;text-align:left}
   .navbtn svg{width:21px;height:21px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
   .navbtn:hover{background:var(--lilac);color:var(--primary-d)}
-  .navbtn[aria-current=page]{background:var(--primary);color:#fff;font-weight:600;box-shadow:0 6px 14px -6px rgba(124,58,237,.7)}
+  .navbtn[aria-current=page]{background:var(--primary);color:#fff;font-weight:600;box-shadow:3px 3px 0 var(--red)}
   .rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:12px}
   .rail .email{padding:6px 12px 0;font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
   .collapsed .lb,.collapsed .brand span,.collapsed .email{display:none}
@@ -75,18 +78,18 @@
   .back{margin-bottom:14px}
 
   /* ---------- hoje ---------- */
-  .band{background:var(--deep);color:#fff;border-radius:22px;padding:28px clamp(20px,3vw,36px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:26px;align-items:center}
-  .band h2{font-size:clamp(1.9rem,4.4vw,3rem);font-weight:800;letter-spacing:-.025em;font-variation-settings:'wdth' 85}
-  .band p{margin-top:8px;color:#DDD6FE;max-width:52ch}
+  .band{background:var(--deep);color:#fff;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--red);border-radius:24px;padding:28px clamp(20px,3vw,36px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:26px;align-items:center}
+  .band h2{font-size:clamp(1.9rem,4.4vw,3rem);font-weight:800;letter-spacing:-.025em;}
+  .band p{margin-top:8px;color:#EAD9B6;max-width:52ch}
   .marks{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
-  .mark{--r:0deg;width:40px;height:40px;border-radius:50%;border:2.5px solid #DDD6FE;display:grid;place-items:center;color:#DDD6FE;flex:none;transform:rotate(var(--r))}
+  .mark{--r:0deg;width:40px;height:40px;border-radius:50%;border:2.5px solid #EAD9B6;display:grid;place-items:center;color:#EAD9B6;flex:none;transform:rotate(var(--r))}
   .mark svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
   .mark.more{border-style:dashed;font-weight:700;font-size:.9rem;width:auto;padding:0 13px;border-radius:20px}
   .play .mark{animation:stamp .38s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--i) * 38ms)}
   @keyframes stamp{from{opacity:0;transform:scale(.35) rotate(var(--r))}}
   @media (prefers-reduced-motion:reduce){.play .mark{animation:none}.shell{transition:none}}
 
-  .strip{display:grid;grid-template-columns:repeat(4,1fr);margin-top:26px;border-top:1.5px solid var(--ink)}
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);margin-top:26px;border-top:3px solid var(--ink)}
   .strip>div{padding:14px 16px 4px 0}
   .strip>div+div{padding-left:18px;border-left:1px solid var(--line)}
   .strip b{display:block;font-size:clamp(1.7rem,3vw,2.4rem);font-weight:700;letter-spacing:-.02em;line-height:1.1}
@@ -95,12 +98,12 @@
   .up{color:var(--good)} .down{color:var(--alert)}
 
   .dash{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr);gap:24px;align-items:start;margin-top:30px}
-  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+  .panel{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:18px 20px;box-shadow:var(--hard)}
   .phead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
   .tools{display:flex;gap:10px;flex-wrap:wrap}
-  .seg{display:inline-flex;background:var(--track);border-radius:10px;padding:3px}
+  .seg{display:inline-flex;background:var(--track);border:2.5px solid var(--ink);border-radius:12px;padding:2px}
   .seg button{border:0;background:none;padding:7px 13px;border-radius:8px;font-weight:600;color:var(--muted);cursor:pointer;min-height:36px}
-  .seg button[aria-pressed=true]{background:var(--primary);color:#fff}
+  .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
   #csum{color:var(--muted);margin-bottom:4px}
   #csum b{color:var(--ink);font-size:1.5rem;margin-right:4px}
   #chart{position:relative;width:100%}
@@ -119,17 +122,17 @@
 
   /* ---------- listas, filtros, tabelas ---------- */
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 16px}
-  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer;min-height:36px}
+  .chip{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer;min-height:36px}
   .chip small{color:var(--muted);margin-left:4px;font-weight:500}
-  .chip:hover{border-color:var(--primary)}
+  .chip:hover{background:var(--lilac)}
   .chip[aria-pressed=true]{background:var(--primary);border-color:var(--primary);color:#fff}
-  .chip[aria-pressed=true] small{color:#E9E1FF}
+  .chip[aria-pressed=true] small{color:#EAD9B6}
   table{width:100%;border-collapse:collapse}
-  th{font-size:.82rem;color:var(--muted);font-weight:600;text-align:left;padding:10px 8px;border-bottom:1.5px solid var(--ink)}
+  th{font-size:.82rem;color:var(--muted);font-weight:700;text-align:left;padding:10px 8px;border-bottom:2.5px solid var(--ink)}
   td{padding:13px 8px;border-bottom:1px solid var(--line);vertical-align:top}
   tr:last-child td{border-bottom:0}
   tr[data-c]{cursor:pointer}
-  tr[data-c]:hover{background:#FAF8FF}
+  tr[data-c]:hover{background:#FFFDF7}
   td a{color:var(--primary-d)}
   .list .item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .list .item .t{min-width:0;flex:1 1 240px}
@@ -141,7 +144,7 @@
   .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
   .split.s13{grid-template-columns:minmax(280px,1fr) minmax(0,2fr)}
   .rform{max-width:880px}
-  .rbox{background:#fff;border:1px solid var(--line);border-radius:18px}
+  .rbox{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard)}
   .rsec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:24px;padding:24px 28px}
   .rsec+.rsec{border-top:1px solid var(--line)}
   .rt h2{margin:0 0 4px;font-size:1.05rem}
@@ -157,18 +160,18 @@
   .picker{margin-bottom:6px}
   .pg{font-size:.78rem;color:var(--muted);margin:12px 0 6px}
   .pgrid{display:flex;flex-wrap:wrap;gap:6px}
-  .pk{width:42px;height:42px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:1.25rem;cursor:pointer;color:var(--primary)}
+  .pk{width:42px;height:42px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;font-size:1.25rem;cursor:pointer;color:var(--ink)}
   .pk:hover{background:var(--lilac)}
-  .pk[aria-pressed=true]{border-color:var(--primary);background:var(--lilac);box-shadow:0 0 0 2px var(--primary) inset}
+  .pk[aria-pressed=true]{background:var(--kraft);box-shadow:3px 3px 0 var(--red)}
   .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;margin:0!important;color:var(--ink)!important;font-size:.88rem}
   .sw.top{font-size:1rem;font-weight:600;margin-bottom:6px!important}
   .sw input{position:absolute;opacity:0;width:0;height:0}
-  .sw i{position:relative;flex:none;width:42px;height:24px;border-radius:99px;background:#CFC8E3;transition:background .15s}
+  .sw i{position:relative;flex:none;width:42px;height:24px;border-radius:99px;border:2px solid var(--ink);background:#EAD9B6;transition:background .15s}
   .sw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-  .sw input:checked+i{background:var(--primary)}
+  .sw input:checked+i{background:var(--red)}
   .sw input:checked+i::after{transform:translateX(18px)}
   .sw input:focus-visible+i{outline:2px solid var(--primary);outline-offset:2px}
-  .lrow{margin-top:12px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:#fff}
+  .lrow{margin-top:12px;padding:14px;border:2.5px solid var(--ink);border-radius:16px;background:#fff}
   .lrow:first-child{margin-top:0}
   .ltop{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .ltop b{font-size:1rem}
@@ -177,8 +180,8 @@
   .lrow.off .bonus{display:none}
   .bonus{display:block;margin:10px 0 0!important;cursor:pointer}
   .bonus input{position:absolute;opacity:0;width:0;height:0}
-  .bonus span{display:block;padding:9px 12px;border:1.5px dashed var(--line);border-radius:10px;font-size:.88rem;color:var(--muted)}
-  .bonus input:checked+span{border:1.5px solid var(--primary);background:var(--lilac);color:var(--primary-d);font-weight:600}
+  .bonus span{display:block;padding:9px 12px;border:2px dashed #8A93B5;border-radius:10px;font-size:.88rem;color:var(--muted)}
+  .bonus input:checked+span{border:2px solid var(--ink);background:var(--kraft);color:var(--primary-d);font-weight:600}
   .bonus input:focus-visible+span{outline:2px solid var(--primary);outline-offset:2px}
   .nor{display:block;margin-top:10px;font-size:.82rem;color:var(--muted)}
   .szl{display:flex;justify-content:space-between;margin-top:18px;max-width:300px}
@@ -191,7 +194,7 @@
   .auth .brand{padding:0 0 22px}
   .auth .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 
-  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;border-radius:12px;color:#fff;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(30,18,53,.3);max-width:90vw;display:none}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;border-radius:12px;color:#fff;font-weight:600;z-index:99;box-shadow:4px 4px 0 var(--ink);border:2.5px solid var(--ink);max-width:90vw;display:none}
 
   @media (max-width:1180px){
     .dash{grid-template-columns:minmax(0,1fr)}
@@ -268,7 +271,7 @@ const ICON = {
   store:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9c0 2 3 2 4 0 1 2 3 2 4 0 1 2 3 2 4 0 1 2 4 2 4 0M10 20v-5h4v5"/></svg>',
   chev:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'
 };
-const LOGO = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#7C3AED"/><path d="M9.5 16.5l4.5 4.5 8.5-9.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const LOGO = '<svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['loja','Loja','store'],['regras','Regras','sliders']];
 
@@ -309,12 +312,12 @@ function segments(){
 }
 const SEGINFO = {
   todos:{n:'Todos', d:''},
-  fieis:{n:'Fiéis', d:'os 10% que mais carimbam', c:'#4C1D95'},
-  regulares:{n:'Regulares', d:'os 60% do meio', c:'#7C3AED'},
-  ocasionais:{n:'Ocasionais', d:'os 30% que menos carimbam', c:'#C4B5FD'},
-  risco:{n:'Em risco', d:'já voltaram antes, mas faz ' + RISK_DAYS + ' dias ou mais que não aparecem', c:'#DC2626'},
-  faltapouco:{n:'Quase lá', d:'faltam 2 carimbos ou menos para o prêmio', c:'#D97706'},
-  premio:{n:'Com prêmio', d:'têm prêmio esperando para resgatar', c:'#7C3AED'}
+  fieis:{n:'Fiéis', d:'os 10% que mais carimbam', c:'#14296B'},
+  regulares:{n:'Regulares', d:'os 60% do meio', c:'#6A7DC4'},
+  ocasionais:{n:'Ocasionais', d:'os 30% que menos carimbam', c:'#B9A885'},
+  risco:{n:'Em risco', d:'já voltaram antes, mas faz ' + RISK_DAYS + ' dias ou mais que não aparecem', c:'#E03A2F'},
+  faltapouco:{n:'Quase lá', d:'faltam 2 carimbos ou menos para o prêmio', c:'#E0A100'},
+  premio:{n:'Com prêmio', d:'têm prêmio esperando para resgatar', c:'#0E7A47'}
 };
 
 /* ---------- dados ---------- */
@@ -368,7 +371,7 @@ function render(){
   const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Admin" aria-label="Admin">${ICON.users}<span class="lb">Admin</span></a>` : '';
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
   const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras})[S.view]();
-  root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>Fidelidade</span></div>
+  root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <nav class="nav" aria-label="Seções">${nav}${sup}</nav>
     <div class="foot">
       ${mq.matches ? '' : `<button class="navbtn" id="col" data-tip="Expandir menu" aria-label="Recolher ou expandir o menu">${ICON.chev}<span class="lb">Recolher menu</span></button>`}
@@ -393,7 +396,7 @@ if(mq.addEventListener) mq.addEventListener('change', onMq); else if(mq.addListe
 
 /* ---------- entrada e criação da loja ---------- */
 function viewLogin(msg){
-  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>Fidelidade</span></div>
+  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <h1>Entrar no painel</h1>
     <label for="e">E-mail</label><input id="e" name="e" type="email" required autocomplete="email">
     <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" name="p" type="password" required minlength="6" autocomplete="current-password">
@@ -412,7 +415,7 @@ function viewLogin(msg){
   };
 }
 function viewCreate(){
-  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>Fidelidade</span></div>
+  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <h1>Crie a sua loja</h1>
     <label for="n">Nome do estabelecimento</label><input id="n" name="n" type="text" required>
     <label for="r">Prêmio</label><input id="r" name="r" type="text" value="Brinde grátis" required>
@@ -495,16 +498,16 @@ function drawChart(){
   const barW = Math.min(48, bw * .62), every = Math.max(1, Math.ceil(40 / bw));
   let g = '';
   [0, .25, .5, .75, 1].forEach(f => { const y = pt + ih - f * ih;
-    g += `<line x1="${pl_}" x2="${W - pr}" y1="${y}" y2="${y}" stroke="#E3DDF2" stroke-dasharray="${f === 0 ? '0' : '3 5'}"/><text x="${pl_ - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#6B6485">${Math.round(max * f * 10) / 10}</text>`; });
+    g += `<line x1="${pl_}" x2="${W - pr}" y1="${y}" y2="${y}" stroke="#E4D9C0" stroke-dasharray="${f === 0 ? '0' : '3 5'}"/><text x="${pl_ - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#3D4C80">${Math.round(max * f * 10) / 10}</text>`; });
   vals.forEach((v, i) => {
     const cx = pl_ + i * bw + bw / 2, x = cx - barW / 2, h = v / max * ih, y = pt + ih - h, last = i === vals.length - 1, r = Math.min(10, barW / 2);
-    g += `<rect x="${x}" y="${pt}" width="${barW}" height="${ih}" rx="${r}" fill="#F1EEFB"/>`;
-    if(v > 0) g += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h, r * 2)}" rx="${r}" fill="${last ? '#4C1D95' : '#7C3AED'}"/>`;
-    g += `<text x="${cx}" y="${pt - 10}" text-anchor="middle" font-size="12" font-weight="700" fill="${v > 0 ? '#1E1235' : '#B9B0D6'}">${v}</text>`;
-    if((vals.length - 1 - i) % every === 0) g += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="11" fill="${last ? '#1E1235' : '#6B6485'}" font-weight="${last ? 700 : 400}">${labels[i]}</text>`;
+    g += `<rect x="${x}" y="${pt}" width="${barW}" height="${ih}" rx="${r}" fill="#F1EADB"/>`;
+    if(v > 0) g += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h, r * 2)}" rx="${r}" fill="${last ? '#E03A2F' : '#14296B'}"/>`;
+    g += `<text x="${cx}" y="${pt - 10}" text-anchor="middle" font-size="12" font-weight="700" fill="${v > 0 ? '#14296B' : '#8A93B5'}">${v}</text>`;
+    if((vals.length - 1 - i) % every === 0) g += `<text x="${cx}" y="${H - 10}" text-anchor="middle" font-size="11" fill="${last ? '#14296B' : '#3D4C80'}" font-weight="${last ? 700 : 400}">${labels[i]}</text>`;
     g += `<rect class="hit" data-i="${i}" x="${pl_ + i * bw}" y="${pt - 22}" width="${bw}" height="${ih + 22}" fill="transparent"><title>${full[i]}: ${v} ${pl(v, noun[0], noun[1])}</title></rect>`;
   });
-  if(!total) g += `<text x="${W / 2}" y="${pt + ih / 2}" text-anchor="middle" font-size="14" fill="#6B6485">Ainda sem movimento neste período</text>`;
+  if(!total) g += `<text x="${W / 2}" y="${pt + ih / 2}" text-anchor="middle" font-size="14" fill="#3D4C80">Ainda sem movimento neste período</text>`;
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Gráfico de barras: ${total} ${noun[1]} no período">${g}</svg><div class="tip" hidden></div>`;
   const tip = el.querySelector('.tip');
   const show = (i) => {
@@ -698,12 +701,13 @@ const STAMPS = [
   ['Loja e casa', ['🛒','🛍️','👗','👟','🧸','🎮','📚','🌸','🪴','💍']],
   ['Pet e carro', ['🐾','🐶','🐱','🚗','🛞','⛽','🧼','🔧']]
 ];
+const stampSvg = c => `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="${c}"/><rect x="44" y="30" width="12" height="26" fill="${c}"/><rect x="22" y="54" width="56" height="16" rx="6" fill="${c}"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>`;
 const lumA = h => { h = String(h || '').replace('#', ''); if(h.length !== 6) return .5; const [r, g, b] = [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); return (.299 * r + .587 * g + .114 * b) / 255; };
 function previewCard(name, goal, icon, bg, sc, scale){
-  const fg = lumA(bg) > .62 ? '#1c1530' : '#fff', starCol = lumA(sc) > .62 ? (lumA(bg) < .62 ? bg : '#1c1530') : '#fff', n = Math.min(goal, 10), on = Math.min(3, n - 1);
+  const fg = lumA(bg) > .62 ? '#14296B' : '#fff', starCol = lumA(sc) > .62 ? (lumA(bg) < .62 ? bg : '#14296B') : '#fff', n = Math.min(goal, 10), on = Math.min(3, n - 1);
   const dots = Array.from({length:n}, (_, i) => {
     const o = i < on;
-    return `<i style="background:${o ? sc : (fg === '#fff' ? 'rgba(255,255,255,.2)' : 'rgba(28,21,48,.15)')};color:${starCol}"><span style="font-size:${(1.05 * (scale || 100) / 100).toFixed(2)}rem;${icon === 'star' ? (o ? '' : 'display:none') : (o ? '' : 'opacity:.3;filter:grayscale(1)')}">${icon === 'star' ? '★' : esc(icon)}</span></i>`;
+    return `<i style="background:${o ? sc : (fg === '#fff' ? 'rgba(255,255,255,.2)' : 'rgba(28,21,48,.15)')};color:${starCol}"><span style="font-size:${(1.05 * (scale || 100) / 100).toFixed(2)}rem;${icon === 'star' ? (o ? '' : 'display:none') : (o ? '' : 'opacity:.3;filter:grayscale(1)')}">${icon === 'star' ? stampSvg(lumA(sc) > .62 ? '#14296B' : '#FBF7EE').replace('width="100%" height="100%"', `width="${Math.round(20 * (scale || 100) / 100)}" height="${Math.round(20 * (scale || 100) / 100)}" style="display:block"`) : esc(icon)}</span></i>`;
   }).join('');
   return `<div class="pv" style="background:${esc(bg)};color:${fg}"><b>${esc(name || 'Sua loja')}</b><small>Olá, Cliente · ${on}/${goal}</small><div class="pvg">${dots}</div></div>`;
 }
@@ -718,9 +722,9 @@ function viewLoja(){
             <label for="sz" class="szl">Tamanho do símbolo <b id="szv">${+s.stamp_scale || 100}%</b></label><input id="sz" name="sz" type="range" min="50" max="160" step="5" value="${+s.stamp_scale || 100}"></div>
           <div class="rf">
             <label>Símbolo do carimbo</label><input type="hidden" name="ic" value="${esc(s.stamp_icon || 'star')}">
-            <div class="picker">${STAMPS.map(([g, list]) => `<div class="pg">${g}</div><div class="pgrid">${list.map(i => `<button type="button" class="pk" data-ic="${esc(i)}" aria-label="${esc(i)}">${i === 'star' ? '★' : i}</button>`).join('')}</div>`).join('')}</div>
+            <div class="picker">${STAMPS.map(([g, list]) => `<div class="pg">${g}</div><div class="pgrid">${list.map(i => `<button type="button" class="pk" data-ic="${esc(i)}" aria-label="${esc(i)}">${i === 'star' ? stampSvg('#14296B').replace('width="100%" height="100%"','width="26" height="26"') : i}</button>`).join('')}</div>`).join('')}</div>
             <div class="cols"><div><label for="bg">Cor do fundo do cartão</label><input id="bg" name="bg" type="color" value="${esc(s.color)}"></div>
-            <div><label for="sc">Cor do carimbo</label><input id="sc" name="sc" type="color" value="${esc(s.stamp_color || '#ffffff')}"></div></div></div></section>
+            <div><label for="sc">Cor do carimbo</label><input id="sc" name="sc" type="color" value="${esc(s.stamp_color || '#FBF7EE')}"></div></div></div></section>
         <section class="rsec"><div class="rt"><h2>Links no cartão</h2><p>Botões que o cliente vê abaixo dos carimbos. Ligue só os que quiser mostrar.</p></div>
           <div class="rf">
             ${[['whatsapp','uw','WhatsApp','11 99999-9999',s.whatsapp_url ? s.whatsapp_url.replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '') : '',null,false],

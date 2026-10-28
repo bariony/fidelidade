@@ -5,33 +5,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#1B0B40">
-<title>Admin · Fidelidade</title>
+<title>Carimbô · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--night:#140A2E;--night2:#2B1166;--primary:#7C3AED;--primary-d:#5B21B6;--lilac:#EDE9FE;--gold:#E8C77A;
-    --paper:#F4F1FA;--ink:#1B1033;--muted:#6B6485;--line:#E6E0F3;--good:#12805C;--warn:#B45309;--bad:#C0392B;
-    --sh:0 1px 2px rgba(27,16,51,.05),0 8px 24px -12px rgba(27,16,51,.18);color-scheme:light}
+  :root{--night:#0E1D4E;--night2:#14296B;--primary:#14296B;--primary-d:#0E1D4E;--lilac:#F3EAD6;--gold:#EAD9B6;--red:#E03A2F;
+    --paper:#FBF7EE;--ink:#14296B;--muted:#3D4C80;--line:#E4D9C0;--good:#0E7A47;--warn:#B45309;--bad:#C0392B;
+    --sh:4px 4px 0 #14296B;color-scheme:light}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
   button,input,select,textarea{font:inherit;color:inherit}
-  h1,h2,h3{margin:0}
+  h1,h2,h3,.btn,.brand,.tile b,.nums b{font-family:'Fredoka','Nunito',system-ui,sans-serif}
+  h1,h2,h3{margin:0;font-weight:600}
   .wrap{max-width:1320px;margin:0 auto;padding:0 clamp(16px,3vw,40px)}
   /* faixa escura */
-  .hero{background:radial-gradient(900px 400px at 85% -10%,rgba(124,58,237,.55),transparent 60%),radial-gradient(600px 300px at 0% 110%,rgba(232,199,122,.16),transparent 60%),linear-gradient(135deg,var(--night),var(--night2));color:#fff;padding:22px 0 88px}
+  .hero{background:radial-gradient(900px 400px at 85% -10%,rgba(224,58,47,.35),transparent 60%),linear-gradient(135deg,var(--night),var(--night2));color:#fff;padding:22px 0 88px;border-bottom:4px solid var(--red)}
   .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.1rem;letter-spacing:.01em}
-  .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#9F67FF,var(--primary-d));display:grid;place-items:center;box-shadow:0 6px 18px -6px rgba(124,58,237,.9)}
-  .logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-  .crown{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(232,199,122,.5);border-radius:99px;padding:2px 10px;margin-left:4px;font-weight:600}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:9px 20px;border:0;border-radius:12px;background:linear-gradient(180deg,#8B4DF5,var(--primary-d));color:#fff;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 6px 16px -8px rgba(91,33,182,.9);transition:transform .12s,box-shadow .12s}
-  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 20px -8px rgba(91,33,182,.9)}
-  .btn.line{background:#fff;color:var(--primary-d);border:1.5px solid #D8CCF5;box-shadow:none}
+  .logo{width:40px;height:40px;border-radius:12px;background:#FBF7EE;border:2.5px solid #FBF7EE;display:grid;place-items:center;box-shadow:3px 3px 0 var(--red)}
+  .logo svg{width:26px;height:26px}
+  .crown{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(234,217,182,.6);border-radius:99px;padding:2px 10px;margin-left:4px;font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:9px 20px;border:2.5px solid var(--ink);border-radius:12px;background:var(--red);color:#fff;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn.line{background:#fff;color:var(--ink);border:2.5px solid var(--ink)}
   .btn.line:hover{background:var(--lilac)}
-  .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.22);box-shadow:none}
+  .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.5);box-shadow:none}
   .btn.ghost:hover{background:rgba(255,255,255,.18)}
-  .btn.danger{background:#fff;color:var(--bad);border:1.5px solid #F0B8B1;box-shadow:none}
+  .btn.danger{background:#fff;color:var(--bad);border:2.5px solid var(--bad);box-shadow:none}
   .btn.danger:hover{background:#FDECEA}
   .btn.small{min-height:36px;padding:6px 14px;font-size:.9rem}
   .btn:disabled{opacity:.55;cursor:default;transform:none}
@@ -58,7 +60,7 @@
   .search{position:relative;flex:1 1 240px;max-width:360px}
   .search input{width:100%;padding:11px 14px 11px 40px;border:1.5px solid var(--line);border-radius:12px;background:#fff;min-height:44px}
   .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:3px 3px 0 var(--red);border-color:var(--red)}
   .chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 15px;cursor:pointer;font-size:.9rem;color:var(--ink)}
   .chip:hover{border-color:#C9B8F2}
   .chip[aria-pressed=true]{background:var(--night2);border-color:var(--night2);color:#fff}
@@ -72,7 +74,7 @@
   .sc:hover{transform:translateY(-3px);box-shadow:0 18px 36px -16px rgba(60,20,140,.35)}
   .sc::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--acc,var(--primary))}
   .sc.s-ativa{--acc:linear-gradient(90deg,#10B981,#34D399)}.sc.s-trial{--acc:linear-gradient(90deg,#3B82F6,#60A5FA)}
-  .sc.s-tolerancia{--acc:linear-gradient(90deg,#F59E0B,#FBBF24)}.sc.s-vencida{--acc:linear-gradient(90deg,#EF4444,#F87171)}.sc.s-bloqueada{--acc:linear-gradient(90deg,#1F1535,#4B3B73)}
+  .sc.s-tolerancia{--acc:linear-gradient(90deg,#F59E0B,#FBBF24)}.sc.s-vencida{--acc:linear-gradient(90deg,#EF4444,#F87171)}.sc.s-bloqueada{--acc:linear-gradient(90deg,#14296B,#14296B)}
   .sc .h{display:flex;gap:12px;align-items:center}
   .av{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:1.05rem;flex:none;letter-spacing:.02em}
   .av.lg{width:72px;height:72px;border-radius:22px;font-size:1.6rem;box-shadow:0 10px 24px -10px rgba(0,0,0,.6)}
@@ -87,7 +89,7 @@
   .ren .r1{display:flex;justify-content:space-between;align-items:baseline;font-size:.86rem;color:var(--muted)}
   .ren .r1 b{color:var(--ink);font-size:.98rem}
   .prog{height:7px;border-radius:99px;background:#EEE9F8;margin-top:8px;overflow:hidden}
-  .prog i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8B4DF5,#B794F6)}
+  .prog i{display:block;height:100%;border-radius:99px;background:var(--ink)}
   .prog.warn i{background:linear-gradient(90deg,#F59E0B,#FBBF24)}.prog.bad i{background:linear-gradient(90deg,#EF4444,#F87171)}
   .dl{font-size:.82rem;color:var(--muted)}.dl.bad{color:var(--bad);font-weight:600}.dl.warn{color:var(--warn);font-weight:600}
   .nums{display:grid;grid-template-columns:repeat(3,1fr) 1.3fr;gap:8px;margin-top:16px;align-items:end}
@@ -134,7 +136,7 @@
   .sect{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
   .sect h3{font-size:1rem}
   .bars{display:flex;align-items:flex-end;gap:4px;height:140px;margin-top:16px}
-  .bars i{flex:1;background:linear-gradient(180deg,#9F67FF,var(--primary-d));border-radius:6px 6px 2px 2px;min-height:3px;opacity:.95;transition:opacity .1s}
+  .bars i{flex:1;background:var(--ink);border-radius:6px 6px 2px 2px;min-height:3px;opacity:.95;transition:opacity .1s}
   .bars i:hover{opacity:.7}
   .bars i.z{background:#EAE4F7}
   .hlab{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted);margin-top:6px}
@@ -173,10 +175,10 @@ const money = v => v == null ? '' : 'R$ ' + Number(v).toFixed(2).replace('.', ',
 const addDays = (iso, n) => { const d = new Date(String(iso).slice(0, 10) + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const baseUrl = () => location.origin + location.pathname.replace(/[^/]*$/, '');
 const ini = n => (String(n).trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
-const GRAD = ['#7C3AED,#4C1D95', '#0EA5E9,#1D4ED8', '#10B981,#047857', '#F59E0B,#B45309', '#EC4899,#9D174D', '#6366F1,#3730A3'];
+const GRAD = ['#14296B,#0E1D4E', '#E03A2F,#9A2A12', '#0EA5E9,#1D4ED8', '#10B981,#047857', '#F59E0B,#B45309', '#EC4899,#9D174D', '#6366F1,#3730A3'];
 const grad = n => { let h = 0; for(const c of String(n)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return `linear-gradient(135deg,${GRAD[h % GRAD.length]})`; };
 const I = {
-  logo:'<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  logo:'<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>',
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
@@ -229,7 +231,7 @@ async function loadAll(){
   const r = await rpc('fid_super_overview'); if(!r) return;
   S.today = r.today; S.stores = r.items || []; S.spark = r.spark_total || [];
 }
-const navBar = right => `<div class="nav"><div class="brand"><span class="logo">${I.logo}</span>Fidelidade <span class="crown">Admin</span></div><div style="display:flex;gap:8px;flex-wrap:wrap">${right}</div></div>`;
+const navBar = right => `<div class="nav"><div class="brand"><span class="logo">${I.logo}</span><span>carimb<span style="color:#FF7B6E">ô</span></span> <span class="crown">Admin</span></div><div style="display:flex;gap:8px;flex-wrap:wrap">${right}</div></div>`;
 
 /* ---------- lista ---------- */
 const soon = s => (s.status === 'ativa' && s.days_left <= 7) || (s.status === 'trial' && s.days_left <= 3);
@@ -253,7 +255,7 @@ function card(s){
   return `<article class="sc s-${s.status}" data-id="${s.id}" tabindex="0">
     <div class="h"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div class="nm"><b>${esc(s.name)}</b><span>${esc(s.email || '')}</span></div><span class="pill st-${s.status}">${STATUS[s.status]}</span></div>
     <div class="ren"><div class="r1"><span>Renovação</span><b>${fmtDate(s.renews_at)}</b></div><div class="prog ${progCls(s)}"><i style="width:${cyclePct(s)}%"></i></div><div style="margin-top:6px">${dueText(s)}</div></div>
-    <div class="nums"><div><b>${s.stamps_today}</b><small>hoje</small></div><div><b>${s.stamps_7d}</b><small>7 dias</small></div><div><b>${s.stamps_30d}</b><small>30 dias</small></div>${spark(s.spark || [], '#7C3AED')}</div>
+    <div class="nums"><div><b>${s.stamps_today}</b><small>hoje</small></div><div><b>${s.stamps_7d}</b><small>7 dias</small></div><div><b>${s.stamps_30d}</b><small>30 dias</small></div>${spark(s.spark || [], '#14296B')}</div>
     <div class="foot"><span>${s.customers} ${pl(s.customers, 'cliente', 'clientes')} · ${s.stamps_total} ${pl(s.stamps_total, 'carimbo', 'carimbos')}</span>${s.referred_by ? `<span class="aff">Indicou: ${esc(s.referred_by)}</span>` : '<span class="go">Abrir →</span>'}</div></article>`;
 }
 function viewList(){
@@ -271,7 +273,7 @@ function viewList(){
         <div class="tile good"><div class="k"><i>✅</i>Lojas ativas</div><b>${c('ativa')}</b><small>${c('trial')} em teste</small></div>
         <div class="tile warn"><div class="k"><i>⏳</i>Vencem em até 7 dias</div><b>${L.filter(soon).length}</b><small>renovações para acompanhar</small></div>
         <div class="tile bad"><div class="k"><i>⚠️</i>Pedem atenção</div><b>${attn}</b><small>tolerância, vencidas ou bloqueadas</small></div>
-        <div class="tile big"><div class="k"><i>👆</i>Carimbos hoje</div><b>${sum('stamps_today')}</b>${spark(S.spark, '#7C3AED', 46)}</div>
+        <div class="tile big"><div class="k"><i>👆</i>Carimbos hoje</div><b>${sum('stamps_today')}</b>${spark(S.spark, '#14296B', 46)}</div>
       </div>
       <div class="mini"><div><span>Carimbos em 30 dias</span><b>${sum('stamps_30d')}</b></div><div><span>Clientes finais</span><b>${sum('customers')}</b></div><div><span>Lojas no total</span><b>${L.length}</b></div><div><span>Afiliados</span><b>${affs}</b></div></div>
       <div class="bar"><label class="search" style="margin:0">${I.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou afiliado" value="${esc(S.q)}"></label>${chips}

@@ -250,3 +250,6 @@ alter table public.fid_stores add constraint fid_stores_geo_chk
 -- ===== v10: visão geral do admin com mini-gráficos =====
 -- fid_super_overview passa a devolver 'spark' (14 dias) por loja e 'spark_total' (todas as lojas)
 -- (aplicado via migration "super_overview_spark" no projeto).
+
+-- v11: identidade Carimbô — cores padrão de novas lojas
+alter table public.fid_stores alter column color set default '#14296B', alter column stamp_color set default '#FBF7EE';
