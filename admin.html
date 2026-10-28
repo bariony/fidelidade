@@ -113,7 +113,7 @@
 
   .bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:12px 0 4px}
   .bar i{display:block;height:100%}
-  .row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
   .row:last-child{border-bottom:0}
   .row .t b{display:flex;align-items:center;font-weight:600}
   .row .t small{display:block;color:var(--muted);font-size:.86rem;margin-left:18px}
@@ -229,16 +229,19 @@
 
   /* ---------- hoje: últimos carimbos ---------- */
   .dash{align-items:stretch}
-  .dl{display:flex;flex-direction:column;gap:24px;min-width:0}
-  .panel.last{flex:1;display:flex;flex-direction:column;padding:16px 18px 14px}
+  .panel.last{margin-top:24px;padding:16px 20px 10px}
   .panel.last .phead{margin-bottom:8px}
-  .lgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;grid-template-rows:repeat(4,auto);column-gap:22px}
-  .lr{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:7px 6px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px}
+  .llist{display:flex;flex-direction:column}
+  .lr{display:grid;grid-template-columns:36px minmax(0,1.2fr) minmax(0,1fr) 110px;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:8px 8px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px}
+  .lr:last-child{border-bottom:0}
   .lr:hover{background:#FFFDF7}
-  .lr .ln{min-width:0}.lr .ln b{display:block;font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .lr .ln small{display:block;color:var(--muted);font-size:.78rem;line-height:1.1}
-  .lr .lc{font-family:'Fredoka',sans-serif;font-weight:600;background:var(--kraft);border:2px solid var(--ink);border-radius:99px;padding:1px 9px;font-size:.82rem}
-  .lr .lw{color:var(--muted);font-size:.8rem;white-space:nowrap;min-width:78px;text-align:right}
+  .lr .ln{min-width:0}.lr .ln b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lr .ln small{display:block;color:var(--muted);font-size:.8rem;line-height:1.1}
+  .lr .lcard{display:flex;align-items:center;gap:10px;min-width:0}
+  .lr .lcard em{font-style:normal;font-family:'Fredoka',sans-serif;font-weight:600;font-size:.92rem;flex:none}
+  .lr .lw{color:var(--muted);font-size:.86rem;white-space:nowrap;text-align:right}
+  .cdots.mini{gap:4px}.cdots.mini i{width:14px;height:14px;border-width:1.5px}
+  .cbar.mini{height:8px;width:100px}
   .av{display:inline-grid;place-items:center;border-radius:50%;border:2.5px solid var(--ink);font-family:'Fredoka',sans-serif;font-weight:600;flex:none;line-height:1}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -314,8 +317,8 @@
   .tw{text-align:right;font-weight:700;font-size:.9rem;white-space:nowrap}.tw .sub{font-weight:400}
   @media (max-width:1180px){.cd{grid-template-columns:minmax(0,1fr)}}
   @media (max-width:1000px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-  @media (max-width:760px){.lgrid{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-flow:row}}
-  @media (max-width:640px){.lr .lw{min-width:0}.cgrid{grid-template-columns:minmax(0,1fr)}.hero .ha,.hero .ha .btn{width:100%}.stats{grid-template-columns:1fr 1fr}}
+  @media (max-width:760px){.lr{grid-template-columns:36px minmax(0,1fr) auto}.lr .lcard{display:none}}
+  @media (max-width:640px){.cgrid{grid-template-columns:minmax(0,1fr)}.hero .ha,.hero .ha .btn{width:100%}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -540,11 +543,12 @@ function viewHoje(){
   const sg = segments(), n = S.customers.length;
   const tiers = ['fieis', 'regulares', 'ocasionais'], attn = ['risco', 'faltapouco', 'premio'];
   const barHtml = n ? `<div class="bar" role="img" aria-label="Distribuição dos clientes por frequência">${tiers.map(k => `<i style="width:${sg[k].length / n * 100}%;background:${SEGINFO[k].c}"></i>`).join('')}</div>` : '';
-  const row = (k, btn) => `<div class="row"><div class="t"><b><span class="dot" style="background:${SEGINFO[k].c}"></span>${SEGINFO[k].n}</b><small>${SEGINFO[k].d}</small></div><span class="n">${sg[k].length}</span>${btn}</div>`;
+  const SHORT = {fieis:'10% que mais carimbam', regulares:'60% do meio', ocasionais:'30% que menos carimbam', risco:'sem vir há ' + RISK_DAYS + ' dias ou mais', faltapouco:'faltam 2 carimbos ou menos', premio:'prêmio esperando'};
+  const row = (k, btn) => `<div class="row"><div class="t"><b><span class="dot" style="background:${SEGINFO[k].c}"></span>${SEGINFO[k].n}</b><small>${SHORT[k]}</small></div><span class="n">${sg[k].length}</span>${btn}</div>`;
   const byId = Object.fromEntries(S.customers.map(c => [c.id, c]));
   const rec = (S.recent || []).filter(e => byId[e.customer_id]);
   const recentHtml = `<section class="panel last" aria-label="Últimos carimbos"><div class="phead"><h2>Últimos carimbos</h2>${S.customers.length ? '<button class="btn line small" data-go-c>Ver clientes</button>' : ''}</div>
-    ${rec.length ? `<div class="lgrid">${rec.map(e => { const c = byId[e.customer_id]; return `<button class="lr" data-cust="${c.id}" title="${esc(c.name)}">${avatar(c, 34)}<span class="ln"><b>${esc(c.name)}</b><small>${e.kind === 'bonus' ? 'carimbo bônus' : 'carimbo'}</small></span><span class="lc">${c.stamps}/${s.stamps_goal}</span><span class="lw">${whenShort(e.created_at)}</span></button>`; }).join('')}</div>` : '<p class="note" style="margin-top:8px">Os últimos carimbos aparecem aqui assim que o primeiro cliente encostar no bastão.</p>'}</section>`;
+    ${rec.length ? `<div class="llist">${rec.map(e => { const c = byId[e.customer_id]; return `<button class="lr" data-cust="${c.id}">${avatar(c, 36)}<span class="ln"><b>${esc(c.name)}</b><small>${e.kind === 'bonus' ? 'carimbo bônus' : 'carimbo'}</small></span><span class="lcard">${cardDots(c.stamps, s.stamps_goal, false, true)}<em>${c.stamps}/${s.stamps_goal}</em></span><span class="lw">${whenShort(e.created_at)}</span></button>`; }).join('')}</div>` : '<p class="note" style="margin-top:8px">Os últimos carimbos aparecem aqui assim que o primeiro cliente encostar no bastão.</p>'}</section>`;
   const html = head(s.name, 'Como está a loja agora') + `
     <section class="band ${S.firstPaint ? 'play' : ''}" aria-label="Carimbos de hoje">
       <div><h2>${t.stamps} ${pl(t.stamps, 'carimbo', 'carimbos')} hoje</h2>
@@ -558,21 +562,20 @@ function viewHoje(){
       <div><b>${ret}</b><span>voltaram (2 ou mais carimbos)</span></div>
     </div>
     <div class="dash">
-      <div class="dl"><section class="panel" aria-label="Movimento">
+      <section class="panel" aria-label="Movimento">
         <div class="phead"><h2>Movimento</h2><div class="tools">
           <div class="seg" role="group" aria-label="O que mostrar">${[['signups','Cadastros'],['stamps','Carimbos'],['redeems','Resgates']].map(([k, l]) => `<button data-kind="${k}" aria-pressed="${S.chart.kind === k}">${l}</button>`).join('')}</div>
           <div class="seg" role="group" aria-label="Período">${[['dias','14 dias'],['meses','6 meses']].map(([k, l]) => `<button data-range="${k}" aria-pressed="${S.chart.range === k}">${l}</button>`).join('')}</div>
         </div></div>
         <div id="csum"></div><div id="chart"></div>
       </section>
-      ${recentHtml}
-      </div>
       <aside class="panel side">
         <h2>Seus clientes por frequência</h2>
         ${n ? barHtml + tiers.map(k => row(k, `<button class="btn line small" data-filter="${k}">Ver</button>`)).join('') : '<p class="note" style="margin-top:10px">Ainda não há clientes. Grave o link de uma tag no bastão e peça para o primeiro cliente encostar o celular.</p>'}
-        ${n ? `<h2 style="margin-top:26px">Quem vale um contato</h2>${attn.map(k => row(k, sg[k].length ? `<button class="btn small" data-camp="${k}">Campanha</button>` : '<span></span>')).join('')}` : ''}
+        ${n ? `<h2 style="margin-top:16px">Quem vale um contato</h2>${attn.map(k => row(k, sg[k].length ? `<button class="btn small" data-camp="${k}">Campanha</button>` : '<span></span>')).join('')}` : ''}
       </aside>
-    </div>`;
+    </div>
+    ${recentHtml}`;
   return {html, bind(){
     root.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { S.chart.kind = b.dataset.kind; render(); });
     root.querySelectorAll('[data-range]').forEach(b => b.onclick = () => { S.chart.range = b.dataset.range; render(); });
@@ -595,7 +598,7 @@ function drawChart(){
   const noun = {signups:['novo cliente','novos clientes'], stamps:['carimbo','carimbos'], redeems:['resgate','resgates']}[kind];
   const total = vals.reduce((a, b) => a + b, 0);
   $('#csum').innerHTML = `<b>${total}</b> ${pl(total, noun[0], noun[1])} nos últimos ${range === 'dias' ? '14 dias' : '6 meses'}`;
-  const W = Math.max(280, el.clientWidth), H = W < 520 ? 230 : 270, pl_ = 34, pr = 6, pt = 34, pb = 34;
+  const W = Math.max(280, el.clientWidth), H = W < 520 ? 230 : 330, pl_ = 34, pr = 6, pt = 34, pb = 34;
   const max = niceMax(Math.max(0, ...vals)), iw = W - pl_ - pr, ih = H - pt - pb, bw = iw / Math.max(1, vals.length);
   const barW = Math.min(48, bw * .62), every = Math.max(1, Math.ceil(40 / bw));
   let g = '';
@@ -641,9 +644,9 @@ function whenShort(d){
   if(days === 1) return 'ontem ' + hm;
   return String(dt.getDate()).padStart(2, '0') + '/' + String(dt.getMonth() + 1).padStart(2, '0') + ' ' + hm;
 }
-function cardDots(n, goal, big){
-  if(goal > 14) return `<div class="cbar${big ? ' big' : ''}" role="img" aria-label="${n} de ${goal} carimbos"><i style="width:${Math.min(100, n / goal * 100)}%"></i></div>`;
-  return `<div class="cdots${big ? ' big' : ''}" role="img" aria-label="${n} de ${goal} carimbos">${Array.from({length:goal}, (_, i) => `<i class="${i < n ? 'on' : ''}">${i < n ? CHECK : ''}</i>`).join('')}</div>`;
+function cardDots(n, goal, big, mini){
+  if(goal > 14) return `<div class="cbar${big ? ' big' : ''}${mini ? ' mini' : ''}" role="img" aria-label="${n} de ${goal} carimbos"><i style="width:${Math.min(100, n / goal * 100)}%"></i></div>`;
+  return `<div class="cdots${big ? ' big' : ''}${mini ? ' mini' : ''}" role="img" aria-label="${n} de ${goal} carimbos">${Array.from({length:goal}, (_, i) => `<i class="${i < n ? 'on' : ''}">${i < n && !mini ? CHECK : ''}</i>`).join('')}</div>`;
 }
 function badgesFor(c, tier, sg){
   const out = [];
