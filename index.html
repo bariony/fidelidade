@@ -50,6 +50,9 @@
   nav{display:flex;gap:6px;margin-left:auto}
   nav a{padding:8px 12px;text-decoration:none;font-weight:700;border-radius:10px}
   nav a:hover{background:var(--kraft)}
+  .hact{display:flex;align-items:center;gap:6px}
+  .enter{padding:10px 14px;font-weight:800;text-decoration:none;color:var(--navy);border:2.5px solid var(--navy);border-radius:13px;background:#fff;white-space:nowrap}
+  .enter:hover{background:var(--kraft)}
   .bar .btn{margin-left:6px}
   @media(max-width:900px){nav{display:none}.bar .btn{margin-left:auto}}
 
@@ -261,7 +264,7 @@
       <a href="#preco">Preço</a>
       <a href="#perguntas">Perguntas</a>
     </nav>
-    <button class="btn small" type="button" data-cta="header">Quero o kit</button>
+    <div class="hact"><a class="enter" href="lojista.html">Entrar</a><button class="btn small" type="button" data-cta="header">Quero o kit</button></div>
   </div>
 </header>
 
@@ -481,7 +484,7 @@
   <div class="wrap">
     <span class="logo"><span>carimb<i>ô</i></span></span>
     <span>Bateu o carimbo, ganhou.</span>
-    <a href="lojista.html">Lojista: acessar o painel</a>
+    <a href="lojista.html">Já sou lojista: entrar no painel</a>
   </div>
 </footer>
 
