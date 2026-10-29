@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14296B">
 <title>Carimbô · seu cartão</title>
-<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#14296B">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#14296B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -77,6 +77,7 @@ const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
 const QS = new URLSearchParams(location.search);
+const VIEW_URL = QS.get('v') === '1';                              // endereço só de visualização: nunca carimba
 const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
 const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const UA = navigator.userAgent || '';
@@ -89,6 +90,7 @@ window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFERR
 const BASE = location.href.replace(/c\.html.*$/, '');
 const appUrl = token => BASE + 'c.html?t=' + encodeURIComponent(tag) + '&app=1' + (token ? '&k=' + encodeURIComponent(token) : '');
 function setManifest(token){
+  if(!IS_ANDROID) return;   // iPhone usa o endereço atual; manifest só no Android
   // Android: o ícone instalado abre direto o cartão deste cliente (sem carimbar)
   try {
     const m = {name:'Carimbô', short_name:'Carimbô', start_url:appUrl(token), scope:BASE, display:'standalone', background_color:'#FBF7EE', theme_color:'#14296B',
@@ -325,6 +327,7 @@ function present(s){
   document.getElementById('bk').onclick = () => render(s,{viewOnly:true});
 }
 
+function toViewUrl(){ try { history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(tag) + '&v=1'); ORIG_URL = location.href; } catch(e){} }
 async function stampNow(token){
   const args = {p_tag:tag,p_token:token};
   if(INFO && INFO.geo_required){
@@ -338,12 +341,12 @@ async function stampNow(token){
   }
   const r = await rpc('fid_stamp',args);
   if(r.error){ app.innerHTML = '<p class="err">Cartão não encontrado. <a href="">Tentar de novo</a></p>'; return; }
-  if(r.stamped){ render(r,{stamped:true,earned:r.earned}); boom(r.earned); }
+  if(r.stamped){ toViewUrl(); render(r,{stamped:true,earned:r.earned}); boom(r.earned); }
   else if(r.geo === 'far') render(r,{note:'Você precisa estar na loja para carimbar',sub:'Você está a cerca de '+r.distance_m+' m. Chegue ao balcão e tente de novo.',retry:true});
   else if(r.geo === 'needed') render(r,{note:'Precisamos confirmar que você está na loja',sub:'Permita o acesso à localização e tente de novo.',retry:true});
   else if(r.suspended) render(r,{note:'Esta loja não está carimbando agora',sub:'Fale com o atendente. Seus carimbos e prêmios continuam guardados.'});
-  else if(r.daily_limit) render(r,{note:'Limite de carimbos de hoje atingido',sub:'Volte amanhã para continuar juntando 😉'});
-  else render(r,{wait:r.wait_seconds});
+  else if(r.daily_limit){ toViewUrl(); render(r,{note:'Limite de carimbos de hoje atingido',sub:'Volte amanhã para continuar juntando 😉'}); }
+  else { toViewUrl(); render(r,{wait:r.wait_seconds}); }
 }
 
 function getPos(){
@@ -364,13 +367,13 @@ function getPos(){
   INFO = info;
   // ícone da tela inicial (iPhone guarda o armazenamento separado): recebe o token na abertura e o guarda
   const kq = QS.get('k');
-  if(kq){ save(KEY, kq); try { history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(tag) + (FROM_ICON ? '&app=1' : '')); } catch(e){} }
+  if(kq){ save(KEY, kq); try { history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(tag) + (FROM_ICON ? '&app=1' : '&v=1')); } catch(e){} }
   const token = store(KEY);
   if(!token) return showRegister(info);
   setManifest(token);
   const st = await rpc('fid_state',{p_tag:tag,p_token:token});
   if(st.error){ return showRegister(info); }
-  if(FROM_ICON) return render(st,{viewOnly:true});
+  if(FROM_ICON || VIEW_URL) return render(st,{viewOnly:true});
   // Só carimba em abertura nova (toque no bastão ou link aberto). Recarregar (F5/puxar para atualizar),
   // voltar/avançar ou aba restaurada só mostram o cartão, sem carimbar.
   let navType = 'navigate';
