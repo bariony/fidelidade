@@ -182,25 +182,36 @@ function setColor(c){
 
 async function showRegister(info){
   setColor(info.color);
-  app.innerHTML = `<div class="store" style="background:${esc(info.color)}"><h1>${esc(info.store)}</h1>
-    <p>Junte ${info.goal} carimbos e ganhe: ${esc(info.reward)}</p></div>
-    <form id="f"><label>Seu nome</label><input name="n" autocomplete="name" required>
+  const head = `<div class="store" style="background:${esc(info.color)}"><h1>${esc(info.store)}</h1><p>Junte ${info.goal} carimbos e ganhe: ${esc(info.reward)}</p></div>`;
+  const regForm = `<form id="f"><label>Seu nome</label><input name="n" autocomplete="name" required>
     <label>Seu WhatsApp (com DDD)</label><input name="w" inputmode="tel" autocomplete="tel" placeholder="11 99999-9999" required>
     <button>Começar meu cartão</button><p class="err hide" id="e"></p></form>
-    <a class="link" href="#" id="rec">Já tenho cartão (recuperar pelo WhatsApp)</a>`;
-  document.getElementById('f').onsubmit = async ev => {
-    ev.preventDefault(); const b = ev.target.querySelector('button'); b.disabled = true;
-    const r = await rpc('fid_register',{p_tag:tag,p_name:ev.target.n.value,p_whatsapp:ev.target.w.value});
-    if(r.error){ const e=document.getElementById('e'); e.textContent='Confira nome e WhatsApp (com DDD).'; e.classList.remove('hide'); b.disabled=false; return; }
-    save(KEY, r.token); stampNow(r.token);
+    <button type="button" class="ghost" id="rec">Já tenho cartão</button>`;
+  const recForm = `<form id="rf"><label>Entrar no meu cartão: WhatsApp cadastrado (com DDD)</label><input name="w" inputmode="tel" autocomplete="tel" placeholder="11 99999-9999" required>
+    <button>Entrar</button><p class="err hide" id="re"></p></form>
+    <button type="button" class="ghost" id="newc">Ainda não tenho cartão</button>`;
+  const bind = () => {
+    const f = document.getElementById('f');
+    if(f) f.onsubmit = async ev => {
+      ev.preventDefault(); const b = ev.target.querySelector('button'); b.disabled = true;
+      const r = await rpc('fid_register',{p_tag:tag,p_name:ev.target.n.value,p_whatsapp:ev.target.w.value});
+      if(r.error){ const e=document.getElementById('e'); e.textContent='Confira nome e WhatsApp (com DDD).'; e.classList.remove('hide'); b.disabled=false; return; }
+      save(KEY, r.token); stampNow(r.token);
+    };
+    const rf = document.getElementById('rf');
+    if(rf) rf.onsubmit = async ev => {
+      ev.preventDefault(); const b = ev.target.querySelector('button'); b.disabled = true;
+      const r = await rpc('fid_recover',{p_tag:tag,p_whatsapp:ev.target.w.value});
+      if(r.error){ const e=document.getElementById('re'); e.textContent='Não encontramos esse número. Confira o DDD.'; e.classList.remove('hide'); b.disabled=false; return; }
+      save(KEY, r.token); setManifest(r.token);
+      if(IS_APP) render(await rpc('fid_state',{p_tag:tag,p_token:r.token}),{viewOnly:true}); else stampNow(r.token);
+    };
+    const rec = document.getElementById('rec'); if(rec) rec.onclick = () => show('rec');
+    const nc = document.getElementById('newc'); if(nc) nc.onclick = () => show('reg');
   };
-  document.getElementById('rec').onclick = async ev => {
-    ev.preventDefault();
-    const w = prompt('Digite o WhatsApp cadastrado (com DDD):'); if(!w) return;
-    const r = await rpc('fid_recover',{p_tag:tag,p_whatsapp:w});
-    if(r.error){ alert('Não encontramos esse número.'); return; }
-    save(KEY, r.token); stampNow(r.token);
-  };
+  const show = m => { app.innerHTML = head + (m === 'rec' ? recForm : regForm); bind(); window.scrollTo(0,0); };
+  // Quem abre pelo ícone da tela inicial quase sempre já tem cartão: começa pelo "entrar"
+  show(IS_APP || FROM_ICON || VIEW_URL ? 'rec' : 'reg');
 }
 
 /* ---------- instalar como app ---------- */
@@ -264,7 +275,6 @@ function render(s, opts={}){
       <p class="cd">Expira em <span id="cd"></span></p><button id="pr">Apresentar no balcão</button></div>`;
   } else if(s.rewards_available>0){
     h += `<div class="reward prize"><b>🎁 ${s.rewards_available>1?'Você tem '+s.rewards_available+' prêmios':'Você ganhou um prêmio!'}</b>${esc(s.reward)}
-      <p class="sub" style="margin-top:6px">Ao resgatar, você tem ${s.valid_days||7} dia(s) para retirar na loja.</p>
       <button id="rd">Resgatar agora</button></div>`;
   } else if(s.last_expired){
     h += `<p class="sub" style="margin-top:14px">Seu último prêmio expirou 😕 Continue juntando carimbos para ganhar outro!</p>`;
