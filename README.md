@@ -29,3 +29,4 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - Admin (`super.html`, aba Atendimentos): fila de ajuda, cancelamentos e reembolsos; "Aprovar reembolso no Asaas" manda o estorno e o webhook faz o resto. Lojas que cancelaram têm selo e filtro.
 - Edge Function `asaas-conta` (JWT): `pay_link`, `cancel`, `refund`. Tabelas `fid_tickets` e `fid_ticket_msgs` (só por RPC).
 - Sem teste grátis: a loja do pedido nasce bloqueada (`pending_payment`) até o Asaas confirmar; `fid_stores` não aceita INSERT direto.
+- Endereço por tela (v15): `lojista.html#/hoje|clientes|clientes/ID|retiradas|campanhas|tags|loja|regras|assinatura` e `super.html#/lojas|lojas/ID|pedidos|atendimentos|representantes|representantes/ID|repasses`. Botão voltar, F5 e links compartilháveis funcionam.

@@ -248,7 +248,7 @@ async function boot(){
   S.user = session.user;
   const {data:ok} = await sb.rpc('fid_is_super');
   if(!ok){ root.innerHTML = `<div class="auth"><h1 style="font-size:1.3rem">Sem acesso</h1><p class="sub">Esta área é restrita ao administrador.</p><button class="btn line" id="o" style="margin-top:14px">Sair</button></div>`; $('#o').onclick = async () => { await sb.auth.signOut(); boot(); }; return; }
-  await loadAll(); await loadTab(true); render();
+  await loadAll(); await loadTab(true); if(!(await applyRoute())) render();
 }
 async function loadAll(){
   const r = await rpc('fid_super_overview'); if(!r) return;
@@ -632,7 +632,27 @@ function viewPayouts(){
   }};
 }
 
+/* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', reps:'representantes', repasses:'repasses'};
+const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
+function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
+function parseRoute(){
+  const m = location.hash.match(/^#\/([a-z]+)(?:\/([\w-]+))?/); if(!m) return null;
+  const tab = Object.keys(SLUG).find(k => SLUG[k] === m[1]); return tab ? {tab, id:m[2] || null} : null;
+}
+async function applyRoute(){
+  const r = parseRoute(); if(!r) return false;
+  S.tab = r.tab; S.detail = null; S.repOpen = null; S.repForm = null;
+  if(r.tab === 'lojas' && r.id){
+    const st = S.stores.find(x => x.id === r.id);
+    if(st){ S.detail = {s:st, d:null}; render(); const d = await rpc('fid_super_store', {p_store:r.id}); if(d && S.detail && S.detail.s.id === r.id){ S.detail.d = d; render(false); } return true; }
+  }
+  if(r.tab === 'reps' && r.id){ const rp = S.reps.find(x => x.id === r.id); if(rp) S.repOpen = {id:rp.id, d:null}; }
+  render(); await loadTab(); render(false); return true;
+}
+window.addEventListener('popstate', () => { if(S.user) applyRoute(); });
 function render(top = true){
+  syncHash();
   if(S.detail){ const v = viewDetail(); root.innerHTML = v.html; v.bind(); if(top) window.scrollTo(0, 0); }
   else if(S.tab !== 'lojas'){ viewTab(); if(top) window.scrollTo(0, 0); }
   else { viewList(); }

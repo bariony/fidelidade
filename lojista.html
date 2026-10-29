@@ -479,9 +479,24 @@ async function openCustomer(cid, stay){
   ]);
   if(!c.data){ toast('Cliente não encontrado.', true); return; }
   S.detail = {c:c.data, ev:ev.data || []};
-  if(stay) render(); else go('cliente');
+  if(stay){ S.view = 'cliente'; render(); window.scrollTo(0, 0); syncHash(); } else go('cliente');
 }
-function go(view){ S.view = view; render(); window.scrollTo(0, 0); if(view === 'assinatura') loadBill(); }
+/* endereço por tela: lojista.html#/clientes, #/assinatura, #/clientes/ID ... */
+const VIEWS = ['hoje','clientes','retiradas','campanhas','tags','loja','regras','assinatura'];
+const hashFor = () => S.view === 'cliente' && S.detail && S.detail.c ? '#/clientes/' + S.detail.c.id : '#/' + S.view;
+function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
+function parseHash(){
+  const m = location.hash.match(/^#\/([a-z]+)(?:\/([\w-]+))?/); if(!m) return null;
+  if(m[1] === 'clientes' && m[2]) return {view:'cliente', id:m[2]};
+  return VIEWS.includes(m[1]) ? {view:m[1]} : null;
+}
+async function applyRoute(){
+  const r = parseHash(); if(!r || !S.user || !S.store) return;
+  if(r.id){ await openCustomer(r.id, true); return; }
+  S.view = r.view; render(); window.scrollTo(0, 0); if(r.view === 'assinatura') loadBill();
+}
+window.addEventListener('popstate', applyRoute);
+function go(view){ S.view = view; render(); window.scrollTo(0, 0); if(view === 'assinatura') loadBill(); syncHash(); }
 
 /* ---------- assinatura, ajuda e atendimentos ---------- */
 const brl = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
@@ -1131,7 +1146,8 @@ function viewRegras(){
 async function boot(){
   const {data:{session}} = await sb.auth.getSession();
   S.user = session ? session.user : null;
-  if(S.user) await load(); else render();
+  const r0 = parseHash(); if(r0) S.view = r0.view === 'cliente' ? 'clientes' : r0.view;
+  if(S.user){ await load(); if(r0 && r0.id) await openCustomer(r0.id, true); else syncHash(); } else render();
 }
 boot();
 </script>
