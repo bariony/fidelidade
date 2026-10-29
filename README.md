@@ -20,3 +20,5 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - `asaas-webhook` (sem JWT; autenticada pelo header `asaas-access-token`) recebe os eventos: `PAYMENT_RECEIVED/CONFIRMED` → kit pago (`fid_asaas_pay_order`: confirma pedido, cria venda, gera comissão) e cria a assinatura mensal de R$ 49,97 (`nextDueDate` = fim do mês incluso); cobrança de assinatura paga → `fid_asaas_pay_renewal`; `PAYMENT_REFUNDED/CHARGEBACK_REQUESTED` → `fid_asaas_refund` (cancela comissão ou lança estorno). Idempotente por id do evento (`fid_asaas_events`) e por id da cobrança (`fid_billing.asaas_payment_id`).
 - Segredos (Supabase → Edge Functions → Secrets): `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `ASAAS_ENV` (`sandbox` ou `prod`). Webhook URL: `https://qpdcffsessmxmkedrjyc.supabase.co/functions/v1/asaas-webhook`.
 - Código em `supabase/functions/`. O admin continua com "Confirmar à mão" para pagamentos fora do Asaas.
+- Admin, detalhe da loja: topo mostra "Kit pago pelo Asaas" e a assinatura; formulários manuais (venda do kit, renovação, teste) ficam em "Ajustes manuais".
+- Reembolso de um kit bloqueia a loja e cancela a assinatura no Asaas (webhook).

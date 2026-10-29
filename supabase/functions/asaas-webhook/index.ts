@@ -84,6 +84,13 @@ Deno.serve(async (req) => {
       const { data, error } = await admin.rpc("fid_asaas_refund", { p_payment: pay.id, p_note: ev.event === "PAYMENT_REFUNDED" ? "Asaas" : "Chargeback" });
       if (error) throw error;
       result = data?.error ? `estorno:${data.error}` : `estorno:${data?.resultado}`;
+      // kit reembolsado: a loja foi bloqueada no banco; cancela também a mensalidade no Asaas
+      if (!data?.error && data?.billing_kind === "sale" && data?.subscription) {
+        const r = await fetch(`${BASE}/subscriptions/${data.subscription}`, {
+          method: "DELETE", headers: { access_token: KEY, "User-Agent": "carimbo.io" },
+        });
+        result += r.ok ? "+assinatura_cancelada" : `+assinatura_nao_cancelada(${r.status})`;
+      }
     } else if (ev.event === "PAYMENT_PARTIALLY_REFUNDED") {
       result = "reembolso_parcial_manual";
     }

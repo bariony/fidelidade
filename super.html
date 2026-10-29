@@ -343,6 +343,12 @@ function viewDetail(){
   const dShip = addDays(s.acquired_at, s.ship_days), dPlan = addDays(s.acquired_at, s.ship_days + s.plan_days);
   const step = (lbl, date, on, cls = '') => `<div class="step ${on ? 'on' : ''} ${cls}"><i></i>${lbl}<b>${fmtDate(date)}</b></div>`;
   const kinds = {refund:['↩️', 'Reembolso'], sale:['🛍️', 'Venda'], renewal:['🔁', 'Renovação'], trial:['🧪', 'Teste'], block:['⛔', 'Bloqueio'], unblock:['✅', 'Desbloqueio'], adjust:['✏️', 'Ajuste']};
+  const refunded = b => d && d.billing.some(x => x.refund_of === b.id);
+  const saleB = d && d.billing.find(b => b.kind === 'sale' && !refunded(b));
+  const kitLine = !d ? 'Carregando…' : saleB ? (saleB.asaas_payment_id ? `✅ <b>Kit pago pelo Asaas</b> em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}` : `✅ Kit registrado à mão em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}`)
+    : d.billing.some(b => b.kind === 'sale') ? '↩️ <b>Kit reembolsado</b>' : '⏳ Kit ainda não pago';
+  const subLine = !d ? '' : d.subscription ? `🔁 <b>Mensalidade automática no Asaas</b> · R$ 49,97 · próxima cobrança em <b>${fmtDate(s.renews_at)}</b>` : saleB ? '🔁 Sem assinatura automática. Quem pagou à mão renova pelos Ajustes manuais.' : '🔁 A mensalidade é criada sozinha quando o kit for pago.';
+  const payBox = `<div class="sect" style="margin-top:0;background:#F6F8FF;border-radius:12px;padding:14px"><p style="margin:0 0 8px">${kitLine}</p><p style="margin:0">${subLine}</p></div>`;
   const html = `<div class="hero"><div class="wrap">${navBar('<button class="btn ghost small" id="out">Sair</button>')}
       <div style="margin-top:22px"><button class="back" id="back">← Todas as lojas</button></div>
       <div class="dh"><div class="av lg" style="background:${grad(s.name)}">${esc(ini(s.name))}</div>
@@ -355,29 +361,36 @@ function viewDetail(){
         <div class="tile"><div class="k"><i>👥</i>Clientes</div><b>${s.customers}</b><small>${s.stamps_total} carimbos no total · último ${s.last_stamp_at ? fmtDT(s.last_stamp_at) : '—'}</small></div>
       </div>
       <div class="grid2">
-        <section class="panel"><h2><i>🔄</i>Plano e renovação</h2>
+        <section class="panel"><h2><i>💳</i>Pagamento e plano</h2>
+          ${payBox}
           <div class="steps">${step('Aquisição', s.acquired_at, s.acquired_at <= today)}${step('+ ' + s.ship_days + ' dias de envio', dShip, dShip <= today)}${step('+ ' + s.plan_days + ' dias de plano', dPlan, dPlan <= today)}${step('Renovação atual', s.renews_at, s.renews_at <= today, 'last')}</div>
-          <p class="sub">Renovação = aquisição + dias de envio + dias de plano. Depois de vencer, a loja tem 7 dias de tolerância antes de parar os carimbos.</p>
-          <div class="sect"><h3>Renovar manualmente</h3>
-            <div class="cols"><div><label for="rd">Dias a adicionar</label><input id="rd" type="number" min="1" max="400" value="30"></div><div><label for="ra">Valor recebido (R$)</label><input id="ra" type="number" step="0.01" min="0" value="39.90"></div></div>
-            <label for="rn">Observação (opcional)</label><input id="rn" type="text" maxlength="200" placeholder="Ex.: pagou por PIX">
-            <div class="acts"><button class="btn" id="renew">Renovar plano</button></div></div>
-          <div class="sect"><h3>Teste e acesso</h3>
-            <div class="cols"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="90" value="7"></div><div></div></div>
-            <div class="acts"><button class="btn line" id="trial">Dar período de teste</button>${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger" id="block">Bloquear acesso</button>'}</div>
+          <p class="sub">O 1º mês já vem no kit. Depois do vencimento, a loja tem 7 dias de tolerância antes de parar os carimbos.</p>
+          <div class="sect"><h3>Acesso</h3>
+            <div class="acts">${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger small" id="block">Bloquear acesso</button>'}</div>
             <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div>
           <div class="sect"><h3>Representante</h3>
-            <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado.'}</p>
+            <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado (cliente próprio do Carimbô).'}</p>
             <div class="acts"><select id="rp"><option value="">Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${s.rep_id === r.id ? 'selected' : ''}>${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" id="setrep">Salvar vínculo</button></div></div></section>
-        <section class="panel"><h2><i>🛍️</i>Registrar venda do kit</h2>
-          <p class="sub">Define aquisição, envio, plano e quem indicou. A loja passa a Ativa.</p>
-          <div class="cols"><div><label for="sd">Data da aquisição</label><input id="sd" type="date" value="${s.acquired_at}"></div><div><label for="sa">Valor da venda (R$)</label><input id="sa" type="number" step="0.01" min="0" value="79.90"></div>
-          <div><label for="ss">Dias de envio</label><input id="ss" type="number" min="0" max="60" value="${s.ship_days}"></div><div><label for="sp">Dias de plano</label><input id="sp" type="number" min="1" max="400" value="${s.plan_days}"></div></div>
-          <p id="sprev" class="sub"></p>
-          <label for="sr">Indicação (anotação livre)</label><input id="sr" type="text" maxlength="60" value="${esc(s.referred_by || '')}" placeholder="Opcional">
-          <div class="acts"><button class="btn" id="sale">Registrar venda</button></div>
-          <div class="sect"><label for="an" style="margin-top:0">Anotações internas</label><textarea id="an" rows="3" maxlength="500">${esc(s.note || '')}</textarea>
-            <div class="acts"><button class="btn line small" id="savenote">Salvar indicação e anotações</button></div></div></section></div>
+        <section class="panel"><h2><i>📝</i>Anotações</h2>
+          <label for="sr" style="margin-top:0">Indicação (anotação livre)</label><input id="sr" type="text" maxlength="60" value="${esc(s.referred_by || '')}" placeholder="Opcional">
+          <label for="an">Anotações internas</label><textarea id="an" rows="4" maxlength="500">${esc(s.note || '')}</textarea>
+          <div class="acts"><button class="btn line small" id="savenote">Salvar</button></div></section></div>
+      <details class="panel" id="manual" style="margin-bottom:18px"><summary style="cursor:pointer;font-family:Fredoka,sans-serif;font-weight:600;font-size:1.05rem">⚙️ Ajustes manuais <small style="font-weight:400;color:var(--mut)">· só para quando algo fugir do Asaas (pagou por fora, cortesia, correção)</small></summary>
+        <div class="grid2" style="margin-top:16px">
+          <div><h3 style="margin:0 0 4px">Registrar venda do kit à mão</h3>
+            <p class="sub">Use só se o cliente pagou fora do Asaas. Define aquisição, envio e plano, e a loja passa a Ativa.</p>
+            <div class="cols"><div><label for="sd">Data da aquisição</label><input id="sd" type="date" value="${s.acquired_at}"></div><div><label for="sa">Valor do kit (R$)</label><input id="sa" type="number" step="0.01" min="0" value="149"></div>
+            <div><label for="ss">Dias de envio</label><input id="ss" type="number" min="0" max="60" value="${s.ship_days}"></div><div><label for="sp">Dias de plano</label><input id="sp" type="number" min="1" max="400" value="${s.plan_days}"></div></div>
+            <p id="sprev" class="sub"></p>
+            <div class="acts"><button class="btn line" id="sale">Registrar venda</button></div></div>
+          <div><h3 style="margin:0 0 4px">Renovar mensalidade à mão</h3>
+            <p class="sub">Use só se a mensalidade foi paga fora do Asaas.</p>
+            <div class="cols"><div><label for="rd">Dias a adicionar</label><input id="rd" type="number" min="1" max="400" value="30"></div><div><label for="ra">Valor recebido (R$)</label><input id="ra" type="number" step="0.01" min="0" value="49.97"></div></div>
+            <label for="rn">Observação (opcional)</label><input id="rn" type="text" maxlength="200" placeholder="Ex.: pagou por PIX direto">
+            <div class="acts"><button class="btn line" id="renew">Renovar plano</button></div>
+            <h3 style="margin:22px 0 4px">Período de teste</h3>
+            <div class="cols"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="90" value="7"></div><div></div></div>
+            <div class="acts"><button class="btn line" id="trial">Dar período de teste</button></div></div></div></details>
       <div class="grid2">
         <section class="panel"><h2><i>📈</i>Carimbos por dia (30 dias)</h2>${dd ? bars(dd, r => r.d.slice(8, 10) + '/' + r.d.slice(5, 7)) : '<p class="sub">Carregando…</p>'}
           <h2 style="margin-top:26px"><i>🗓️</i>Carimbos por mês</h2>${mm ? bars(mm, r => MES[+r.m.slice(5, 7) - 1] + '/' + r.m.slice(2, 4)) : ''}
