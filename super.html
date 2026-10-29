@@ -154,6 +154,26 @@
   .err{color:var(--bad);min-height:1.2em}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;padding:12px 22px;border-radius:12px;z-index:99;display:none;max-width:90vw;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
   .pad{padding-bottom:70px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+  .tab{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:8px 18px;cursor:pointer;font-family:'Fredoka',sans-serif;font-weight:600;font-size:.98rem}
+  .tab:hover{background:rgba(255,255,255,.16)}
+  .tab[aria-selected=true]{background:#FBF7EE;color:var(--night2);border-color:#FBF7EE}
+  .tab i{font-style:normal;background:var(--red);color:#fff;border-radius:99px;padding:1px 8px;font-size:.75rem;margin-left:8px}
+  .hero.slim{padding-bottom:44px}
+  .after{margin-top:22px}
+  .rcard{background:#fff;border-radius:20px;padding:18px 20px;box-shadow:var(--sh);border:1px solid #EFEAF8;margin-bottom:14px}
+  .rcard .top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .rcard h3{font-size:1.1rem}
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}
+  .kv div{background:#F7F4FD;border-radius:12px;padding:8px 12px}.kv b{display:block;font-family:'Fredoka',sans-serif;font-size:1.1rem}.kv small{color:var(--muted)}
+  .kv div.neg b{color:var(--bad)}
+  .ln2{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:11px 0;border-bottom:1px solid #F0ECF8}.ln2:last-child{border-bottom:0}
+  .ln2 .a{font-weight:700;font-family:'Fredoka',sans-serif;text-align:right}.ln2 .a.neg{color:var(--bad)}.ln2 small{color:var(--muted)}
+  .acts select{width:auto;min-width:220px}
+  details.lines summary{cursor:pointer;color:var(--primary-d);font-weight:700;margin-top:10px}
+  .stt{background:#FEF0D0;color:#92400E}
+  .rcard a,.st a{color:var(--primary-d)}
+  .panel .rcard{box-shadow:none;border:1.5px solid var(--line)}
   @media (max-width:900px){.grid2{grid-template-columns:1fr}.cols{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.seg{margin-left:0}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -183,7 +203,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -226,7 +246,7 @@ async function boot(){
   S.user = session.user;
   const {data:ok} = await sb.rpc('fid_is_super');
   if(!ok){ root.innerHTML = `<div class="auth"><h1 style="font-size:1.3rem">Sem acesso</h1><p class="sub">Esta área é restrita ao administrador.</p><button class="btn line" id="o" style="margin-top:14px">Sair</button></div>`; $('#o').onclick = async () => { await sb.auth.signOut(); boot(); }; return; }
-  await loadAll(); render();
+  await loadAll(); await loadTab(true); render();
 }
 async function loadAll(){
   const r = await rpc('fid_super_overview'); if(!r) return;
@@ -240,7 +260,7 @@ function filtered(){
   const q = S.q.trim().toLowerCase();
   return S.stores.filter(s => {
     if(S.filter === 'vencem7' ? !soon(s) : S.filter !== 'todas' && s.status !== S.filter) return false;
-    return !q || [s.name, s.email, s.referred_by].some(v => (v || '').toLowerCase().includes(q));
+    return !q || [s.name, s.email, s.referred_by, s.rep_name].some(v => (v || '').toLowerCase().includes(q));
   });
 }
 function dueText(s){
@@ -257,17 +277,17 @@ function card(s){
     <div class="h"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div class="nm"><b>${esc(s.name)}</b><span>${esc(s.email || '')}</span></div><span class="pill st-${s.status}">${STATUS[s.status]}</span></div>
     <div class="ren"><div class="r1"><span>Renovação</span><b>${fmtDate(s.renews_at)}</b></div><div class="prog ${progCls(s)}"><i style="width:${cyclePct(s)}%"></i></div><div style="margin-top:6px">${dueText(s)}</div></div>
     <div class="nums"><div><b>${s.stamps_today}</b><small>hoje</small></div><div><b>${s.stamps_7d}</b><small>7 dias</small></div><div><b>${s.stamps_30d}</b><small>30 dias</small></div>${spark(s.spark || [], '#14296B')}</div>
-    <div class="foot"><span>${s.customers} ${pl(s.customers, 'cliente', 'clientes')} · ${s.stamps_total} ${pl(s.stamps_total, 'carimbo', 'carimbos')}</span>${s.referred_by ? `<span class="aff">Indicou: ${esc(s.referred_by)}</span>` : '<span class="go">Abrir →</span>'}</div></article>`;
+    <div class="foot"><span>${s.customers} ${pl(s.customers, 'cliente', 'clientes')} · ${s.stamps_total} ${pl(s.stamps_total, 'carimbo', 'carimbos')}</span>${s.rep_name || s.referred_by ? `<span class="aff">Rep: ${esc(s.rep_name || s.referred_by)}</span>` : '<span class="go">Abrir →</span>'}</div></article>`;
 }
 function viewList(){
   const L = S.stores, c = k => L.filter(s => s.status === k).length, sum = k => L.reduce((a, s) => a + (+s[k] || 0), 0);
   const rows = filtered(), attn = c('tolerancia') + c('vencida') + c('bloqueada');
-  const affs = new Set(L.map(s => (s.referred_by || '').toLowerCase()).filter(Boolean)).size;
+  const affs = new Set(L.map(s => s.rep_id).filter(Boolean)).size;
   const chips = [['todas', 'Todas', L.length], ['ativa', 'Ativas', c('ativa')], ['trial', 'Em teste', c('trial')], ['vencem7', 'Vencem em 7 dias', L.filter(soon).length],
     ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')]]
     .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
   const hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
-  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}
+  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}
       <div class="title"><h1>Visão geral</h1><p>${hoje.charAt(0).toUpperCase() + hoje.slice(1)} · ${L.length} ${pl(L.length, 'loja', 'lojas')} na plataforma</p></div></div></div>
     <div class="wrap pad">
       <div class="tiles">
@@ -276,16 +296,17 @@ function viewList(){
         <div class="tile bad"><div class="k"><i>⚠️</i>Pedem atenção</div><b>${attn}</b><small>tolerância, vencidas ou bloqueadas</small></div>
         <div class="tile big"><div class="k"><i>👆</i>Carimbos hoje</div><b>${sum('stamps_today')}</b>${spark(S.spark, '#14296B', 46)}</div>
       </div>
-      <div class="mini"><div><span>Carimbos em 30 dias</span><b>${sum('stamps_30d')}</b></div><div><span>Clientes finais</span><b>${sum('customers')}</b></div><div><span>Lojas no total</span><b>${L.length}</b></div><div><span>Afiliados</span><b>${affs}</b></div></div>
-      <div class="bar"><label class="search" style="margin:0">${I.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou afiliado" value="${esc(S.q)}"></label>${chips}
+      <div class="mini"><div><span>Carimbos em 30 dias</span><b>${sum('stamps_30d')}</b></div><div><span>Clientes finais</span><b>${sum('customers')}</b></div><div><span>Lojas no total</span><b>${L.length}</b></div><div><span>Representantes</span><b>${affs}</b></div></div>
+      <div class="bar"><label class="search" style="margin:0">${I.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou representante" value="${esc(S.q)}"></label>${chips}
         <div class="seg" role="group" aria-label="Visualização"><button data-v="cards" aria-pressed="${S.view === 'cards'}">Cartões</button><button data-v="table" aria-pressed="${S.view === 'table'}">Tabela</button></div></div>
       ${!rows.length ? '<p class="sub" style="text-align:center;padding:40px">Nenhuma loja neste filtro.</p>' : S.view === 'cards' ? `<div class="cards">${rows.map(card).join('')}</div>` :
-      `<div class="tw"><table><thead><tr><th>Loja</th><th>Status</th><th>Aquisição</th><th>Renovação</th><th>Indicou</th><th class="n">Hoje</th><th class="n">7 dias</th><th class="n">30 dias</th><th class="n">Total</th><th class="n">Clientes</th></tr></thead><tbody>
+      `<div class="tw"><table><thead><tr><th>Loja</th><th>Status</th><th>Aquisição</th><th>Renovação</th><th>Representante</th><th class="n">Hoje</th><th class="n">7 dias</th><th class="n">30 dias</th><th class="n">Total</th><th class="n">Clientes</th></tr></thead><tbody>
       ${rows.map(s => `<tr data-id="${s.id}"><td><div class="cell"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div><b>${esc(s.name)}</b><br><span class="dl">${esc(s.email || '')}</span></div></div></td>
-        <td><span class="pill st-${s.status}">${STATUS[s.status]}</span></td><td>${fmtDate(s.acquired_at)}</td><td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td><td>${esc(s.referred_by || '—')}</td>
+        <td><span class="pill st-${s.status}">${STATUS[s.status]}</span></td><td>${fmtDate(s.acquired_at)}</td><td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td><td>${esc(s.rep_name || s.referred_by || '—')}</td>
         <td class="n">${s.stamps_today}</td><td class="n">${s.stamps_7d}</td><td class="n">${s.stamps_30d}</td><td class="n">${s.stamps_total}</td><td class="n">${s.customers}</td></tr>`).join('')}</tbody></table></div>`}
     </div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
+  bindTabs();
   $('#q').oninput = e => { S.q = e.target.value; const p = e.target.selectionStart; render(); const q = $('#q'); q.focus(); q.setSelectionRange(p, p); };
   root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
   root.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { S.view = b.dataset.v; render(); });
@@ -319,7 +340,7 @@ function viewDetail(){
   const {s, d} = S.detail, today = S.today, dd = d && d.daily, mm = d && d.monthly;
   const dShip = addDays(s.acquired_at, s.ship_days), dPlan = addDays(s.acquired_at, s.ship_days + s.plan_days);
   const step = (lbl, date, on, cls = '') => `<div class="step ${on ? 'on' : ''} ${cls}"><i></i>${lbl}<b>${fmtDate(date)}</b></div>`;
-  const kinds = {sale:['🛍️', 'Venda'], renewal:['🔁', 'Renovação'], trial:['🧪', 'Teste'], block:['⛔', 'Bloqueio'], unblock:['✅', 'Desbloqueio'], adjust:['✏️', 'Ajuste']};
+  const kinds = {refund:['↩️', 'Reembolso'], sale:['🛍️', 'Venda'], renewal:['🔁', 'Renovação'], trial:['🧪', 'Teste'], block:['⛔', 'Bloqueio'], unblock:['✅', 'Desbloqueio'], adjust:['✏️', 'Ajuste']};
   const html = `<div class="hero"><div class="wrap">${navBar('<button class="btn ghost small" id="out">Sair</button>')}
       <div style="margin-top:22px"><button class="back" id="back">← Todas as lojas</button></div>
       <div class="dh"><div class="av lg" style="background:${grad(s.name)}">${esc(ini(s.name))}</div>
@@ -342,16 +363,19 @@ function viewDetail(){
           <div class="sect"><h3>Teste e acesso</h3>
             <div class="cols"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="90" value="7"></div><div></div></div>
             <div class="acts"><button class="btn line" id="trial">Dar período de teste</button>${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger" id="block">Bloquear acesso</button>'}</div>
-            <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div></section>
+            <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div>
+          <div class="sect"><h3>Representante</h3>
+            <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado.'}</p>
+            <div class="acts"><select id="rp"><option value="">Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${s.rep_id === r.id ? 'selected' : ''}>${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" id="setrep">Salvar vínculo</button></div></div></section>
         <section class="panel"><h2><i>🛍️</i>Registrar venda do kit</h2>
           <p class="sub">Define aquisição, envio, plano e quem indicou. A loja passa a Ativa.</p>
           <div class="cols"><div><label for="sd">Data da aquisição</label><input id="sd" type="date" value="${s.acquired_at}"></div><div><label for="sa">Valor da venda (R$)</label><input id="sa" type="number" step="0.01" min="0" value="79.90"></div>
           <div><label for="ss">Dias de envio</label><input id="ss" type="number" min="0" max="60" value="${s.ship_days}"></div><div><label for="sp">Dias de plano</label><input id="sp" type="number" min="1" max="400" value="${s.plan_days}"></div></div>
           <p id="sprev" class="sub"></p>
-          <label for="sr">Quem indicou (afiliado)</label><input id="sr" type="text" maxlength="60" value="${esc(s.referred_by || '')}" placeholder="Nome ou código do afiliado">
+          <label for="sr">Indicação (anotação livre)</label><input id="sr" type="text" maxlength="60" value="${esc(s.referred_by || '')}" placeholder="Opcional">
           <div class="acts"><button class="btn" id="sale">Registrar venda</button></div>
           <div class="sect"><label for="an" style="margin-top:0">Anotações internas</label><textarea id="an" rows="3" maxlength="500">${esc(s.note || '')}</textarea>
-            <div class="acts"><button class="btn line small" id="savenote">Salvar afiliado e anotações</button></div></div></section></div>
+            <div class="acts"><button class="btn line small" id="savenote">Salvar indicação e anotações</button></div></div></section></div>
       <div class="grid2">
         <section class="panel"><h2><i>📈</i>Carimbos por dia (30 dias)</h2>${dd ? bars(dd, r => r.d.slice(8, 10) + '/' + r.d.slice(5, 7)) : '<p class="sub">Carregando…</p>'}
           <h2 style="margin-top:26px"><i>🗓️</i>Carimbos por mês</h2>${mm ? bars(mm, r => MES[+r.m.slice(5, 7) - 1] + '/' + r.m.slice(2, 4)) : ''}
@@ -360,7 +384,7 @@ function viewDetail(){
           ${d ? (d.tags.length ? d.tags.map(t => `<div class="trow"><div class="l"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' <span class="dl">(desativada)</span>'}</b> <span class="dl">· ${t.stamps} ${pl(t.stamps, 'carimbo', 'carimbos')}</span><br><code>${esc(baseUrl())}c.html?t=${esc(t.id)}</code></div>
             <div style="display:flex;gap:6px"><button class="btn line small" data-copy="${esc(t.id)}">Copiar</button><a class="btn line small" target="_blank" rel="noopener" href="c.html?t=${esc(t.id)}">Abrir</a></div></div>`).join('') : '<p class="sub">Nenhuma tag criada.</p>') : '<p class="sub">Carregando…</p>'}
           <h2 style="margin-top:26px"><i>🧾</i>Histórico de cobrança</h2>
-          ${d && d.billing.length ? d.billing.map(b => { const k = kinds[b.kind] || ['•', b.kind]; return `<div class="bl"><span class="kind">${k[0]}</span><div><span class="a">${k[1]}</span> <small>${b.renews_after ? '· até ' + fmtDate(b.renews_after) : ''}</small><br><small>${fmtDT(b.created_at)}${b.note ? ' · ' + esc(b.note) : ''}</small></div><span class="a">${money(b.amount)}</span></div>`; }).join('') : '<p class="sub">Sem lançamentos ainda.</p>'}</section></div></div>`;
+          ${d && d.billing.length ? d.billing.map(b => { const k = kinds[b.kind] || ['•', b.kind]; return `<div class="bl"><span class="kind">${k[0]}</span><div><span class="a">${k[1]}</span> <small>${b.renews_after ? '· até ' + fmtDate(b.renews_after) : ''}</small><br><small>${fmtDT(b.created_at)}${b.note ? ' · ' + esc(b.note) : ''}</small></div><span class="a">${money(b.amount)}${(b.kind === 'sale' || b.kind === 'renewal') && b.amount > 0 && !d.billing.some(x => x.refund_of === b.id) ? `<br><button class="btn danger small" data-refund="${b.id}" data-kind="${b.kind}" style="margin-top:6px">Reembolsar</button>` : ''}</span></div>`; }).join('') : '<p class="sub">Sem lançamentos ainda.</p>'}</section></div></div>`;
   return {html, bind(){
     $('#out').onclick = async () => { await sb.auth.signOut(); S.detail = null; boot(); };
     $('#back').onclick = () => { S.detail = null; render(); };
@@ -374,12 +398,179 @@ function viewDetail(){
     if(ub) ub.onclick = e => run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:false, p_note:'Desbloqueio manual'}, 'Loja desbloqueada ✓');
     $('#sale').onclick = e => run(e.target, 'fid_super_sale', {p_store:s.id, p_acquired:$('#sd').value, p_ship:+$('#ss').value, p_plan:+$('#sp').value, p_amount:$('#sa').value === '' ? null : +$('#sa').value, p_ref:$('#sr').value}, 'Venda registrada ✓');
     $('#savenote').onclick = e => run(e.target, 'fid_super_update', {p_store:s.id, p_ref:$('#sr').value, p_note:$('#an').value}, 'Salvo ✓');
+    $('#setrep').onclick = e => run(e.target, 'fid_super_set_rep', {p_store:s.id, p_rep:$('#rp').value || null}, 'Vínculo salvo ✓');
+    root.querySelectorAll('[data-refund]').forEach(b => b.onclick = async () => {
+      const note = prompt('Reembolsar este pagamento? Motivo (opcional):', ''); if(note === null) return;
+      b.disabled = true; const r = await rpc('fid_super_refund', {p_billing:+b.dataset.refund, p_note:note}); b.disabled = false;
+      if(r){ await refreshDetail(); toast(r.resultado === 'comissao_cancelada' ? 'Reembolso registrado. A comissão do representante foi cancelada.' : r.resultado === 'estorno_lancado' ? 'Reembolso registrado. Estorno lançado no próximo repasse do representante.' : 'Reembolso registrado ✓'); }
+    });
     root.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(baseUrl() + 'c.html?t=' + b.dataset.copy); toast('Link copiado ✓'); } catch(e){ toast('Não foi possível copiar', true); } });
+  }};
+}
+
+/* ---------- abas: pedidos, representantes e repasses ---------- */
+const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
+const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
+  : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
+const tabsBar = () => `<div class="tabs" role="tablist">${TABS.map(([k, l]) => { const n = badge(k); return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${l}${n ? `<i>${n}</i>` : ''}</button>`; }).join('')}</div>`;
+function bindTabs(){
+  root.querySelectorAll('[data-tab]').forEach(b => b.onclick = async () => { S.tab = b.dataset.tab; S.repOpen = null; S.repForm = null; render(); await loadTab(); render(false); });
+}
+async function loadTab(all){
+  const jobs = [];
+  if(all || S.tab === 'pedidos' || S.tab === 'reps' || S.tab === 'lojas') jobs.push(rpc('fid_super_reps').then(r => { if(r && r.items){ S.reps = r.items; S.next = r.next_payday; } }));
+  if(all || S.tab === 'pedidos') jobs.push(rpc('fid_super_orders').then(r => { if(r && r.items) S.orders = r.items; }));
+  if(all || S.tab === 'repasses'){
+    jobs.push(rpc('fid_super_cycle_preview').then(r => { if(r && r.items) S.preview = r; }));
+    jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
+  }
+  if(S.tab === 'reps' && S.repOpen) jobs.push(rpc('fid_super_rep', {p_rep:S.repOpen.id}).then(r => { if(r && !r.error) S.repOpen.d = r; }));
+  await Promise.all(jobs);
+}
+const reload = async msg => { await loadAll(); await loadTab(); render(false); if(msg) toast(msg); };
+const act = async (btn, fn, args, ok) => { btn.disabled = true; const r = await rpc(fn, args); btn.disabled = false; if(r) await reload(ok); return r; };
+const copyTxt = async t => { try { await navigator.clipboard.writeText(t); toast('Copiado ✓'); } catch(e){ toast('Não foi possível copiar', true); } };
+const waLink = n => { const d = String(n || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length <= 11 ? '55' + d : d) : null; };
+const PIX = {cpf:'CPF', cnpj:'CNPJ', email:'E-mail', telefone:'Telefone', aleatoria:'Chave aleatória'};
+const pixTxt = (t, k) => k ? `${PIX[t] || 'Pix'}: ${k}` : 'Pix não cadastrado';
+const repLink = code => baseUrl() + 'comprar.html?r=' + code;
+const KIND2 = {aquisicao:'Venda do kit', recorrencia:'Mensalidade', estorno:'Estorno'};
+function heroTab(title, sub){
+  return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}
+    <div class="title"><h1>${title}</h1><p>${sub}</p></div></div></div>`;
+}
+function viewTab(){
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
+  root.innerHTML = v.html;
+  $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
+  bindTabs(); if(v.bind) v.bind();
+}
+
+/* pedidos */
+const OST = {aguardando_pagamento:['tolerancia', 'Aguardando pagamento'], pago:['ativa', 'Pago · enviar kit'], enviado:['trial', 'Enviado'], cancelado:['bloqueada', 'Cancelado'], reembolsado:['vencida', 'Reembolsado']};
+function viewOrders(){
+  const L = S.orders, todo = L.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago').length, norep = L.filter(o => !o.rep_id && o.status !== 'cancelado').length;
+  const card = o => {
+    const [cls, lab] = OST[o.status] || ['trial', o.status], w = waLink(o.whatsapp);
+    const assign = !o.rep_id && o.store_id && o.status !== 'cancelado' ? `<div class="acts"><select data-rsel="${o.id}"><option value="">Escolher representante…</option>${S.reps.filter(r => r.active).map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" data-assign="${o.id}" data-store="${o.store_id}">Vincular</button></div>` : '';
+    const btns = o.status === 'aguardando_pagamento' ? `<button class="btn small" data-pay="${o.id}" data-amt="${o.amount}">Confirmar pagamento</button><button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>`
+      : o.status === 'pago' ? `<button class="btn small" data-ship="${o.id}">Marcar como enviado</button>` : '';
+    return `<article class="rcard"><div class="top"><div><h3>${esc(o.store_name || '(loja removida)')}</h3><p class="sub" style="margin:2px 0 0">${esc(o.buyer_name)} · ${fmtDT(o.created_at)}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill st-${cls}">${lab}</span>${o.rep_id ? `<span class="aff">Rep: ${esc(o.rep_name)}</span>` : '<span class="pill st-vencida">Sem representante</span>'}</div></div>
+      <div class="kv"><div><b>${money(o.amount)}</b><small>valor do kit</small></div><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(o.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b style="font-size:.95rem">${esc(o.email || '—')}</b><small>e-mail</small></div></div>
+      <p class="sub"><b>Entrega:</b> ${esc(o.address)}</p>${o.tracking ? `<p class="sub"><b>Rastreio:</b> ${esc(o.tracking)}</p>` : ''}${o.paid_at ? `<p class="sub">Pago em ${fmtDT(o.paid_at)}${o.shipped_at ? ' · enviado em ' + fmtDT(o.shipped_at) : ''}</p>` : ''}
+      ${assign}<div class="acts">${btns}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div></article>`;
+  };
+  return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar${norep ? ` · ${norep} sem representante` : ''}`) + `<div class="wrap pad after">${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
+  bind(){
+    root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
+      const v = prompt('Valor recebido (R$):', b.dataset.amt); if(v === null) return; const n = parseFloat(String(v).replace(',', '.'));
+      if(!(n > 0)) return toast('Informe um valor válido', true);
+      act(b, 'fid_super_confirm_order', {p_order:b.dataset.pay, p_amount:n}, 'Pagamento confirmado ✓ A comissão do representante já foi lançada.');
+    });
+    root.querySelectorAll('[data-ship]').forEach(b => b.onclick = () => { const t = prompt('Código de rastreio (opcional):', ''); if(t === null) return; act(b, 'fid_super_order_status', {p_order:b.dataset.ship, p_status:'enviado', p_tracking:t}, 'Marcado como enviado ✓'); });
+    root.querySelectorAll('[data-cx]').forEach(b => b.onclick = () => { if(confirm('Cancelar este pedido? A loja continua existindo.')) act(b, 'fid_super_order_status', {p_order:b.dataset.cx, p_status:'cancelado'}, 'Pedido cancelado'); });
+    root.querySelectorAll('[data-assign]').forEach(b => b.onclick = () => { const sel = root.querySelector(`[data-rsel="${b.dataset.assign}"]`).value; if(!sel) return toast('Escolha o representante', true); act(b, 'fid_super_set_rep', {p_store:b.dataset.store, p_rep:sel}, 'Representante vinculado ✓'); });
+    root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.tab = 'lojas'; openStore(b.dataset.open); });
+  }};
+}
+
+/* representantes */
+function repFormHtml(r){
+  const v = r || {name:'', email:'', whatsapp:'', code:'', kit_cost:45, kit_share_pct:50, recur_pct:20, release_kit_days:15, release_recur_days:7, active:true};
+  return `<form class="rcard" id="rf"><h3>${r ? 'Editar representante' : 'Novo representante'}</h3>
+    <div class="cols"><div><label for="rn1">Nome</label><input id="rn1" type="text" required maxlength="80" value="${esc(v.name)}"></div><div><label for="rc">Código do link (letras e números)</label><input id="rc" type="text" required maxlength="20" pattern="[a-zA-Z0-9]{3,20}" value="${esc(v.code)}" placeholder="ex.: joao"></div>
+    <div><label for="re">E-mail</label><input id="re" type="email" value="${esc(v.email || '')}"></div><div><label for="rw">WhatsApp</label><input id="rw" type="text" value="${esc(v.whatsapp || '')}"></div>
+    <div><label for="rk">Custo do kit (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"></div><div><label for="rs">% do lucro do kit</label><input id="rs" type="number" step="0.01" min="0" max="100" value="${v.kit_share_pct}"></div>
+    <div><label for="rr">% da mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"></div><div></div>
+    <div><label for="rdk">Libera o kit após (dias)</label><input id="rdk" type="number" min="0" max="120" value="${v.release_kit_days}"></div><div><label for="rdr">Libera a mensalidade após (dias)</label><input id="rdr" type="number" min="0" max="120" value="${v.release_recur_days}"></div></div>
+    <label style="display:flex;gap:8px;align-items:center"><input id="ra" type="checkbox" style="width:auto;min-height:0" ${v.active ? 'checked' : ''}> Ativo (o link só vale enquanto estiver ativo)</label>
+    <p class="sub">Mudanças valem só para vendas e mensalidades novas. O que já foi lançado não muda.</p>
+    <div class="acts"><button class="btn" id="rsave">Salvar</button><button class="btn line" type="button" id="rcancel">Cancelar</button></div></form>`;
+}
+function viewReps(){
+  const L = S.reps;
+  const card = r => `<article class="rcard"><div class="top"><div><h3>${esc(r.name)} <span class="dl">· ${esc(r.code)}</span></h3>
+      <p class="sub" style="margin:2px 0 0">${esc(r.email || '')} ${r.whatsapp ? '· ' + esc(r.whatsapp) : ''} · ${r.stores} ${pl(r.stores, 'loja', 'lojas')}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span><span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : 'Aguardando 1º acesso'}</span></div></div>
+    <div class="kv"><div><b>${money(r.prevista)}</b><small>previstas</small></div><div class="${r.liberada < 0 ? 'neg' : ''}"><b>${money(r.liberada)}</b><small>liberadas</small></div><div><b>${money(r.em_repasse)}</b><small>repasse fechado</small></div><div><b>${money(r.paga)}</b><small>já pagas</small></div></div>
+    <p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
+    ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · mande para ele, que cria o acesso em <code>${esc(baseUrl())}rep.html</code></p>`}
+    <div class="acts"><button class="btn small" data-view="${r.id}">Ver como o representante vê</button><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button><button class="btn line small" data-edit="${r.id}">Editar</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}</div></article>`;
+  const body = S.repForm !== null ? repFormHtml(S.repForm === 'new' ? null : L.find(x => x.id === S.repForm))
+    : (L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum representante ainda.</p>');
+  return {html: heroTab('Representantes', `${L.length} ${pl(L.length, 'representante', 'representantes')} · próximo repasse em ${fmtDate(S.next)}`) +
+    `<div class="wrap pad after">${S.repForm === null ? '<div class="acts" style="margin:0 0 16px"><button class="btn" id="rnew">+ Novo representante</button></div>' : ''}${body}</div>`,
+  bind(){
+    const nw = $('#rnew'); if(nw) nw.onclick = () => { S.repForm = 'new'; render(false); };
+    root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { S.repForm = b.dataset.edit; render(false); });
+    root.querySelectorAll('[data-copylink]').forEach(b => b.onclick = () => copyTxt(repLink(b.dataset.copylink)));
+    root.querySelectorAll('[data-copyinv]').forEach(b => b.onclick = () => copyTxt(`Seu convite do Carimbô: ${b.dataset.copyinv}\nCrie seu acesso em ${baseUrl()}rep.html`));
+    root.querySelectorAll('[data-view]').forEach(b => b.onclick = async () => { const r = L.find(x => x.id === b.dataset.view); S.repOpen = {id:r.id, d:null}; render(); await loadTab(); render(false); });
+    const f = $('#rf');
+    if(f){
+      $('#rcancel').onclick = () => { S.repForm = null; render(false); };
+      f.onsubmit = async ev => {
+        ev.preventDefault(); const cur = S.repForm === 'new' ? null : S.repForm, btn = $('#rsave'); btn.disabled = true;
+        const r = await rpc('fid_super_rep_save', {p_id:cur, p_name:$('#rn1').value, p_email:$('#re').value, p_whatsapp:$('#rw').value, p_code:$('#rc').value,
+          p_kit_cost:+$('#rk').value, p_kit_share:+$('#rs').value, p_recur:+$('#rr').value, p_rel_kit:+$('#rdk').value, p_rel_recur:+$('#rdr').value, p_active:$('#ra').checked});
+        btn.disabled = false; if(!r) return;
+        S.repForm = null; await loadTab(); render(false);
+        toast(cur ? 'Representante salvo ✓' : 'Representante criado ✓ Copie o convite e mande para ele.');
+      };
+    }
+  }};
+}
+function viewRepOpen(){
+  const o = S.repOpen, d = o.d, r = S.reps.find(x => x.id === o.id) || {name:'…', code:''};
+  const head = heroTab(esc(r.name), 'Esta é exatamente a visão que o representante tem do próprio painel');
+  if(!d) return {html: head + '<div class="wrap pad after"><p class="sub">Carregando…</p></div>', bind(){}};
+  const t = d.totals, ST = {prevista:['trial', 'Prevista'], liberada:['tolerancia', 'Liberada'], em_repasse:['tolerancia', 'Em repasse'], paga:['ativa', 'Paga'], cancelada:['vencida', 'Cancelada']};
+  const stores = d.stores.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${s.order_status === 'aguardando_pagamento' ? 'Aguardando pagamento' : esc(STATUS[s.plan_status] || s.plan_status)}</td><td>${waLink(s.whatsapp) ? `<a href="${waLink(s.whatsapp)}" target="_blank" rel="noopener">${esc(s.whatsapp)}</a>` : '—'}</td><td>${fmtDate(s.renews_at)}</td><td class="n">${s.renewals_paid}</td><td class="n">${money(s.earned)}</td></tr>`).join('');
+  const lines = d.lines.map(l => { const [c, lab] = ST[l.status] || ['trial', l.status];
+    return `<div class="ln2"><div><b>${esc(l.store_name || 'Loja')}</b> <span class="pill st-${c}">${lab}</span><br><small>${KIND2[l.kind]}${l.base_amount ? ' · cliente pagou ' + money(l.base_amount) : ''} · ${fmtDate(l.event_date)} · libera ${fmtDate(l.release_date)}${l.cycle ? ' · repasse ' + fmtDate(l.cycle) : ''}${l.reason ? ' · ' + esc(l.reason) : ''}${l.kind === 'estorno' && l.note ? '<br>' + esc(l.note) : ''}</small></div><div class="a ${l.amount < 0 ? 'neg' : ''}">${money(l.amount)}</div></div>`; }).join('');
+  return {html: head + `<div class="wrap pad after"><div class="acts" style="margin:0 0 16px"><button class="btn line" id="rback">← Todos os representantes</button></div>
+    <div class="rcard"><div class="kv"><div><b>${money(t.prevista)}</b><small>previstas</small></div><div class="${t.liberada < 0 ? 'neg' : ''}"><b>${money(t.liberada)}</b><small>liberadas (próximo repasse)</small></div><div><b>${money(t.em_repasse)}</b><small>repasse fechado</small></div><div><b>${money(t.paga)}</b><small>já pagas</small></div></div>
+      <p class="sub">${esc(pixTxt(d.rep.pix_type, d.rep.pix_key))} · link: <code>${esc(repLink(d.rep.code))}</code></p></div>
+    <div class="rcard"><h3>Lojas (${d.stores.length})</h3>${d.stores.length ? `<div class="tw" style="box-shadow:none;margin-top:10px"><table style="min-width:640px"><thead><tr><th>Loja</th><th>Situação</th><th>WhatsApp</th><th>Próx. mensalidade</th><th class="n">Pagas</th><th class="n">Ganhou</th></tr></thead><tbody>${stores}</tbody></table></div>` : '<p class="sub">Nenhuma loja.</p>'}</div>
+    <div class="rcard"><h3>Extrato</h3>${d.lines.length ? lines : '<p class="sub">Sem comissões.</p>'}</div></div>`,
+  bind(){ $('#rback').onclick = () => { S.repOpen = null; render(false); }; }};
+}
+
+/* repasses */
+function viewPayouts(){
+  const pv = (S.preview && S.preview.items) || [], today = S.today, isDay = today && today.slice(8, 10) === '15';
+  const ln = l => `<div class="ln2"><div><b>${esc(l.store_name || 'Loja')}</b><br><small>${KIND2[l.kind]} · ${fmtDate(l.event_date)} · liberada em ${fmtDate(l.release_date)}</small></div><div class="a ${l.amount < 0 ? 'neg' : ''}">${money(l.amount)}</div></div>`;
+  const pcard = i => `<article class="rcard"><div class="top"><div><h3>${esc(i.name)}</h3><p class="sub" style="margin:2px 0 0">${esc(pixTxt(i.pix_type, i.pix_key))}</p></div><div class="a" style="font-family:Fredoka,sans-serif;font-size:1.5rem;font-weight:700;${i.pay ? '' : 'color:var(--bad)'}">${money(i.total)}</div></div>
+    ${i.pay ? '' : '<p class="sub"><b>Saldo negativo:</b> estornos maiores que as comissões liberadas. Nada a pagar agora, o saldo passa para o próximo repasse.</p>'}
+    ${i.pix_key ? `<div class="acts"><button class="btn line small" data-copypix="${esc(i.pix_key)}">Copiar chave Pix</button></div>` : '<p class="sub" style="color:var(--bad)"><b>Este representante ainda não cadastrou o Pix.</b></p>'}
+    <details class="lines"><summary>${i.lines.length} ${pl(i.lines.length, 'linha', 'linhas')}</summary>${i.lines.map(ln).join('')}</details></article>`;
+  const done = S.payouts.map(p => `<article class="rcard"><div class="top"><div><h3>${esc(p.rep_name)} <span class="dl">· repasse de ${fmtDate(p.cycle)}</span></h3><p class="sub" style="margin:2px 0 0">${esc(pixTxt(p.pix_type, p.pix_key))}</p></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="pill ${p.paid_at ? 'st-ativa' : 'st-tolerancia'}">${p.paid_at ? 'Pago em ' + fmtDate(p.paid_at) : 'A pagar'}</span><b style="font-family:Fredoka,sans-serif;font-size:1.4rem">${money(p.total)}</b></div></div>
+    ${p.paid_note ? `<p class="sub">${esc(p.paid_note)}</p>` : ''}
+    <div class="acts">${p.paid_at ? '' : `<button class="btn small" data-paid="${p.id}" data-name="${esc(p.rep_name)}" data-total="${p.total}">Marcar como pago</button>`}${p.pix_key ? `<button class="btn line small" data-copypix="${esc(p.pix_key)}">Copiar chave Pix</button>` : ''}</div>
+    <details class="lines"><summary>${p.lines.length} ${pl(p.lines.length, 'linha', 'linhas')}</summary>${p.lines.map(ln).join('')}</details></article>`).join('');
+  const toPay = S.payouts.filter(p => !p.paid_at);
+  return {html: heroTab('Repasses', `Próximo dia de repasse: ${fmtDate(S.next)}`) + `<div class="wrap pad after">
+    <section class="panel"><h2><i>🧾</i>Fechamento</h2>
+      <p class="sub">${isDay ? '<b>Hoje é dia de repasse.</b> ' : ''}O fechamento junta tudo que já foi liberado até hoje e ainda não entrou em repasse. O que ainda está no prazo fica para o próximo. Depois de fechado, a lista não muda.</p>
+      ${pv.length ? pv.map(pcard).join('') : '<p class="sub" style="padding:14px 0"><b>Nada liberado para repassar agora.</b></p>'}
+      <div class="acts"><button class="btn" id="close" ${pv.some(i => i.pay) ? '' : 'disabled'}>Fechar repasses de hoje</button></div></section>
+    <section class="panel" style="margin-top:18px"><h2><i>💸</i>Repasses gerados ${toPay.length ? `<span class="pill st-tolerancia">${toPay.length} a pagar</span>` : ''}</h2>
+      <div style="margin-top:12px">${S.payouts.length ? done : '<p class="sub">Nenhum repasse fechado ainda.</p>'}</div></section></div>`,
+  bind(){
+    root.querySelectorAll('[data-copypix]').forEach(b => b.onclick = () => copyTxt(b.dataset.copypix));
+    const c = $('#close'); if(c) c.onclick = () => { if(confirm('Fechar os repasses de hoje? Cada representante com saldo positivo ganha um repasse a pagar.')) act(c, 'fid_super_close_cycle', {}, 'Repasses fechados ✓ Agora é só pagar por Pix e marcar como pago.'); };
+    root.querySelectorAll('[data-paid]').forEach(b => b.onclick = () => {
+      const n = prompt(`Marcar como pago o repasse de ${b.dataset.name} (${money(b.dataset.total)})? Observação (opcional):`, ''); if(n === null) return;
+      act(b, 'fid_super_payout_paid', {p_payout:+b.dataset.paid, p_note:n}, 'Repasse marcado como pago ✓');
+    });
   }};
 }
 
 function render(top = true){
   if(S.detail){ const v = viewDetail(); root.innerHTML = v.html; v.bind(); if(top) window.scrollTo(0, 0); }
+  else if(S.tab !== 'lojas'){ viewTab(); if(top) window.scrollTo(0, 0); }
   else { viewList(); }
 }
 boot();

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14296B">
+<title>Carimbô · Representante</title>
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14296B;--night:#0E1D4E;--red:#E03A2F;--paper:#FBF7EE;--lilac:#F3EAD6;--gold:#EAD9B6;--line:#E4D9C0;--mut:#3D4C80;--good:#0E7A47;--warn:#B45309;--bad:#C0392B;--sh:4px 4px 0 var(--navy)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--navy);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%}
+  h1,h2,h3,.btn,.brand,.tile b{font-family:'Fredoka',system-ui,sans-serif}
+  h1,h2,h3{margin:0;font-weight:600}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 clamp(16px,3vw,32px)}
+  .hero{background:radial-gradient(800px 360px at 85% -10%,rgba(224,58,47,.35),transparent 60%),linear-gradient(135deg,var(--night),var(--navy));color:#fff;padding:18px 0 78px;border-bottom:4px solid var(--red)}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem}
+  .logo{width:38px;height:38px;border-radius:11px;background:var(--paper);display:grid;place-items:center;box-shadow:3px 3px 0 var(--red)}
+  .logo svg{width:24px;height:24px}
+  .crown{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(234,217,182,.6);border-radius:99px;padding:2px 10px;margin-left:4px;font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:9px 20px;border:2.5px solid var(--navy);border-radius:12px;background:var(--red);color:#fff;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:3px 3px 0 var(--navy);transition:transform .08s,box-shadow .08s}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--navy)}
+  .btn.line{background:#fff;color:var(--navy)}
+  .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.5);box-shadow:none;min-height:38px;padding:6px 14px}
+  .btn.small{min-height:38px;padding:6px 14px;font-size:.92rem}
+  .btn:disabled{opacity:.55;cursor:default}
+  .hello{margin-top:26px}
+  .hello h1{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:700}
+  .hello p{margin:4px 0 0;color:rgba(255,255,255,.72)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:-52px}
+  .tile{background:#fff;border-radius:18px;padding:16px 18px;box-shadow:var(--sh);border:1px solid rgba(255,255,255,.6)}
+  .tile .k{color:var(--mut);font-size:.84rem}
+  .tile b{display:block;font-size:1.9rem;line-height:1.1;margin-top:6px;font-weight:700}
+  .tile small{color:var(--mut);font-size:.8rem;display:block;margin-top:2px}
+  .tile.main{background:var(--navy);color:#fff}.tile.main .k,.tile.main small{color:rgba(255,255,255,.75)}
+  .tile.neg b{color:var(--bad)}
+  .panel{background:#fff;border-radius:20px;padding:20px 22px;box-shadow:var(--sh);border:1px solid #EFE6CF;margin-top:18px}
+  .panel h2{font-size:1.15rem}
+  .sub{color:var(--mut);font-size:.9rem;margin:6px 0 0}
+  .linkbox{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  code{flex:1 1 260px;background:var(--lilac);color:var(--night);padding:11px 14px;border-radius:11px;font-size:.88rem;overflow-wrap:anywhere;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:14px}
+  .rule{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;font-size:.92rem}
+  .rule b{display:block;font-family:'Fredoka',sans-serif;font-size:1rem;margin-bottom:2px}
+  label{display:block;font-size:.84rem;color:var(--mut);margin:14px 0 6px}
+  input,select{width:100%;padding:10px 13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;min-height:44px}
+  input:focus,select:focus{outline:none;border-color:var(--red);box-shadow:3px 3px 0 var(--red)}
+  .row{display:grid;grid-template-columns:200px 1fr auto;gap:10px;align-items:end}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:3px 11px;font-size:.78rem;font-weight:700;white-space:nowrap}
+  .pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .p-ativa,.p-paga{background:#DDF5EA;color:#0F6B49}.p-trial,.p-prevista{background:#E0ECFF;color:#1D4ED8}
+  .p-liberada,.p-em_repasse,.p-aguardando{background:#FEF0D0;color:#92400E}
+  .p-tolerancia{background:#FEF0D0;color:#92400E}.p-vencida,.p-cancelada,.p-bloqueada{background:#FDE1DE;color:#A52A1E}
+  .stores{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px}
+  .st{border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;background:#fff}
+  .st .h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+  .st b{font-family:'Fredoka',sans-serif;font-size:1.05rem}
+  .st dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:10px 0 0;font-size:.88rem}
+  .st dt{color:var(--mut)}.st dd{margin:0;text-align:right;font-weight:700}
+  .st a{color:var(--navy)}
+  .ln{display:grid;grid-template-columns:1fr auto;gap:2px 14px;padding:12px 0;border-bottom:1px solid #F0E8D3}
+  .ln:last-child{border-bottom:0}
+  .ln .a{font-weight:800;font-family:'Fredoka',sans-serif;font-size:1.05rem;text-align:right}
+  .ln .a.neg{color:var(--bad)}.ln .a.cx{color:#9aa3c4;text-decoration:line-through}
+  .ln small{color:var(--mut)}
+  .auth{max-width:420px;margin:9vh auto;background:#fff;border-radius:24px;padding:30px;box-shadow:var(--sh);border:3px solid var(--navy)}
+  .auth .brand{color:var(--navy)}
+  .auth h1{margin-top:18px;font-size:1.4rem}
+  .actions{display:flex;gap:8px;margin-top:18px}.actions .btn{flex:1}
+  .err{color:var(--bad);min-height:1.2em;margin:10px 0 0;font-weight:700}
+  .empty{text-align:center;color:var(--mut);padding:26px 10px}
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;padding:12px 22px;border-radius:12px;z-index:99;display:none;max-width:90vw}
+  .pad{padding-bottom:60px}
+  @media (max-width:640px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
+const root = document.getElementById('app');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '—';
+const fmtDay = d => d ? new Date(String(d).slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) : '—';
+const money = v => (Number(v) < 0 ? '− ' : '') + 'R$ ' + Math.abs(Number(v || 0)).toFixed(2).replace('.', ',');
+const pct = n => String(+n).replace('.', ',') + '%';
+const base = () => location.origin + location.pathname.replace(/[^/]*$/, '');
+const LOGO = '<span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span>';
+const S = {d:null};
+
+function toast(msg, bad){
+  let t = $('#toast'); if(!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.style.background = bad ? '#B42318' : '#12805C'; t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 3800);
+}
+const ERR = {convite_invalido:'Código de convite inválido ou já usado.', pix_invalido:'Confira o tipo e a chave Pix.', sem_cadastro:'Seu acesso ainda não foi liberado.'};
+async function rpc(fn, args){
+  const {data, error} = await sb.rpc(fn, args || {});
+  if(error){ toast('Erro: ' + error.message, true); return null; }
+  if(data && data.error){ if(data.error !== 'sem_cadastro') toast(ERR[data.error] || data.error, true); return data; }
+  return data;
+}
+
+function viewLogin(msg){
+  root.innerHTML = `<div class="auth"><div class="brand">${LOGO}<span>carimb<span style="color:var(--red)">ô</span></span></div>
+    <h1>Área do representante</h1>
+    <form id="f"><label for="e">E-mail</label><input id="e" type="email" required autocomplete="email">
+    <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="current-password">
+    <p class="err" role="alert">${esc(msg || '')}</p>
+    <div class="actions"><button class="btn" value="in">Entrar</button><button class="btn line" value="up" formnovalidate>Criar acesso</button></div></form>
+    <p class="sub" style="margin-top:14px">Primeiro acesso? Toque em <b>Criar acesso</b> e depois informe o código de convite que a Carimbô enviou.</p></div>`;
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const a = ev.submitter && ev.submitter.value, e = $('#e').value, p = $('#p').value;
+    const r = a === 'up' ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
+    if(r.error) return viewLogin(r.error.message);
+    if(!r.data.session){
+      const r2 = await sb.auth.signInWithPassword({email:e, password:p});
+      if(r2.error) return viewLogin('Não deu para entrar: ' + r2.error.message);
+    }
+    boot();
+  };
+}
+function viewInvite(msg){
+  root.innerHTML = `<div class="auth"><div class="brand">${LOGO}<span>carimb<span style="color:var(--red)">ô</span></span></div>
+    <h1>Código de convite</h1><p class="sub">Digite o código que a Carimbô enviou para você. Ele é usado uma única vez.</p>
+    <form id="f"><label for="c">Código</label><input id="c" required autocomplete="off" autocapitalize="off" spellcheck="false">
+    <p class="err" role="alert">${esc(msg || '')}</p>
+    <div class="actions"><button class="btn">Ativar meu acesso</button><button class="btn line" type="button" id="out">Sair</button></div></form></div>`;
+  $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await rpc('fid_rep_claim', {p_invite:$('#c').value});
+    if(r && r.ok) boot(); else if(r) viewInvite(ERR[r.error] || r.error);
+  };
+}
+async function boot(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) return viewLogin();
+  const d = await rpc('fid_rep_dashboard');
+  if(!d) return;
+  if(d.error === 'sem_cadastro') return viewInvite();
+  if(d.error) return viewLogin(d.error);
+  S.d = d; render();
+}
+
+const KIND = {aquisicao:'Venda do kit', recorrencia:'Mensalidade', estorno:'Estorno'};
+function storeState(s){
+  if(s.order_status === 'aguardando_pagamento') return ['aguardando', 'Aguardando pagamento do kit'];
+  if(s.order_status === 'cancelado') return ['cancelada', 'Pedido cancelado'];
+  if(s.order_status === 'reembolsado') return ['cancelada', 'Kit reembolsado'];
+  return ({ativa:['ativa', 'Mensalidade em dia'], trial:['trial', 'Em teste'], tolerancia:['tolerancia', 'Mensalidade atrasada'], vencida:['vencida', 'Vencida'], bloqueada:['bloqueada', 'Bloqueada']})[s.plan_status] || ['trial', s.plan_status];
+}
+function lineStatus(l, d){
+  switch(l.status){
+    case 'prevista': return ['prevista', 'Prevista', `libera em ${fmtDate(l.release_date)}`];
+    case 'liberada': return ['liberada', 'Liberada', `entra no repasse de ${fmtDate(d.next_payday)}`];
+    case 'em_repasse': return ['em_repasse', 'Em repasse', `fechado em ${fmtDate(l.cycle)}, aguardando o Pix`];
+    case 'paga': return ['paga', 'Paga', `repasse de ${fmtDate(l.cycle)}`];
+    default: return ['cancelada', 'Cancelada', l.reason || ''];
+  }
+}
+
+function render(){
+  const d = S.d, r = d.rep, t = d.totals, link = base() + 'comprar.html?r=' + r.code;
+  const net = Math.max(0, 149 - r.kit_cost) * r.kit_share_pct / 100;
+  const stores = d.stores.map(s => {
+    const [k, lab] = storeState(s), wa = (s.whatsapp || '').replace(/\D/g, '');
+    const paid = s.order_status === 'aguardando_pagamento';
+    return `<div class="st"><div class="h"><b>${esc(s.name)}</b><span class="pill p-${k}">${lab}</span></div><dl>
+      <dt>WhatsApp</dt><dd>${wa ? `<a href="https://wa.me/${wa.length <= 11 ? '55' + wa : wa}" target="_blank" rel="noopener">${esc(s.whatsapp)}</a>` : '—'}</dd>
+      <dt>Entrou em</dt><dd>${fmtDate(s.created_at)}</dd>
+      ${paid ? '' : `<dt>Próxima mensalidade</dt><dd>${fmtDate(s.renews_at)}</dd>`}
+      <dt>Mensalidades pagas</dt><dd>${s.renewals_paid}</dd>
+      <dt>Você já ganhou</dt><dd>${money(s.earned)}</dd></dl></div>`;
+  }).join('');
+  const lines = d.lines.map(l => {
+    const [k, lab, hint] = lineStatus(l, d), cx = l.status === 'cancelada';
+    return `<div class="ln"><div><b>${esc(l.store_name || 'Loja')}</b> <span class="pill p-${k}">${lab}</span><br>
+      <small>${KIND[l.kind]}${l.base_amount ? ' · cliente pagou ' + money(l.base_amount) : ''} · ${fmtDate(l.event_date)}</small><br><small>${esc(l.kind === 'estorno' ? (l.note || '') : hint)}</small></div>
+      <div class="a ${cx ? 'cx' : (l.amount < 0 ? 'neg' : '')}">${money(l.amount)}</div></div>`;
+  }).join('');
+  const pays = d.payouts.map(p => `<div class="ln"><div><b>Repasse de ${fmtDate(p.cycle)}</b> <span class="pill ${p.paid_at ? 'p-paga' : 'p-em_repasse'}">${p.paid_at ? 'Pago em ' + fmtDate(p.paid_at) : 'A pagar'}</span></div><div class="a">${money(p.total)}</div></div>`).join('');
+  root.innerHTML = `<div class="hero"><div class="wrap"><div class="nav"><div class="brand">${LOGO}<span>carimb<span style="color:#FF7B6E">ô</span></span><span class="crown">Representante</span></div><button class="btn ghost" id="out">Sair</button></div>
+      <div class="hello"><h1>Olá, ${esc(r.name.split(' ')[0])}</h1><p>Próximo repasse: <b>${fmtDate(d.next_payday)}</b></p></div></div></div>
+    <div class="wrap pad">
+      <div class="tiles">
+        <div class="tile main"><div class="k">A receber em ${fmtDay(d.next_payday)}</div><b>${money(t.liberada)}</b><small>${t.liberada < 0 ? 'saldo a descontar, passa para o próximo repasse' : 'comissões já liberadas'}</small></div>
+        <div class="tile"><div class="k">Previstas</div><b>${money(t.prevista)}</b><small>ainda dentro do prazo de liberação</small></div>
+        <div class="tile"><div class="k">Repasse fechado</div><b>${money(t.em_repasse)}</b><small>aguardando o Pix</small></div>
+        <div class="tile"><div class="k">Já recebido</div><b>${money(t.paga)}</b><small>total pago até hoje</small></div>
+      </div>
+      <section class="panel"><h2>Seu link de indicação</h2>
+        <p class="sub">Mande este link para o dono da loja. Quando ele fizer o pedido por aqui, a venda fica registrada no seu nome, automaticamente.</p>
+        <div class="linkbox"><code id="lk">${esc(link)}</code><button class="btn" id="cp">Copiar link</button><a class="btn line" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Dá uma olhada no Carimbô, o cartão fidelidade por toque: ' + link)}">Enviar por WhatsApp</a></div></section>
+      <section class="panel"><h2>Como você ganha</h2>
+        <div class="rules"><div class="rule"><b>Venda do kit: ${pct(r.kit_share_pct)} do lucro</b>Lucro = valor pago − custo de ${money(r.kit_cost)}. No kit de R$ 149,00 são ${money(net)} para você. Liberada ${r.release_kit_days} dias depois da venda.</div>
+          <div class="rule"><b>Mensalidades: ${pct(r.recur_pct)}</b>De cada mensalidade paga a partir do 2º mês (R$ 49,97 = ${money(49.97 * r.recur_pct / 100)}). Liberada ${r.release_recur_days} dias depois do pagamento.</div>
+          <div class="rule"><b>Repasse todo dia 15</b>Pagamos por Pix tudo que já estiver liberado até o dia 15. O que ainda estiver no prazo vai para o repasse seguinte.</div>
+          <div class="rule"><b>Reembolsos</b>Se o cliente pedir reembolso antes do repasse, a comissão é cancelada e aparece aqui. Depois do repasse, vira um estorno descontado do seu próximo repasse.</div></div></section>
+      <section class="panel"><h2>Seu Pix para receber</h2>
+        <p class="sub">${r.pix_key ? 'Chave cadastrada. Você pode trocar quando quiser: vale para os próximos repasses fechados.' : '<b style="color:var(--bad)">Cadastre o seu Pix para conseguir receber.</b>'}</p>
+        <div class="row"><div><label for="pt">Tipo da chave</label><select id="pt">${[['cpf','CPF'],['cnpj','CNPJ'],['email','E-mail'],['telefone','Telefone'],['aleatoria','Chave aleatória']].map(([v, n]) => `<option value="${v}" ${r.pix_type === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+          <div><label for="pk">Chave Pix</label><input id="pk" value="${esc(r.pix_key || '')}" autocomplete="off"></div><button class="btn" id="sp">Salvar</button></div></section>
+      <section class="panel"><h2>Suas lojas <span class="sub" style="font-weight:600">· ${d.stores.length}</span></h2>
+        ${d.stores.length ? `<div class="stores">${stores}</div>` : '<div class="empty">Nenhuma loja ainda. Compartilhe o seu link para começar.</div>'}</section>
+      <section class="panel"><h2>Extrato de comissões</h2>${d.lines.length ? lines : '<div class="empty">Quando uma venda for paga, a comissão aparece aqui.</div>'}</section>
+      <section class="panel"><h2>Repasses</h2>${d.payouts.length ? pays : '<div class="empty">Nenhum repasse fechado ainda.</div>'}</section>
+    </div>`;
+  $('#out').onclick = async () => { await sb.auth.signOut(); S.d = null; boot(); };
+  $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('Link copiado ✓'); } catch(e){ const el = $('#lk'); const rg = document.createRange(); rg.selectNodeContents(el); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); toast('Selecione e copie o link', true); } };
+  $('#sp').onclick = async e => {
+    e.target.disabled = true; const x = await rpc('fid_rep_save_pix', {p_type:$('#pt').value, p_key:$('#pk').value}); e.target.disabled = false;
+    if(x && x.ok){ toast('Pix salvo ✓'); const dd = await rpc('fid_rep_dashboard'); if(dd && !dd.error){ S.d = dd; render(); } }
+  };
+}
+boot();
+</script>
+</body>
+</html>
