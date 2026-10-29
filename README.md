@@ -14,3 +14,9 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - **super.html**: abas Pedidos, Representantes e Repasses (confirmar pagamento, vincular representante, fechar repasses do dia 15, marcar como pago, reembolsos no detalhe da loja).
 - Regras no banco (por representante): custo do kit, % do lucro do kit (50%), % da mensalidade (20%), liberação (15 dias kit, 7 dias mensalidade). Comissão só nasce de pagamento registrado em `fid_billing` (trigger). Reembolso antes do repasse cancela a comissão; depois vira estorno descontado do próximo repasse.
 - `config.js`: preencha `SALES_WHATSAPP` para o botão de WhatsApp na tela de pedido recebido.
+
+## Pagamento automático com Asaas (v13)
+- `comprar.html` cria o pedido (`fid_order_create`) e chama a Edge Function `asaas-checkout`, que cria cliente + cobrança (`billingType UNDEFINED`: Pix, boleto ou cartão) e devolve o `invoiceUrl`. O comprador é levado a essa página.
+- `asaas-webhook` (sem JWT; autenticada pelo header `asaas-access-token`) recebe os eventos: `PAYMENT_RECEIVED/CONFIRMED` → kit pago (`fid_asaas_pay_order`: confirma pedido, cria venda, gera comissão) e cria a assinatura mensal de R$ 49,97 (`nextDueDate` = fim do mês incluso); cobrança de assinatura paga → `fid_asaas_pay_renewal`; `PAYMENT_REFUNDED/CHARGEBACK_REQUESTED` → `fid_asaas_refund` (cancela comissão ou lança estorno). Idempotente por id do evento (`fid_asaas_events`) e por id da cobrança (`fid_billing.asaas_payment_id`).
+- Segredos (Supabase → Edge Functions → Secrets): `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `ASAAS_ENV` (`sandbox` ou `prod`). Webhook URL: `https://qpdcffsessmxmkedrjyc.supabase.co/functions/v1/asaas-webhook`.
+- Código em `supabase/functions/`. O admin continua com "Confirmar à mão" para pagamentos fora do Asaas.

@@ -126,7 +126,12 @@ const MSG = {
   cep_invalido:'Confira o CEP.', rua_invalida:'Confira a rua.', numero_invalido:'Informe o número.', cidade_invalida:'Confira a cidade.', estado_invalido:'Escolha o estado.',
   entre_primeiro:'Entre com e-mail e senha para continuar.'
 };
-const S = {delivery:'correios', cepOk:false};
+const S = {delivery:'correios', cepOk:false, orderId:null};
+const maskDoc = v => { const d = v.replace(/\D/g, '').slice(0, 14); if(d.length <= 11) return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); return d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2'); };
+function validDoc(v){ const n = v.replace(/\D/g, ''); if(/^(\d)\1+$/.test(n)) return false;
+  if(n.length === 11){ for(const t of [9, 10]){ let s = 0; for(let i = 0; i < t; i++) s += +n[i] * (t + 1 - i); if(((s * 10) % 11) % 10 !== +n[t]) return false; } return true; }
+  if(n.length === 14){ for(const t of [12, 13]){ const w = t === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; let s = 0; for(let i = 0; i < t; i++) s += +n[i] * w[i]; const dv = s % 11 < 2 ? 0 : 11 - (s % 11); if(dv !== +n[t]) return false; } return true; }
+  return false; }
 const total = () => KIT + (S.delivery === 'correios' ? FRETE : 0);
 
 function view(){
@@ -138,7 +143,8 @@ function view(){
           <div class="two"><div><label class="l" for="nm">Seu nome</label><input id="nm" autocomplete="name" required><p class="fe" id="e-nm"></p></div>
             <div><label class="l" for="lj">Nome da loja</label><input id="lj" autocomplete="organization" required><p class="fe" id="e-lj"></p></div></div>
           <div class="two"><div><label class="l" for="wa">WhatsApp</label><input id="wa" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(11) 99999-9999" maxlength="16" required><p class="fe" id="e-wa"></p></div>
-            <div><label class="l" for="em">E-mail</label><input id="em" type="email" autocomplete="email" inputmode="email" required><p class="fe" id="e-em"></p></div></div></div>
+            <div><label class="l" for="em">E-mail</label><input id="em" type="email" autocomplete="email" inputmode="email" required><p class="fe" id="e-em"></p></div></div>
+          <label class="l" for="doc">CPF ou CNPJ <span style="font-weight:400">(para a cobrança)</span></label><input id="doc" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="18" required><p class="fe" id="e-doc"></p></div>
         <div class="sec"><h3><b>2</b>Como você quer receber o kit?</h3>
           <div class="opts" role="radiogroup" aria-label="Forma de entrega">
             <label class="opt"><input type="radio" name="dl" value="retirada"><span><b>Retirar em mãos <em>Grátis</em></b><small>Sem frete. Combinamos a entrega com você pelo WhatsApp.</small></span></label>
@@ -155,7 +161,7 @@ function view(){
           <label class="l" for="pw">Crie uma senha (mínimo 6 caracteres)</label><div class="pw"><input id="pw" type="password" minlength="6" autocomplete="new-password" required><button type="button" id="tg" aria-label="Mostrar senha">Mostrar</button></div><p class="fe" id="e-pw"></p></div>
         <p class="err" id="err" role="alert"></p>
         <button class="btn" id="go"></button>
-        <p class="fine">Ao fazer o pedido você concorda em receber o contato da equipe Carimbô por WhatsApp para combinar o pagamento.</p>
+        <p class="fine">Você escolhe a forma de pagar na próxima tela: Pix, boleto ou cartão. Pagamento seguro pelo Asaas.</p>
       </form></section>
     <aside class="card sum"><h2>Kit de boas-vindas</h2>
       <div class="price"><b>R$ 149</b><s>R$ 249</s></div>
@@ -178,7 +184,7 @@ function refresh(){
   const c = S.delivery === 'correios';
   $('#addr').style.display = c ? '' : 'none';
   $('#tot').innerHTML = `<div><span>Kit</span><span>${brl(KIT)}</span></div><div><span>Frete</span>${c ? `<span>${brl(FRETE)}</span>` : '<span class="g">Grátis · retirada em mãos</span>'}</div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
-  $('#go').textContent = 'Fazer o pedido · ' + brl(total());
+  $('#go').textContent = 'Ir para o pagamento · ' + brl(total());
 }
 function setErr(id, msg){
   const el = $('#' + id), fe = $('#e-' + id); if(!el) return;
@@ -221,6 +227,7 @@ async function onCep(){
 }
 function bind(){
   $('#wa').oninput = e => { e.target.value = maskPhone(e.target.value); setErr('wa', ''); };
+  $('#doc').oninput = e => { e.target.value = maskDoc(e.target.value); setErr('doc', ''); };
   $('#cep').oninput = e => { e.target.value = maskCep(e.target.value); onCep(); };
   ['nm', 'lj', 'em', 'rua', 'num', 'cid', 'uf', 'pw'].forEach(id => $('#' + id).addEventListener('input', () => setErr(id, '')));
   document.querySelectorAll('input[name=dl]').forEach(r => r.onchange = () => { S.delivery = r.value; refresh(); });
@@ -237,6 +244,7 @@ function validate(){
   chk('lj', v('lj').length >= 2, 'Informe o nome da loja.');
   chk('wa', v('wa').replace(/\D/g, '').length >= 10, 'Informe o WhatsApp com DDD.');
   chk('em', /^\S+@\S+\.\S+$/.test(v('em')), 'Confira o e-mail.');
+  chk('doc', validDoc(v('doc')), 'CPF ou CNPJ inválido. Confira os números.');
   if(S.delivery === 'correios'){
     chk('cep', v('cep').replace(/\D/g, '').length === 8, 'Informe o CEP com 8 números.');
     chk('rua', v('rua').length >= 3, 'Informe a rua.');
@@ -266,10 +274,21 @@ async function submit(ev){
         if(si.error) throw new Error(up.error ? up.error.message : 'Este e-mail já tem cadastro e a senha não confere. Use a senha da sua conta ou outro e-mail.');
       }
     }
+    if(!S.orderId){
     const {data, error} = await sb.rpc('fid_order_create', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa'), p_delivery:S.delivery,
       p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null});
     if(error) throw new Error(error.message);
     if(data && data.error) throw new Error(MSG[data.error] || data.error);
+    S.orderId = data.order;
+    }
+    btn.textContent = 'Abrindo o pagamento…';
+    const r = await sb.functions.invoke('asaas-checkout', {body:{order_id:S.orderId, cpf_cnpj:v('doc')}});
+    const url = r.data && r.data.url;
+    if(url){ window.location.href = url; return; }
+    let code = r.data && r.data.error;
+    if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
+    if(code === 'cpf_cnpj_invalido'){ setErr('doc', 'CPF ou CNPJ inválido. Confira os números.'); throw new Error('Confira o CPF ou CNPJ.'); }
+    if(code === 'pedido_ja_pago'){ window.location.href = 'lojista.html'; return; }
     done(v('lj'), v('nm'));
   } catch(e){
     err(e.message || 'Não foi possível enviar o pedido. Tente de novo.');
