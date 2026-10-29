@@ -11,7 +11,9 @@
 <style>
   :root{--c:#14296B;--bg:#FBF7EE;--ink:#14296B;--mut:#3D4C80;--red:#E03A2F;--kraft:#EAD9B6}
   *{box-sizing:border-box}
-  body{margin:0;font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  body{margin:0;font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh}
+  html{scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   h1,.msg,button,.cd,.brand{font-family:'Fredoka','Nunito',system-ui,sans-serif}
   main{width:100%;max-width:420px;margin:0 auto;padding:20px 16px 12px}
   .brand{max-width:420px;margin:0 auto;padding:6px 16px 32px;text-align:center;font-weight:700;font-size:1.05rem;color:var(--ink);opacity:.8}
@@ -87,7 +89,7 @@ const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
 const QS = new URLSearchParams(location.search);
-const BUILD = '2026-10-29.4';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
+const BUILD = '2026-10-29.5';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
 const VIEW_URL = QS.get('v') === '1';                              // endereço só de visualização: nunca carimba
 const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
 const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
