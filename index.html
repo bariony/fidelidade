@@ -488,8 +488,8 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 <script>
 (function(){
-  /* CTAs: sem redirecionamento por enquanto (data-cta identifica cada botão para ligar depois) */
-  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); }); });
+  /* CTAs: levam à compra, sem representante (clientes próprios do Carimbô) */
+  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'comprar.html'; }); });
 
   /* simulação */
   var $ = function(id){ return document.getElementById(id); };
