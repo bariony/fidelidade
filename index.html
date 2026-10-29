@@ -184,15 +184,16 @@
   @media(max-width:980px){.lgrid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.tab span{display:none!important}.extras{grid-template-columns:1fr}.ex,.ex+.ex{padding:20px 0 0;border-left:0}}
 
   /* BASTÃO */
-  .pgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:52px;align-items:center}
-  .photo{border:3px solid var(--paper);border-radius:28px;overflow:hidden;box-shadow:10px 10px 0 var(--red)}
-  .photo img{width:100%;aspect-ratio:16/9;object-fit:cover}
+  .pgrid{display:grid;grid-template-columns:.85fr 1.15fr;gap:52px;align-items:center}
+  .float{position:relative;display:grid;place-items:center;padding:10px 0 30px}
+  .float img{position:relative;z-index:1;height:clamp(380px,52vw,600px);width:auto;max-width:100%;filter:drop-shadow(0 22px 26px rgba(4,10,40,.45))}
+  .float::after{content:"";position:absolute;left:50%;bottom:20px;width:62%;height:26px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,rgba(224,58,47,.55) 0,rgba(224,58,47,0) 70%)}
   .navy .lead{color:rgba(251,247,238,.82)}
   .specs{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px}
   .specs li{padding-bottom:14px;border-bottom:2px solid rgba(251,247,238,.22)}
   .specs b{font-family:'Fredoka',sans-serif;font-size:1.2rem}
   .specs span{display:block;opacity:.8}
-  @media(max-width:900px){.pgrid{grid-template-columns:1fr}.photo img{aspect-ratio:4/3}}
+  @media(max-width:900px){.pgrid{grid-template-columns:1fr}}
 
   /* SEGURANÇA */
   .sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 56px}
@@ -391,7 +392,7 @@
 <!-- BASTÃO -->
 <section class="navy tear" id="bastao" style="--above:var(--paper)">
   <div class="wrap pgrid">
-    <div class="photo"><img src="img/bastao-hero.webp" alt="Bastão Carimbô, feito em impressão 3D, com chip NFC na base" width="1920" height="1080" ></div>
+    <div class="float"><img src="img/bastao-recorte.webp" alt="Bastão Carimbô, feito em impressão 3D, com chip NFC na base" width="1020" height="2010"></div>
     <div>
       <h2>O bastão que faz o cliente sorrir.</h2>
       <p class="lead" style="margin-top:16px">Pesa pouco, fica de pé no balcão e tem o chip NFC embutido. É o único objeto que o cliente precisa tocar.</p>
