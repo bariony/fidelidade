@@ -205,7 +205,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -424,7 +424,7 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
+const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
 const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
@@ -436,6 +436,7 @@ async function loadTab(all){
   const jobs = [];
   if(all || S.tab === 'pedidos' || S.tab === 'reps' || S.tab === 'lojas') jobs.push(rpc('fid_super_reps').then(r => { if(r && r.items){ S.reps = r.items; S.next = r.next_payday; } }));
   if(all || S.tab === 'atend') jobs.push(rpc('fid_super_tickets').then(r => { if(r && r.items) S.tickets = r.items; }));
+  if(all || S.tab === 'testes') jobs.push(rpc('fid_super_trials').then(r => { if(r && r.items) S.trials = r; }));
   if(all || S.tab === 'pedidos') jobs.push(rpc('fid_super_orders').then(r => { if(r && r.items) S.orders = r.items; }));
   if(all || S.tab === 'repasses'){
     jobs.push(rpc('fid_super_cycle_preview').then(r => { if(r && r.items) S.preview = r; }));
@@ -457,7 +458,7 @@ function heroTab(title, sub){
     <div class="title"><h1>${title}</h1><p>${sub}</p></div></div></div>`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind();
@@ -500,6 +501,38 @@ function viewTickets(){
       await rpc('fid_super_ticket_reply', {p_ticket:id, p_body:txt(id) || 'Reembolso aprovado.', p_resolve:true}); reload('Reembolso registrado ✓');
     });
     root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.tab = 'lojas'; openStore(b.dataset.open); });
+  }};
+}
+
+/* testes */
+const TST = {aguardando:['tolerancia', 'Aguardando uso'], usado:['ativa', 'Ativado'], expirado:['bloqueada', 'Expirado'], cancelado:['bloqueada', 'Cancelado']};
+const testLink = c => baseUrl() + 'teste.html?c=' + c;
+function viewTrials(){
+  const T = S.trials, L = T.items, reps = (T.reps || []).filter(r => r.active);
+  const card = i => {
+    const [cls, lab0] = TST[i.status] || ['trial', i.status], lab = i.status === 'usado' && i.converted ? 'Assinou' : lab0, w = waLink(i.whatsapp);
+    return `<article class="rcard"><div class="top"><div><h3>${esc(i.store_name || i.label || 'Convite sem uso')}</h3><p class="sub" style="margin:2px 0 0">${i.days} dias · criado em ${fmtDT(i.created_at)} · ${i.rep_name ? 'Rep: ' + esc(i.rep_name) : 'Admin'}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill st-${i.status === 'usado' && i.converted ? 'ativa' : cls}">${lab}</span>${i.store_status ? `<span class="pill st-${i.store_status}">${esc(STATUS[i.store_status] || i.store_status)}</span>` : ''}</div></div>
+      ${i.status === 'usado' ? `<p class="sub">${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(i.whatsapp)}</a> · ` : ''}teste até ${fmtDate(i.renews_at)}</p>` : i.status === 'aguardando' ? `<p class="sub">Vale até ${fmtDate(i.expires_at)} · <code>${esc(testLink(i.code))}</code></p>` : ''}
+      <div class="acts">${i.status === 'aguardando' ? `<button class="btn small" data-tcopy="${esc(i.code)}">Copiar link</button><button class="btn line small" data-tcancel="${i.id}">Cancelar convite</button>` : ''}${i.store_id ? `<button class="btn line small" data-open="${i.store_id}">Abrir loja</button>` : ''}</div></article>`;
+  };
+  const lim = (T.reps || []).map(r => `<div class="ln2"><div><b>${esc(r.name)}</b> <small>· usou ${r.used} de ${r.quota} neste mês</small></div>
+    <div class="acts" style="margin:0"><input type="number" min="0" max="50" value="${r.quota}" data-q="${r.id}" style="width:70px" aria-label="Testes por mês"><input type="number" min="1" max="120" value="${r.max_days}" data-md="${r.id}" style="width:70px" aria-label="Máximo de dias"><button class="btn line small" data-lim="${r.id}">Salvar</button></div></div>`).join('');
+  const used = L.filter(i => i.status === 'usado').length, conv = L.filter(i => i.converted).length;
+  return {html: heroTab('Testes', `${L.length} ${pl(L.length, 'convite', 'convites')} · ${used} ativados · ${conv} assinaram`) + `<div class="wrap pad after">
+    <div class="rcard"><h3>Gerar link de teste</h3><p class="sub">Você não tem limite de cota nem de dias. O lojista cria o painel sozinho e só paga a mensalidade (R$ 49,97) depois do teste, se assinar.</p>
+      <div class="acts"><input id="tdays" type="number" min="1" max="120" value="30" style="width:90px" aria-label="Dias de teste"><input id="tlabel" maxlength="80" placeholder="Nome do comércio (opcional)" style="flex:1;min-width:180px"><select id="trep"><option value="">Sem representante (próprio Carimbô)</option>${reps.map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn" id="tgen">Gerar link</button></div></div>
+    ${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:30px">Nenhum teste gerado ainda.</p>'}
+    ${lim ? `<div class="rcard"><h3>Limites por representante</h3><p class="sub">Testes por mês · máximo de dias de cada teste.</p>${lim}</div>` : ''}</div>`,
+  bind(){
+    $('#tgen').onclick = async e => {
+      e.target.disabled = true; const r = await rpc('fid_super_trial_create', {p_rep:$('#trep').value || null, p_days:+$('#tdays').value, p_label:$('#tlabel').value}); e.target.disabled = false;
+      if(r && r.ok){ await copyTxt(testLink(r.code)); await reload('Link de teste criado e copiado ✓'); }
+    };
+    root.querySelectorAll('[data-tcopy]').forEach(b => b.onclick = () => copyTxt(testLink(b.dataset.tcopy)));
+    root.querySelectorAll('[data-tcancel]').forEach(b => b.onclick = () => { if(confirm('Cancelar este convite? O link deixa de funcionar.')) act(b, 'fid_super_trial_cancel', {p_invite:b.dataset.tcancel}, 'Convite cancelado'); });
+    root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.tab = 'lojas'; openStore(b.dataset.open); });
+    root.querySelectorAll('[data-lim]').forEach(b => b.onclick = () => act(b, 'fid_super_rep_trial_limits', {p_rep:b.dataset.lim, p_quota:+root.querySelector(`[data-q="${b.dataset.lim}"]`).value, p_max_days:+root.querySelector(`[data-md="${b.dataset.lim}"]`).value}, 'Limites salvos ✓'));
   }};
 }
 
@@ -633,7 +666,7 @@ function viewPayouts(){
 }
 
 /* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
-const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', reps:'representantes', repasses:'repasses'};
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
 function parseRoute(){

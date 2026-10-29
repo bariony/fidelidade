@@ -532,6 +532,10 @@ function helpFab(){
     <label for="mm">Quer contar o motivo? (opcional)</label><textarea id="mm" maxlength="2000"></textarea>
     <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Enviar pedido de reembolso</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;
+  if(m.type === 'subscribe') return fab + `<div class="ovl" id="ovl"><form class="modal" id="mform" role="dialog" aria-label="Assinar o plano"><h2>Assinar o plano</h2><p class="sub2">Mensalidade de R$ 49,97. A primeira cobrança é só em ${fdate(m.until)}, quando o teste termina. Você escolhe Pix, boleto ou cartão na fatura. Cancele quando quiser.</p>
+    <label for="mdoc">CPF ou CNPJ (para a nota da cobrança)</label><input id="mdoc" inputmode="numeric" maxlength="18" autocomplete="off" required placeholder="Só números">
+    <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Assinar agora</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;
   return fab;
 }
 function bindFab(){
@@ -541,7 +545,21 @@ function bindFab(){
   const ov = $('#ovl'); if(ov) ov.onclick = e => { if(e.target === ov){ S.modal = null; render(); } };
   const f = $('#mform'); if(f) f.onsubmit = async ev => {
     ev.preventDefault();
-    const m = S.modal, msg = $('#mm').value.trim(), btn = f.querySelector('.btn'); 
+    const m = S.modal, btn = f.querySelector('.btn');
+    if(m.type === 'subscribe'){
+      const doc = $('#mdoc').value.replace(/\D/g, '');
+      if(doc.length !== 11 && doc.length !== 14){ $('#merr').textContent = 'Digite um CPF (11 números) ou CNPJ (14 números).'; return; }
+      btn.disabled = true; const r = await callConta({action:'subscribe', cpf_cnpj:doc}); btn.disabled = false;
+      if(r.data && r.data.ok){
+        S.modal = null; toast('Assinatura criada ✓ A 1ª cobrança é em ' + fdate(r.data.first_due) + '.');
+        await load(); await loadBill(true); go('assinatura');
+        if(r.data.url) setTimeout(() => { if(confirm('Quer pagar a primeira mensalidade agora? Seu plano passa a valer 30 dias a partir do fim do teste.')) window.open(r.data.url, '_blank', 'noopener'); }, 200);
+        return;
+      }
+      $('#merr').textContent = r.code === 'cpf_cnpj_invalido' ? 'CPF ou CNPJ inválido. Confira os números.' : r.code === 'ja_assinou' ? 'Você já assinou.' : 'Não foi possível assinar agora. Tente de novo ou peça ajuda.';
+      return;
+    }
+    const msg = $('#mm').value.trim(); 
     const kind = m.type === 'refund' ? 'reembolso' : $('#mk').value;
     if(m.type === 'help' && msg.length < 3){ $('#merr').textContent = 'Escreva uma mensagem.'; return; }
     btn.disabled = true;
@@ -562,9 +580,10 @@ function viewAssinatura(){
   else if(st.status === 'vencida'){ tone = 'bad'; pill = 'Vencido'; line = 'Os carimbos estão pausados. Pague para voltar na hora.'; }
   else if(st.status === 'tolerancia'){ tone = 'warn'; pill = 'Em carência'; line = `Seu plano venceu em ${fdate(st.renews_at)}. Você tem mais ${10 + d} ${pl(10 + d, 'dia', 'dias')} para pagar, antes de pausar os carimbos.`; }
   else if(canceled){ tone = 'warn'; pill = 'Cancelada'; line = `Assinatura cancelada. Seu plano segue ativo até ${fdate(st.renews_at)}, sem novas cobranças.`; }
-  else if(st.is_trial){ pill = 'Em teste'; line = `Período de teste até ${fdate(st.renews_at)}.`; }
+  else if(st.is_trial){ pill = 'Em teste'; line = `Período de teste até ${fdate(st.renews_at)}.` + (st.subscription ? ' Sua assinatura já está criada: a 1ª mensalidade é cobrada nessa data.' : ' Assine agora e a cobrança só começa quando o teste terminar. Sem assinatura, os carimbos pausam no fim do teste.'); }
   else { line = `Plano ativo. Próxima cobrança em ${fdate(st.renews_at)} · ${brl(b.price)} por mês.`; }
   const canPay = st.subscription && !canceled && !st.blocked && !st.pending_payment;
+  const canSubscribe = st.is_trial && !st.subscription && !st.blocked && !st.pending_payment && st.status === 'trial';
   const canCancel = st.subscription && !canceled && !st.blocked && !st.pending_payment;
   const rows = b.billing.length ? b.billing.map(x => {
     const ref = x.kind === 'refund', can = !ref && !x.refunded && x.in_window && !x.refund_asked;
@@ -581,8 +600,8 @@ function viewAssinatura(){
   const html = head('Assinatura', 'Plano, cobranças e atendimento') + `<div class="subbox">
     <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
       <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
-      <p class="sub2">Mensalidade de ${brl(b.price)}. O 1º mês já vem com o kit. Depois do vencimento você tem ${b.grace_days} dias de carência antes de pausar os carimbos e as tags.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
+      <p class="sub2">Mensalidade de ${brl(b.price)}.${st.is_trial ? '' : ' O 1º mês já vem com o kit.'} ${st.is_trial && !st.subscription ? 'No fim do teste os carimbos e as tags pausam, a menos que você assine.' : 'Depois do vencimento você tem ' + b.grace_days + ' dias de carência antes de pausar os carimbos e as tags.'}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canSubscribe ? '<button class="btn" id="subn">Assinar agora</button>' : ''}${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
     <section class="panel"><h2>Histórico de cobranças</h2>${rows}</section>
     <section class="panel"><h2>Seus pedidos de ajuda</h2>${tks}</section></div>`;
   return {html, bind(){
@@ -591,6 +610,7 @@ function viewAssinatura(){
       if(r.data && r.data.url){ window.open(r.data.url, '_blank', 'noopener'); return; }
       toast(r.code === 'sem_cobranca_aberta' ? 'Nenhuma cobrança aberta agora. A próxima é gerada perto do vencimento.' : 'Não foi possível abrir a cobrança. Tente de novo ou peça ajuda.', true);
     };
+    const sn = $('#subn'); if(sn) sn.onclick = () => { S.modal = {type:'subscribe', until:st.renews_at}; render(); setTimeout(() => { const t = $('#mdoc'); if(t) t.focus(); }, 30); };
     const cs = $('#cancelsub'); if(cs) cs.onclick = async () => {
       if(!confirm('Cancelar a assinatura?\n\nSeu plano segue ativo até ' + fdate(st.renews_at) + ' e você não será cobrado de novo. Depois dessa data os carimbos e as tags pausam.')) return;
       cs.disabled = true; const r = await callConta({action:'cancel'}); cs.disabled = false;
@@ -615,9 +635,9 @@ function planBanner(){
   let tone = '', msg = '';
   if(s.pending_payment) { tone = 'info'; msg = 'Aguardando a confirmação do pagamento. Assim que o pagamento for confirmado, o painel é liberado automaticamente.'; }
   else if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
-  else if(d < -(s.cancelled_at ? 0 : 10)) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
+  else if(d < -((s.cancelled_at || (s.is_trial && !s.asaas_subscription_id)) ? 0 : 10)) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
   else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Pague em até ' + (10 + d) + ' ' + pl(10 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
-  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
+  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').' + (s.asaas_subscription_id ? ' Assinatura criada: 1ª cobrança nessa data.' : ' <button class="btn small" data-go="assinatura" style="margin-left:8px">Assinar agora</button>'); }
   else if(d <= 7) { tone = 'info'; msg = 'Seu plano renova em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
   return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
 }

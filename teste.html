@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carimbô · Teste grátis</title>
+<meta name="description" content="Ative o seu teste do Carimbô: cartão fidelidade por toque NFC, sem app.">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://carimbo.io/img/bastao-hero.webp">
+<meta name="theme-color" content="#14296B">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14296B;--red:#E03A2F;--kraft:#EAD9B6;--paper:#FBF7EE;--mut:#4a5a8c;--line:#E4D9C0;--bad:#C0392B;--good:#0E7A47}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--navy);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+  h1,h2,h3,.btn,.brand{font-family:'Fredoka',system-ui,sans-serif}
+  h1,h2,h3{margin:0;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+  button,input,textarea,select{font:inherit;color:inherit}
+  .top{background:var(--navy);padding:14px 0;border-bottom:4px solid var(--red)}
+  .wrap{width:min(1040px,100% - 32px);margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:1.25rem;text-decoration:none}
+  .logo{width:38px;height:38px;border-radius:11px;background:var(--paper);display:grid;place-items:center;box-shadow:3px 3px 0 var(--red)}
+  .logo svg{width:24px;height:24px}
+  .brand em{font-style:normal;color:#FF7B6E}
+  main{padding:30px 0 80px}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:28px;align-items:start}
+  h1{font-size:clamp(1.9rem,4.4vw,2.7rem)}
+  .lead{color:var(--mut);margin:10px 0 0;font-size:1.08rem}
+  .card{background:#fff;border:3px solid var(--navy);border-radius:22px;padding:24px;box-shadow:5px 5px 0 var(--navy)}
+  label.l{display:block;font-size:.88rem;color:var(--mut);margin:15px 0 6px;font-weight:700}
+  input,textarea,select{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;min-height:50px}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%2314296B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:3px 3px 0 var(--red)}
+  [aria-invalid=true]{border-color:var(--bad)!important;background:#FFF6F5}
+  .fe{color:var(--bad);font-size:.84rem;font-weight:700;margin:5px 0 0;min-height:0}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .row3{display:grid;grid-template-columns:140px 1fr;gap:0 14px}
+  .rowN{display:grid;grid-template-columns:130px 1fr;gap:0 14px}
+  .rowC{display:grid;grid-template-columns:1fr 120px;gap:0 14px}
+  .sec{margin:26px 0 0;padding-top:20px;border-top:2px dashed var(--line)}
+  .sec:first-of-type{border-top:0;margin-top:0;padding-top:0}
+  .sec h3{font-size:1.15rem;display:flex;align-items:center;gap:10px}
+  .sec h3 b{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:.9rem;flex:none}
+  .sec > small{display:block;color:var(--mut);margin:4px 0 0}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .opt{position:relative;display:block;cursor:pointer}
+  .opt input{position:absolute;opacity:0;inset:0;min-height:0;width:100%;height:100%;cursor:pointer}
+  .opt span{display:block;height:100%;border:2.5px solid var(--line);border-radius:16px;padding:14px 16px;background:#fff;transition:border-color .12s,box-shadow .12s,background .12s}
+  .opt b{font-family:'Fredoka',sans-serif;font-size:1.08rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .opt em{font-style:normal;font-weight:700;font-size:.92rem;color:var(--good)}
+  .opt em.pay{color:var(--navy)}
+  .opt small{display:block;color:var(--mut);margin-top:4px;line-height:1.35;font-size:.86rem}
+  .opt input:checked + span{border-color:var(--navy);background:#F4F7FF;box-shadow:3px 3px 0 var(--navy)}
+  .opt input:focus-visible + span{outline:3px solid var(--red);outline-offset:2px}
+  .cepbox{position:relative}
+  .cepst{font-size:.84rem;margin:6px 0 0;color:var(--mut);min-height:1.2em;font-weight:700}
+  .cepst.ok{color:var(--good)}.cepst.warn{color:#B45309}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .pw{position:relative}
+  .pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--navy);font-weight:800;font-size:.85rem;padding:10px;cursor:pointer}
+  .pw input{padding-right:72px}
+  .btn{appearance:none;width:100%;margin-top:22px;border:3px solid var(--navy);background:var(--red);color:#fff;font-weight:600;font-size:1.2rem;padding:16px 24px;border-radius:16px;box-shadow:4px 4px 0 var(--navy);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:transform .08s,box-shadow .08s}
+  .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--navy)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.line{background:#fff;color:var(--navy)}
+  .err{color:var(--bad);font-weight:700;margin:14px 0 0;min-height:1.3em}
+  .sum{position:sticky;top:16px}
+  .sum h2{font-size:1.35rem}
+  .price{display:flex;align-items:baseline;gap:10px;margin:14px 0 4px}
+  .price b{font-family:'Fredoka',sans-serif;font-size:2.6rem;line-height:1}
+  .price s{color:var(--mut)}
+  ul.in{list-style:none;padding:0;margin:14px 0 0}
+  ul.in li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  ul.in li:first-child{border-top:0}
+  ul.in i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-style:normal;font-size:.8rem;font-weight:800;margin-top:2px}
+  .tot{margin-top:16px;border-top:2px dashed var(--line);padding-top:12px}
+  .tot div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+  .tot .t{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.35rem;margin-top:6px}
+  .tot .g{color:var(--good);font-weight:800}
+  .after{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-size:.93rem;color:var(--mut)}
+  .after b{color:var(--navy)}
+  .ok{max-width:560px;margin:0 auto;text-align:center}
+  .ok .seal{width:84px;height:84px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-size:2.6rem;margin:0 auto 18px;border:3px solid var(--navy);box-shadow:4px 4px 0 var(--navy)}
+  .ok ol{text-align:left;margin:20px 0 0;padding-left:22px}
+  .ok li{margin:8px 0}
+  .fine{font-size:.82rem;color:var(--mut);margin-top:14px}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
+  @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
+<main><div class="wrap" id="app" style="max-width:560px"></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
+const app = document.getElementById('app');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CODE = (new URLSearchParams(location.search).get('c') || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+const MSG = {codigo_invalido:'Este link de teste não é válido. Peça um novo a quem enviou.', codigo_ja_usado:'Este link de teste já foi usado.', codigo_expirado:'Este link de teste expirou. Peça um novo a quem enviou.',
+  ja_tem_loja:'Este e-mail já tem uma loja no Carimbô. Entre no painel.', whatsapp_ja_usado:'Este WhatsApp já usou um teste ou comprou o kit.', whatsapp_invalido:'Confira o WhatsApp com DDD.', nome_da_loja_invalido:'Confira o nome da loja.', nome_invalido:'Confira o seu nome.', entre_primeiro:'Entre primeiro.'};
+let S = {days:0};
+
+function box(h, p, extra){ app.innerHTML = `<div class="card ok"><h1>${h}</h1><p class="lead">${p}</p>${extra || ''}</div>`; }
+
+async function start(){
+  if(CODE.length < 6) return box('Link incompleto', MSG.codigo_invalido, '<a class="btn line" href="./">Conhecer o Carimbô</a>');
+  const {data} = await sb.rpc('fid_trial_peek', {p_code:CODE});
+  if(!data || data.error) return box('Ops', MSG[data && data.error] || MSG.codigo_invalido, '<a class="btn line" href="./">Conhecer o Carimbô</a>');
+  S.days = data.days;
+  app.innerHTML = `<div class="card"><h1>Teste de ${S.days} dias</h1>
+    <p class="lead">Crie o painel da sua loja e comece a carimbar. Sem cartão agora. Só depois do teste, se você assinar, a mensalidade é R$ 49,97.</p>
+    <form id="f" novalidate>
+      <label class="l" for="lj">Nome da loja</label><input id="lj" maxlength="80" autocomplete="organization" required>
+      <label class="l" for="nm">Seu nome</label><input id="nm" maxlength="80" autocomplete="name" required>
+      <label class="l" for="wa">WhatsApp com DDD</label><input id="wa" inputmode="tel" maxlength="20" autocomplete="tel" placeholder="(11) 99999-9999" required>
+      <label class="l" for="em">E-mail (para entrar no painel)</label><input id="em" type="email" autocomplete="email" required>
+      <label class="l" for="pw">Crie uma senha</label><div class="pw"><input id="pw" type="password" minlength="6" autocomplete="new-password" required><button type="button" id="eye">mostrar</button></div>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" id="go">Ativar meu teste</button>
+    </form>
+    <p class="fine">Já tem conta no Carimbô? Entre pelo <a href="lojista.html">painel</a> e peça um novo link a quem enviou este.</p></div>`;
+  $('#eye').onclick = () => { const i = $('#pw'); i.type = i.type === 'password' ? 'text' : 'password'; $('#eye').textContent = i.type === 'password' ? 'mostrar' : 'ocultar'; };
+  $('#f').onsubmit = submit;
+}
+
+async function submit(ev){
+  ev.preventDefault();
+  const err = m => { $('#err').textContent = m; }; err('');
+  const v = id => $('#' + id).value.trim(), em = v('em'), pw = $('#pw').value;
+  if(v('lj').length < 2) return err('Digite o nome da loja.');
+  if(v('nm').length < 2) return err('Digite o seu nome.');
+  const w = v('wa').replace(/\D/g, ''); if(w.length < 10 || w.length > 13) return err('Confira o WhatsApp com DDD.');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return err('Confira o e-mail.');
+  if(pw.length < 6) return err('A senha precisa ter pelo menos 6 caracteres.');
+  const btn = $('#go'); btn.disabled = true; btn.textContent = 'Criando…';
+  try {
+    let {data:{session}} = await sb.auth.getSession();
+    if(session && session.user.email !== em.toLowerCase()){ await sb.auth.signOut(); session = null; }
+    if(!session){
+      const up = await sb.auth.signUp({email:em, password:pw});
+      session = up.data && up.data.session;
+      if(!session){
+        const si = await sb.auth.signInWithPassword({email:em, password:pw});
+        if(si.error) throw new Error('Este e-mail já tem cadastro e a senha não confere. Use a senha da sua conta ou outro e-mail.');
+      }
+    }
+    const {data, error} = await sb.rpc('fid_trial_redeem', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa')});
+    if(error) throw new Error('Não foi possível ativar agora. Tente de novo.');
+    if(data && data.error){ if(data.error === 'ja_tem_loja'){ location.href = 'lojista.html'; return; } throw new Error(MSG[data.error] || data.error); }
+    box('Teste ativado! ✓', 'Sua loja <b>' + esc(v('lj')) + '</b> está pronta, com ' + S.days + ' dias de teste.', '<a class="btn" href="lojista.html#/hoje">Entrar no painel</a>');
+    setTimeout(() => { location.href = 'lojista.html#/hoje'; }, 1800);
+  } catch(e){ err(e.message || 'Não foi possível ativar. Tente de novo.'); btn.disabled = false; btn.textContent = 'Ativar meu teste'; }
+}
+start();
+</script>
+</body>
+</html>

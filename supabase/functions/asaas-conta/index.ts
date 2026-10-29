@@ -1,5 +1,6 @@
 // Ações da conta ligadas ao Asaas, chamadas pelo painel com o login do usuário (verify_jwt = true):
 //  pay_link  → lojista: link da cobrança em aberto da mensalidade ("Pagar agora")
+//  subscribe → lojista em teste: cria a assinatura (1ª cobrança só quando o teste acaba)
 //  cancel    → lojista: cancela a assinatura (o plano segue até o vencimento)
 //  refund    → admin: aprova um pedido de reembolso e manda o estorno ao Asaas
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -28,6 +29,31 @@ async function asaas(method: string, path: string, body?: unknown) {
   return j;
 }
 
+function validDoc(d: string) {
+  const n = d.replace(/\D/g, "");
+  if (n.length === 11) {
+    if (/^(\d)\1+$/.test(n)) return false;
+    for (const t of [9, 10]) {
+      let s = 0;
+      for (let i = 0; i < t; i++) s += +n[i] * (t + 1 - i);
+      if (((s * 10) % 11) % 10 !== +n[t]) return false;
+    }
+    return true;
+  }
+  if (n.length === 14) {
+    if (/^(\d)\1+$/.test(n)) return false;
+    for (const t of [12, 13]) {
+      const w = t === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+      let s = 0;
+      for (let i = 0; i < t; i++) s += +n[i] * w[i];
+      const dv = s % 11 < 2 ? 0 : 11 - (s % 11);
+      if (dv !== +n[t]) return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
@@ -39,7 +65,7 @@ Deno.serve(async (req) => {
     const user = ud?.user;
     if (!user) return json({ error: "nao_autenticado" }, 401);
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { action, ticket, note } = await req.json();
+    const { action, ticket, note, cpf_cnpj } = await req.json();
 
     if (action === "refund") {
       const { data: tgt } = await me.rpc("fid_super_refund_target", { p_ticket: ticket });
@@ -51,8 +77,31 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
-    const { data: s } = await admin.from("fid_stores").select("id, asaas_subscription_id, pending_payment").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
+    const { data: s } = await admin.from("fid_stores").select("id, name, renews_at, is_trial, blocked, asaas_subscription_id, pending_payment").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
     if (!s) return json({ error: "sem_loja" }, 404);
+
+    if (action === "subscribe") {
+      if (s.asaas_subscription_id) return json({ error: "ja_assinou" }, 409);
+      if (s.blocked || s.pending_payment) return json({ error: "loja_indisponivel" }, 409);
+      const d = String(cpf_cnpj ?? "").replace(/\D/g, "");
+      if (!validDoc(d)) return json({ error: "cpf_cnpj_invalido" }, 400);
+      const customer = await asaas("POST", "/customers", {
+        name: s.name, cpfCnpj: d, email: user.email, externalReference: s.id, notificationDisabled: false,
+      });
+      const today = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+      const first = String(s.renews_at) > today ? String(s.renews_at) : today;
+      const sub = await asaas("POST", "/subscriptions", {
+        customer: customer.id, billingType: "UNDEFINED", value: 49.97, nextDueDate: first,
+        cycle: "MONTHLY", description: "Carimbô — mensalidade", externalReference: s.id,
+      });
+      await admin.rpc("fid_asaas_set_subscription", { p_store: s.id, p_customer: customer.id, p_subscription: sub.id });
+      let invoice: string | null = null;
+      try {
+        const l = await asaas("GET", `/subscriptions/${sub.id}/payments`);
+        invoice = l.data?.[0]?.invoiceUrl ?? null;
+      } catch { /* o link também chega por e-mail do Asaas */ }
+      return json({ ok: true, first_due: first, url: invoice });
+    }
 
     if (action === "pay_link") {
       if (!s.asaas_subscription_id) return json({ error: "sem_assinatura" }, 404);

@@ -30,3 +30,12 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - Edge Function `asaas-conta` (JWT): `pay_link`, `cancel`, `refund`. Tabelas `fid_tickets` e `fid_ticket_msgs` (só por RPC).
 - Sem teste grátis: a loja do pedido nasce bloqueada (`pending_payment`) até o Asaas confirmar; `fid_stores` não aceita INSERT direto.
 - Endereço por tela (v15): `lojista.html#/hoje|clientes|clientes/ID|retiradas|campanhas|tags|loja|regras|assinatura` e `super.html#/lojas|lojas/ID|pedidos|atendimentos|representantes|representantes/ID|repasses`. Botão voltar, F5 e links compartilháveis funcionam.
+
+## v16 — Testes por convite (representante e admin)
+
+- Representante gera link `teste.html?c=CODIGO` na área dele: cota de **3 testes por mês** (renova todo mês, fuso de São Paulo) e até **45 dias** cada. Admin muda os dois limites por representante e gera links sem limite, na aba **Testes** do super.html.
+- O lojista abre o link, cria o painel (sem passar pela compra) e a loja nasce `is_trial` com o rep vinculado. Convite vale 14 dias, uso único; o mesmo WhatsApp não usa dois testes.
+- Em **Assinatura → Assinar agora** (CPF/CNPJ) a function `asaas-conta` (`subscribe`) cria o cliente e a assinatura de R$ 49,97 com 1ª cobrança no último dia do teste. Pagando antes, o plano estende 30 dias a partir do fim do teste.
+- Sem assinatura, o teste pausa no vencimento (sem carência de 10 dias). Com assinatura vale a carência normal.
+- Comissão: sem kit, não há comissão de aquisição; o rep ganha só os 20% de cada mensalidade (teste conta como 1º período).
+- Tabelas/RPCs: `fid_trial_invites`, `fid_rep_trial_create`, `fid_super_trial_create`, `fid_super_trials`, `fid_super_trial_cancel`, `fid_super_rep_trial_limits`, `fid_trial_peek`, `fid_trial_redeem`.

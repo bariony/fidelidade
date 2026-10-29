@@ -103,7 +103,7 @@ function toast(msg, bad){
   t.style.background = bad ? '#B42318' : '#12805C'; t.textContent = msg; t.style.display = 'block';
   clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 3800);
 }
-const ERR = {convite_invalido:'Código de convite inválido ou já usado.', pix_invalido:'Confira o tipo e a chave Pix.', sem_cadastro:'Seu acesso ainda não foi liberado.'};
+const ERR = {dias_invalidos:'Escolha entre 1 e o máximo de dias do seu limite.', cota_do_mes:'Você já usou todos os testes deste mês. A cota volta no próximo mês.', convite_invalido:'Código de convite inválido ou já usado.', pix_invalido:'Confira o tipo e a chave Pix.', sem_cadastro:'Seu acesso ainda não foi liberado.'};
 async function rpc(fn, args){
   const {data, error} = await sb.rpc(fn, args || {});
   if(error){ toast('Erro: ' + error.message, true); return null; }
@@ -225,6 +225,23 @@ function lineStatus(l, d){
   }
 }
 
+const TSTAT = {aguardando:['aguardando','Aguardando uso'], usado:['ativa','Ativado'], expirado:['cancelada','Expirado'], cancelado:['cancelada','Cancelado']};
+function trialPanel(d){
+  const t = d.trials; if(!t) return '';
+  const left = Math.max(0, t.quota - t.used);
+  const inv = t.invites.map(i => {
+    const [k, lab] = i.status === 'usado' && i.converted ? ['ativa', 'Assinou'] : TSTAT[i.status];
+    const url = base() + 'teste.html?c=' + i.code;
+    return `<div class="ln"><div><b>${esc(i.store_name || i.label || 'Convite')}</b> <span class="pill p-${k}">${lab}</span><br>
+      <small>${i.days} dias · criado em ${fmtDate(i.created_at)}${i.status === 'aguardando' ? ' · vale até ' + fmtDate(i.expires_at) : ''}</small></div>
+      ${i.status === 'aguardando' ? `<div><button class="btn line" data-copy="${esc(url)}">Copiar link</button></div>` : ''}</div>`;
+  }).join('');
+  return `<section class="panel"><h2>Testes grátis <span class="sub" style="font-weight:600">· ${left} de ${t.quota} neste mês</span></h2>
+    <p class="sub">Gere um link de teste de até ${t.max_days} dias para um comércio conhecer o Carimbô sem passar pela compra. Quando ele assinar, a mensalidade só começa depois do teste e você ganha ${pct(d.rep.recur_pct)} de cada uma. O limite renova todo mês.</p>
+    <div class="row"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="${t.max_days}" value="${Math.min(30, t.max_days)}" inputmode="numeric"></div>
+    <div><label for="tl">Nome do comércio (opcional)</label><input id="tl" maxlength="80" autocomplete="off"></div><button class="btn" id="tn" ${left ? '' : 'disabled'}>Gerar link de teste</button></div>
+    ${t.invites.length ? inv : '<div class="empty">Nenhum teste gerado ainda.</div>'}</section>`;
+}
 function render(){
   const d = S.d, r = d.rep, t = d.totals, link = base() + 'comprar.html?r=' + r.code;
   const net = Math.max(0, 149 - r.kit_cost) * r.kit_share_pct / 100;
@@ -234,7 +251,7 @@ function render(){
     return `<div class="st"><div class="h"><b>${esc(s.name)}</b><span class="pill p-${k}">${lab}</span></div><dl>
       <dt>WhatsApp</dt><dd>${wa ? `<a href="https://wa.me/${wa.length <= 11 ? '55' + wa : wa}" target="_blank" rel="noopener">${esc(s.whatsapp)}</a>` : '—'}</dd>
       <dt>Entrou em</dt><dd>${fmtDate(s.created_at)}</dd>
-      ${paid ? '' : `<dt>Próxima mensalidade</dt><dd>${fmtDate(s.renews_at)}</dd>`}
+      ${paid ? '' : s.is_trial && !s.subscribed ? `<dt>Teste até</dt><dd>${fmtDate(s.renews_at)}</dd>` : `<dt>Próxima mensalidade</dt><dd>${fmtDate(s.renews_at)}</dd>`}
       <dt>Mensalidades pagas</dt><dd>${s.renewals_paid}</dd>
       <dt>Você já ganhou</dt><dd>${money(s.earned)}</dd></dl></div>`;
   }).join('');
@@ -266,6 +283,7 @@ function render(){
         <p class="sub">${r.pix_key ? 'Chave cadastrada. Você pode trocar quando quiser: vale para os próximos repasses fechados.' : '<b style="color:var(--bad)">Cadastre o seu Pix para conseguir receber.</b>'}</p>
         <div class="row"><div><label for="pt">Tipo da chave</label><select id="pt">${[['cpf','CPF'],['cnpj','CNPJ'],['email','E-mail'],['telefone','Telefone'],['aleatoria','Chave aleatória']].map(([v, n]) => `<option value="${v}" ${r.pix_type === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
           <div><label for="pk">Chave Pix</label><input id="pk" value="${esc(r.pix_key || '')}" autocomplete="off"></div><button class="btn" id="sp">Salvar</button></div></section>
+      ${trialPanel(d)}
       <section class="panel"><h2>Suas lojas <span class="sub" style="font-weight:600">· ${d.stores.length}</span></h2>
         ${d.stores.length ? `<div class="stores">${stores}</div>` : '<div class="empty">Nenhuma loja ainda. Compartilhe o seu link para começar.</div>'}</section>
       <section class="panel"><h2>Extrato de comissões</h2>${d.lines.length ? lines : '<div class="empty">Quando uma venda for paga, a comissão aparece aqui.</div>'}</section>
@@ -273,6 +291,11 @@ function render(){
     </div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); S.d = null; boot(); };
   $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('Link copiado ✓'); } catch(e){ const el = $('#lk'); const rg = document.createRange(); rg.selectNodeContents(el); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); toast('Selecione e copie o link', true); } };
+  const tn = $('#tn'); if(tn) tn.onclick = async e => {
+    e.target.disabled = true; const x = await rpc('fid_rep_trial_create', {p_days:+$('#td').value, p_label:$('#tl').value}); e.target.disabled = false;
+    if(x && x.ok){ const url = base() + 'teste.html?c=' + x.code; try { await navigator.clipboard.writeText(url); toast('Link de teste criado e copiado ✓'); } catch(_){ toast('Link de teste criado ✓'); } const dd = await rpc('fid_rep_dashboard'); if(dd && !dd.error){ S.d = dd; render(); } }
+  };
+  root.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Link copiado ✓'); } catch(_){ prompt('Copie o link:', b.dataset.copy); } });
   $('#sp').onclick = async e => {
     e.target.disabled = true; const x = await rpc('fid_rep_save_pix', {p_type:$('#pt').value, p_key:$('#pk').value}); e.target.disabled = false;
     if(x && x.ok){ toast('Pix salvo ✓'); const dd = await rpc('fid_rep_dashboard'); if(dd && !dd.error){ S.d = dd; render(); } }
