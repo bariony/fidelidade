@@ -731,3 +731,7 @@ begin
     execute format('grant execute on function public.%s to authenticated', f);
   end loop;
 end $$;
+
+-- v12b: pedidos com forma de entrega (retirada em mãos grátis ou Correios + R$ 15,99) e endereço por CEP.
+-- fid_orders ganha delivery, shipping, ship_cep; fid_order_create passa a receber p_delivery e o endereço separado; o frete NÃO entra na base da comissão.
+-- (aplicado via migration orders_delivery_cep)
