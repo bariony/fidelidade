@@ -87,6 +87,7 @@ const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
 const QS = new URLSearchParams(location.search);
+const BUILD = '2026-10-29.4';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
 const VIEW_URL = QS.get('v') === '1';                              // endereço só de visualização: nunca carimba
 const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
 const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
@@ -405,6 +406,17 @@ function getPos(){
 // Página restaurada do cache do navegador (botão voltar): não carimba, só mostra.
 window.addEventListener('pageshow', e => { if(e.persisted){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(s=>{ if(!s.error) render(s,{viewOnly:true}); }); } });
 
+/* ---------- nova versão do site: recarrega o app instalado ---------- */
+async function checkNewBuild(){
+  try {
+    const r = await fetch(BASE + 'c.html?_=' + Date.now(), {cache:'no-store'});
+    const m = (await r.text()).match(/const BUILD = '([^']+)'/);
+    if(m && m[1] !== BUILD){ location.reload(); return true; }
+  } catch(e){}
+  return false;
+}
+document.addEventListener('visibilitychange', () => { if(!document.hidden && IS_APP && !location.hash) checkNewBuild(); });
+
 /* ---------- puxar para atualizar (app instalado) ---------- */
 (function(){
   if(!IS_APP) return;
@@ -425,6 +437,7 @@ window.addEventListener('pageshow', e => { if(e.persisted){ const t = store(KEY)
     if(d < GO){ show(0, true); return; }
     busy = true; el.classList.add('spin'); show(1, true);
     const t0 = Date.now(), t = store(KEY);
+    if(await checkNewBuild()) return;
     try {
       if(t){ const n = await rpc('fid_state',{p_tag:tag,p_token:t}); if(!n.error) render(n,{viewOnly:true}); }
     } catch(e){}
