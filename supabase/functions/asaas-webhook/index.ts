@@ -6,9 +6,9 @@ const BASE = Deno.env.get("ASAAS_ENV") === "prod" ? "https://api.asaas.com/v3" :
 const KEY = Deno.env.get("ASAAS_API_KEY") ?? "";
 const TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN") ?? "";
 
-async function asaas(path: string, body: unknown) {
+async function asaas(path: string, body: unknown, method = "POST") {
   const r = await fetch(BASE + path, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json", access_token: KEY, "User-Agent": "carimbo.io" },
     body: JSON.stringify(body),
   });
@@ -77,6 +77,12 @@ Deno.serve(async (req) => {
             });
             await admin.rpc("fid_asaas_set_subscription", { p_store: storeId, p_customer: o.asaas_customer_id, p_subscription: sub.id });
             result += "+assinatura";
+          }
+          // loja de teste que já tinha assinatura: a 1ª cobrança passa para depois do período pago
+          if (s && s.asaas_subscription_id && data?.renews_at) {
+            try {
+              await asaas(`/subscriptions/${s.asaas_subscription_id}`, { nextDueDate: data.renews_at, updatePendingPayments: true }, "PUT");
+            } catch (e) { console.error("sub due update", String(e)); }
           }
         }
       }

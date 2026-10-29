@@ -580,7 +580,7 @@ function viewAssinatura(){
   else if(st.status === 'vencida'){ tone = 'bad'; pill = 'Vencido'; line = 'Os carimbos estão pausados. Pague para voltar na hora.'; }
   else if(st.status === 'tolerancia'){ tone = 'warn'; pill = 'Em carência'; line = `Seu plano venceu em ${fdate(st.renews_at)}. Você tem mais ${10 + d} ${pl(10 + d, 'dia', 'dias')} para pagar, antes de pausar os carimbos.`; }
   else if(canceled){ tone = 'warn'; pill = 'Cancelada'; line = `Assinatura cancelada. Seu plano segue ativo até ${fdate(st.renews_at)}, sem novas cobranças.`; }
-  else if(st.is_trial){ pill = 'Em teste'; line = `Período de teste até ${fdate(st.renews_at)}.` + (st.subscription ? ' Sua assinatura já está criada: a 1ª mensalidade é cobrada nessa data.' : ' Assine agora e a cobrança só começa quando o teste terminar. Sem assinatura, os carimbos pausam no fim do teste.'); }
+  else if(st.is_trial){ pill = 'Em teste'; line = `Período de teste até ${fdate(st.renews_at)}.` + (st.subscription ? ' Sua assinatura já está criada: a 1ª mensalidade é cobrada nessa data.' : ' Gostou? Compre o kit (2 bastões e a placa do Google) e continue com a mesma loja, sem refazer nada. A mensalidade só começa depois do teste. Sem isso, os carimbos pausam no fim do teste.'); }
   else { line = `Plano ativo. Próxima cobrança em ${fdate(st.renews_at)} · ${brl(b.price)} por mês.`; }
   const canPay = st.subscription && !canceled && !st.blocked && !st.pending_payment;
   const canSubscribe = st.is_trial && !st.subscription && !st.blocked && !st.pending_payment && st.status === 'trial';
@@ -601,7 +601,7 @@ function viewAssinatura(){
     <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
       <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
       <p class="sub2">Mensalidade de ${brl(b.price)}.${st.is_trial ? '' : ' O 1º mês já vem com o kit.'} ${st.is_trial && !st.subscription ? 'No fim do teste os carimbos e as tags pausam, a menos que você assine.' : 'Depois do vencimento você tem ' + b.grace_days + ' dias de carência antes de pausar os carimbos e as tags.'}</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canSubscribe ? '<button class="btn" id="subn">Assinar agora</button>' : ''}${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canSubscribe ? '<a class="btn" href="comprar.html?upgrade=1" style="text-decoration:none;display:inline-block">Comprar o kit e continuar</a><button class="btn line" id="subn">Só assinar a mensalidade</button>' : ''}${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
     <section class="panel"><h2>Histórico de cobranças</h2>${rows}</section>
     <section class="panel"><h2>Seus pedidos de ajuda</h2>${tks}</section></div>`;
   return {html, bind(){
@@ -637,7 +637,7 @@ function planBanner(){
   else if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
   else if(d < -((s.cancelled_at || (s.is_trial && !s.asaas_subscription_id)) ? 0 : 10)) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
   else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Pague em até ' + (10 + d) + ' ' + pl(10 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
-  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').' + (s.asaas_subscription_id ? ' Assinatura criada: 1ª cobrança nessa data.' : ' <button class="btn small" data-go="assinatura" style="margin-left:8px">Assinar agora</button>'); }
+  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').' + (s.asaas_subscription_id ? ' Assinatura criada: 1ª cobrança nessa data.' : ' <a class="btn small" href="comprar.html?upgrade=1" style="margin-left:8px;text-decoration:none;display:inline-block">Comprar o kit</a>'); }
   else if(d <= 7) { tone = 'info'; msg = 'Seu plano renova em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
   return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
 }

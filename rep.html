@@ -226,6 +226,17 @@ function lineStatus(l, d){
 }
 
 const TSTAT = {aguardando:['aguardando','Aguardando uso'], usado:['ativa','Ativado'], expirado:['cancelada','Expirado'], cancelado:['cancelada','Cancelado']};
+function collectPanel(d){
+  const L = d.to_collect || []; if(!L.length) return '';
+  const rows = L.map(o => {
+    const wa = (o.whatsapp || '').replace(/\D/g, ''), hand = o.delivery === 'retirada';
+    const how = hand ? 'Kit para entregar em mãos: entregue e já recolha o bastão de teste.' : (o.order_status === 'enviado' ? 'Kit enviado pelos Correios em ' + fmtDate(o.shipped_at) + '. Quando chegar, recolha o bastão de teste.' : 'Kit pago, ainda não enviado pelos Correios. Quando chegar na loja, recolha o bastão de teste.');
+    return `<div class="ln"><div><b>${esc(o.store_name)}</b> <span class="pill p-tolerancia">Bastão a recolher</span><br><small>Pagou o kit em ${fmtDate(o.paid_at)}. ${how}</small>${wa ? `<br><small><a href="https://wa.me/${wa.length <= 11 ? '55' + wa : wa}" target="_blank" rel="noopener">Falar com o lojista</a></small>` : ''}</div>
+      <div><button class="btn line" data-collected="${o.order_id}">Já recolhi</button></div></div>`;
+  }).join('');
+  return `<section class="panel" style="border-color:#E6B94A"><h2>Bastões de teste para recolher <span class="sub" style="font-weight:600">· ${L.length}</span></h2>
+    <p class="sub">Estes lojistas compraram o kit e vão receber 2 bastões novos. Passe lá, recolha o bastão que você deixou no teste (senão ele fica com três) e toque em <b>Já recolhi</b>. A sua comissão do kit já está no extrato.</p>${rows}</section>`;
+}
 function trialPanel(d){
   const t = d.trials; if(!t) return '';
   const left = Math.max(0, t.quota - t.used);
@@ -237,7 +248,7 @@ function trialPanel(d){
       ${i.status === 'aguardando' ? `<div><button class="btn line" data-copy="${esc(url)}">Copiar link</button></div>` : ''}</div>`;
   }).join('');
   return `<section class="panel"><h2>Testes grátis <span class="sub" style="font-weight:600">· ${left} de ${t.quota} neste mês</span></h2>
-    <p class="sub">Gere um link de teste de até ${t.max_days} dias para um comércio conhecer o Carimbô sem passar pela compra. Quando ele assinar, a mensalidade só começa depois do teste e você ganha ${pct(d.rep.recur_pct)} de cada uma. O limite renova todo mês.</p>
+    <p class="sub">Gere um link de teste de até ${t.max_days} dias para um comércio conhecer o Carimbô sem passar pela compra. Deixe 1 bastão de teste com ele. Se ele comprar o kit, a loja continua a mesma, você ganha a comissão do kit, recolhe o bastão de teste e depois ganha ${pct(d.rep.recur_pct)} de cada mensalidade. O limite renova todo mês.</p>
     <div class="row"><div><label for="td">Dias de teste</label><input id="td" type="number" min="1" max="${t.max_days}" value="${Math.min(30, t.max_days)}" inputmode="numeric"></div>
     <div><label for="tl">Nome do comércio (opcional)</label><input id="tl" maxlength="80" autocomplete="off"></div><button class="btn" id="tn" ${left ? '' : 'disabled'}>Gerar link de teste</button></div>
     ${t.invites.length ? inv : '<div class="empty">Nenhum teste gerado ainda.</div>'}</section>`;
@@ -283,6 +294,7 @@ function render(){
         <p class="sub">${r.pix_key ? 'Chave cadastrada. Você pode trocar quando quiser: vale para os próximos repasses fechados.' : '<b style="color:var(--bad)">Cadastre o seu Pix para conseguir receber.</b>'}</p>
         <div class="row"><div><label for="pt">Tipo da chave</label><select id="pt">${[['cpf','CPF'],['cnpj','CNPJ'],['email','E-mail'],['telefone','Telefone'],['aleatoria','Chave aleatória']].map(([v, n]) => `<option value="${v}" ${r.pix_type === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
           <div><label for="pk">Chave Pix</label><input id="pk" value="${esc(r.pix_key || '')}" autocomplete="off"></div><button class="btn" id="sp">Salvar</button></div></section>
+      ${collectPanel(d)}
       ${trialPanel(d)}
       <section class="panel"><h2>Suas lojas <span class="sub" style="font-weight:600">· ${d.stores.length}</span></h2>
         ${d.stores.length ? `<div class="stores">${stores}</div>` : '<div class="empty">Nenhuma loja ainda. Compartilhe o seu link para começar.</div>'}</section>
@@ -291,6 +303,11 @@ function render(){
     </div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); S.d = null; boot(); };
   $('#cp').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('Link copiado ✓'); } catch(e){ const el = $('#lk'); const rg = document.createRange(); rg.selectNodeContents(el); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); toast('Selecione e copie o link', true); } };
+  root.querySelectorAll('[data-collected]').forEach(b => b.onclick = async () => {
+    if(!confirm('Confirma que você recolheu o bastão de teste dessa loja?')) return;
+    b.disabled = true; const x = await rpc('fid_rep_loaner_collected', {p_order:b.dataset.collected});
+    if(x && x.ok){ toast('Bastão recolhido ✓'); const dd = await rpc('fid_rep_dashboard'); if(dd && !dd.error){ S.d = dd; render(); } } else b.disabled = false;
+  });
   const tn = $('#tn'); if(tn) tn.onclick = async e => {
     e.target.disabled = true; const x = await rpc('fid_rep_trial_create', {p_days:+$('#td').value, p_label:$('#tl').value}); e.target.disabled = false;
     if(x && x.ok){ const url = base() + 'teste.html?c=' + x.code; try { await navigator.clipboard.writeText(url); toast('Link de teste criado e copiado ✓'); } catch(_){ toast('Link de teste criado ✓'); } const dd = await rpc('fid_rep_dashboard'); if(dd && !dd.error){ S.d = dd; render(); } }

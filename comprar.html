@@ -124,8 +124,9 @@ const CODE = getCode();
 const MSG = {
   nome_da_loja_invalido:'Confira o nome da loja.', nome_invalido:'Confira o seu nome.', whatsapp_invalido:'Confira o WhatsApp, com DDD.',
   cep_invalido:'Confira o CEP.', rua_invalida:'Confira a rua.', numero_invalido:'Informe o número.', cidade_invalida:'Confira a cidade.', estado_invalido:'Escolha o estado.',
-  entre_primeiro:'Entre com e-mail e senha para continuar.'
+  entre_primeiro:'Entre com e-mail e senha para continuar.', loja_nao_esta_em_teste:'Sua loja não está em período de teste.', kit_ja_comprado:'O kit desta loja já foi comprado.', pedido_em_aberto:'Você já tem um pedido do kit em aberto. Pague pelo link recebido ou fale com a gente.'
 };
+const UPG = new URLSearchParams(location.search).has('upgrade');
 const S = {delivery:'correios', cepOk:false, orderId:null};
 const maskDoc = v => { const d = v.replace(/\D/g, '').slice(0, 14); if(d.length <= 11) return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); return d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2'); };
 function validDoc(v){ const n = v.replace(/\D/g, ''); if(/^(\d)\1+$/.test(n)) return false;
@@ -174,6 +175,19 @@ function view(){
       <div class="tot" id="tot"></div>
       <div class="after"><b>Depois do 1º mês:</b> R$ 49,97 por mês para manter o painel.</div></aside></div>`;
   bind(); refresh();
+  if(UPG) setupUpgrade();
+}
+/* loja em teste que vira cliente: mesma loja, só escolhe a entrega e paga o kit */
+async function setupUpgrade(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){ location.href = 'lojista.html'; return; }
+  const hide = id => { const e = $('#' + id); const w = e && (e.closest('.pw') || e); const d = w && w.parentElement; if(d) d.style.display = 'none'; };
+  hide('lj'); hide('em'); $('#pw').closest('.sec').style.display = 'none';
+  document.querySelector('h1').textContent = 'Peça o kit da sua loja';
+  document.querySelector('.lead').textContent = 'A sua loja continua a mesma: clientes, carimbos e regras ficam como estão. Só falta receber o kit completo.';
+  document.querySelector('.after').innerHTML = '<b>Sua mensalidade:</b> R$ 49,97 por mês, cobrada só depois do fim do seu teste. O bastão de teste que você está usando será recolhido pelo seu representante quando o kit chegar.';
+  document.querySelector('.in li:nth-child(3) span').innerHTML = '<b>Sua loja já configurada</b>, sem refazer nada';
+  const w = $('#wa'); const {data:b} = await sb.rpc('fid_my_billing'); if(b && b.store && !b.store.is_trial){ location.href = 'lojista.html#/assinatura'; }
 }
 
 /* máscaras */
@@ -241,9 +255,9 @@ function validate(){
   const v = id => $('#' + id).value.trim(), bad = [];
   const chk = (id, ok, msg) => { setErr(id, ok ? '' : msg); if(!ok) bad.push(id); };
   chk('nm', v('nm').length >= 2, 'Informe o seu nome.');
-  chk('lj', v('lj').length >= 2, 'Informe o nome da loja.');
+  if(!UPG) chk('lj', v('lj').length >= 2, 'Informe o nome da loja.');
   chk('wa', v('wa').replace(/\D/g, '').length >= 10, 'Informe o WhatsApp com DDD.');
-  chk('em', /^\S+@\S+\.\S+$/.test(v('em')), 'Confira o e-mail.');
+  if(!UPG) chk('em', /^\S+@\S+\.\S+$/.test(v('em')), 'Confira o e-mail.');
   chk('doc', validDoc(v('doc')), 'CPF ou CNPJ inválido. Confira os números.');
   if(S.delivery === 'correios'){
     chk('cep', v('cep').replace(/\D/g, '').length === 8, 'Informe o CEP com 8 números.');
@@ -252,7 +266,7 @@ function validate(){
     chk('cid', v('cid').length >= 2, 'Informe a cidade.');
     chk('uf', !!$('#uf').value, 'Escolha o estado.');
   }
-  chk('pw', $('#pw').value.length >= 6, 'A senha precisa ter pelo menos 6 caracteres.');
+  if(!UPG) chk('pw', $('#pw').value.length >= 6, 'A senha precisa ter pelo menos 6 caracteres.');
   return bad;
 }
 
@@ -265,14 +279,22 @@ async function submit(ev){
   const btn = $('#go'); btn.disabled = true; btn.textContent = 'Enviando…';
   try {
     let {data:{session}} = await sb.auth.getSession();
-    if(session && session.user.email !== em.toLowerCase()){ await sb.auth.signOut(); session = null; }
-    if(!session){
+    if(UPG && !session){ location.href = 'lojista.html'; return; }
+    if(!UPG && session && session.user.email !== em.toLowerCase()){ await sb.auth.signOut(); session = null; }
+    if(!UPG && !session){
       const up = await sb.auth.signUp({email:em, password:pw});
       session = up.data && up.data.session;
       if(!session){
         const si = await sb.auth.signInWithPassword({email:em, password:pw});
         if(si.error) throw new Error(up.error ? up.error.message : 'Este e-mail já tem cadastro e a senha não confere. Use a senha da sua conta ou outro e-mail.');
       }
+    }
+    if(!S.orderId && UPG){
+      const {data, error} = await sb.rpc('fid_trial_kit_order', {p_buyer_name:v('nm'), p_whatsapp:v('wa'), p_delivery:S.delivery,
+        p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null});
+      if(error) throw new Error(error.message);
+      if(data && data.error) throw new Error(MSG[data.error] || data.error);
+      S.orderId = data.order;
     }
     if(!S.orderId){
     const {data, error} = await sb.rpc('fid_order_create', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa'), p_delivery:S.delivery,
@@ -289,7 +311,7 @@ async function submit(ev){
     if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
     if(code === 'cpf_cnpj_invalido'){ setErr('doc', 'CPF ou CNPJ inválido. Confira os números.'); throw new Error('Confira o CPF ou CNPJ.'); }
     if(code === 'pedido_ja_pago'){ window.location.href = 'lojista.html'; return; }
-    done(v('lj'), v('nm'));
+    done(UPG ? 'sua loja' : v('lj'), v('nm'));
   } catch(e){
     err(e.message || 'Não foi possível enviar o pedido. Tente de novo.');
     btn.disabled = false; refresh();
