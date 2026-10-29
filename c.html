@@ -52,6 +52,16 @@
   .reward.ok{background:#CDEBD9}
   .cd{font-weight:600;margin:8px 0 0}
   .err{color:#B42318;text-align:center;margin-top:14px;font-weight:600}
+  a.inst{display:flex;align-items:center;justify-content:center;gap:7px;margin:22px auto 0;color:var(--mut);font-size:.88rem;font-weight:700;text-decoration:none;opacity:.85}
+  a.inst svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .steps{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:12px;counter-reset:s}
+  .steps li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;font-size:1rem;line-height:1.35}
+  .steps li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:#fff;font-family:'Fredoka',sans-serif;font-weight:700}
+  .steps svg{width:20px;height:20px;vertical-align:-4px;stroke:var(--ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .tabs{display:flex;gap:8px;margin-top:14px}
+  .tabs button{margin:0;padding:9px 10px;font-size:.95rem;background:#fff;color:var(--ink);box-shadow:3px 3px 0 #14296B}
+  .tabs button[aria-pressed=true]{background:var(--c);color:#fff}
+  .note2{font-size:.86rem;color:var(--mut);margin-top:12px}
 </style>
 </head>
 <body>
@@ -66,6 +76,28 @@ const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
 const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
+const QS = new URLSearchParams(location.search);
+const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
+const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const UA = navigator.userAgent || '';
+const IS_IOS = /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/i.test(UA);
+const IN_APP_BROWSER = /FBAN|FBAV|Instagram|Line\/|WhatsApp|TikTok|Snapchat|; wv\)/i.test(UA);
+const IOS_SAFARI = IS_IOS && /Safari/.test(UA) && !/CriOS|FxiOS|EdgiOS|OPiOS|FBAN|FBAV|Instagram/.test(UA);
+let DEFERRED = null, LAST = null, ORIG_URL = location.href;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFERRED = e; });
+const BASE = location.href.replace(/c\.html.*$/, '');
+const appUrl = token => BASE + 'c.html?t=' + encodeURIComponent(tag) + '&app=1' + (token ? '&k=' + encodeURIComponent(token) : '');
+function setManifest(token){
+  // Android: o ícone instalado abre direto o cartão deste cliente (sem carimbar)
+  try {
+    const m = {name:'Carimbô', short_name:'Carimbô', start_url:appUrl(token), scope:BASE, display:'standalone', background_color:'#FBF7EE', theme_color:'#14296B',
+      icons:[{src:BASE+'icons/icon-192.png', sizes:'192x192', type:'image/png', purpose:'any'},{src:BASE+'icons/icon-512.png', sizes:'512x512', type:'image/png', purpose:'any'}]};
+    const url = URL.createObjectURL(new Blob([JSON.stringify(m)], {type:'application/manifest+json'}));
+    let l = document.querySelector('link[rel="manifest"]'); if(!l){ l = document.createElement('link'); l.rel = 'manifest'; document.head.appendChild(l); }
+    l.href = url;
+  } catch(e){}
+}
 const store = k => { try { return localStorage.getItem(k) } catch(e){ return null } };
 const save = (k,v) => { try { localStorage.setItem(k,v) } catch(e){} };
 const rpc = async (fn, args) => { const {data,error} = await sb.rpc(fn,args); if(error) return {error:error.message}; return data; };
@@ -137,7 +169,7 @@ async function checkClaim(){
   const r = await rpc('fid_claim',{p_tag:tag,p_token:tk,p_kind:p.k});
   if(r && r.claimed){ render(r,{viewOnly:true,bonus:true}); boom(!!r.earned); }
 }
-document.addEventListener('visibilitychange', () => { if(!document.hidden) checkClaim(); });
+document.addEventListener('visibilitychange', () => { if(!document.hidden){ checkClaim(); if(FROM_ICON && !location.hash){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(n => { if(!n.error) render(n,{viewOnly:true}); }); } } });
 
 function setColor(c){
   c = c || '#14296B';
@@ -169,7 +201,54 @@ async function showRegister(info){
   };
 }
 
+/* ---------- instalar como app ---------- */
+const SHARE = '<svg viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg>';
+const PLUSSQ = '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+const DOTS3 = '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>';
+const canShowInstall = () => !IS_APP && (IS_IOS || IS_ANDROID) && !store('fid_inst');
+function installLink(s){
+  if(!s || !s.token || !canShowInstall()) return '';
+  return `<a href="#instalar" class="inst" id="inst">${PLUSSQ}Instalar como app</a>`;
+}
+function bindInstall(s){
+  const a = document.getElementById('inst'); if(!a) return;
+  a.onclick = ev => { ev.preventDefault(); history.pushState({inst:1}, '', '#instalar'); showInstall(s); };
+}
+window.addEventListener('popstate', () => { if(LAST && !location.hash) render(LAST.s, LAST.o); });
+function showInstall(s, plat){
+  const tok = s.token || store(KEY);
+  plat = plat || (IS_ANDROID ? 'android' : 'ios');
+  // iPhone: o atalho guarda o endereço atual, então ele já leva o cartão deste cliente
+  try { history.replaceState({inst:1}, '', appUrl(tok) + '#instalar'); } catch(e){}
+  setColor(s.color);
+  const ios = `<ol class="steps">
+      ${IOS_SAFARI ? '' : `<li><span>${IN_APP_BROWSER ? 'Abra este link no <b>Safari</b> (toque nos três pontinhos e em “Abrir no navegador”)' : 'Se puder, abra este link no <b>Safari</b>'}</span></li>`}
+      <li><span>Toque em <b>Compartilhar</b> ${SHARE} na barra do navegador</span></li>
+      <li><span>Escolha <b>Adicionar à Tela de Início</b> ${PLUSSQ}</span></li>
+      <li><span>Toque em <b>Adicionar</b>. O ícone do Carimbô aparece na sua tela</span></li></ol>`;
+  const and = `${DEFERRED ? '<button id="go">Instalar agora</button><p class="note2">Ou, pelo navegador:</p>' : ''}<ol class="steps">
+      <li><span>Toque nos três pontinhos ${DOTS3} no canto do Chrome</span></li>
+      <li><span>Escolha <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>)</span></li>
+      <li><span>Confirme. O ícone do Carimbô aparece na sua tela</span></li></ol>`;
+  app.innerHTML = `<div class="store" style="background:${esc(s.color || '#14296B')}"><h1>Carimbô na sua tela</h1><p>Abra o seu cartão com um toque, sem digitar nada.</p></div>
+    <div class="box"><div class="tabs" role="group" aria-label="Seu celular"><button type="button" data-p="ios" aria-pressed="${plat==='ios'}">iPhone</button><button type="button" data-p="android" aria-pressed="${plat==='android'}">Android</button></div>
+      ${plat === 'ios' ? ios : and}
+      <p class="note2">Para ganhar carimbo, continue encostando o celular no bastão da loja. O ícone só mostra o seu cartão.</p></div>
+    <button class="ghost" id="done">Já instalei</button><button class="ghost" id="bk">Voltar ao cartão</button>`;
+  app.querySelectorAll('[data-p]').forEach(b => b.onclick = () => showInstall(s, b.dataset.p));
+  const go = document.getElementById('go');
+  if(go) go.onclick = async () => { try { DEFERRED.prompt(); const r = await DEFERRED.userChoice; if(r && r.outcome === 'accepted'){ save('fid_inst','1'); backToCard(); } } catch(e){} };
+  document.getElementById('done').onclick = () => { save('fid_inst','1'); backToCard(); };
+  document.getElementById('bk').onclick = backToCard;
+  window.scrollTo(0, 0);
+}
+function backToCard(){
+  try { history.replaceState(null, '', ORIG_URL.split('#')[0]); } catch(e){}
+  if(LAST) render(LAST.s, LAST.o);
+}
+
 function render(s, opts={}){
+  LAST = {s, o:opts};
   setColor(s.color);
   let h = card(s, opts.stamped);
   if(opts.stamped && opts.earned) h += `<p class="msg">🎉 Você ganhou: ${esc(s.reward)}!</p><p class="sub">Mostre esta tela ao atendente.</p>`;
@@ -189,8 +268,10 @@ function render(s, opts={}){
     h += `<p class="sub" style="margin-top:14px">Seu último prêmio expirou 😕 Continue juntando carimbos para ganhar outro!</p>`;
   }
   h += linksBox(s);
+  if(!opts.note && !opts.wait && !opts.retry) h += installLink(s);
   app.innerHTML = h;
   bindLinks(s);
+  bindInstall(s);
   const rt = document.getElementById('retry');
   if(rt) rt.onclick = () => stampNow(s.token);
   const rd = document.getElementById('rd');
@@ -281,10 +362,15 @@ function getPos(){
   const info = await rpc('fid_get_store',{p_tag:tag});
   if(!info || info.error){ app.innerHTML = '<p class="err">Esta tag não está ativa.</p>'; return; }
   INFO = info;
+  // ícone da tela inicial (iPhone guarda o armazenamento separado): recebe o token na abertura e o guarda
+  const kq = QS.get('k');
+  if(kq){ save(KEY, kq); try { history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(tag) + (FROM_ICON ? '&app=1' : '')); } catch(e){} }
   const token = store(KEY);
   if(!token) return showRegister(info);
+  setManifest(token);
   const st = await rpc('fid_state',{p_tag:tag,p_token:token});
   if(st.error){ return showRegister(info); }
+  if(FROM_ICON) return render(st,{viewOnly:true});
   // Só carimba em abertura nova (toque no bastão ou link aberto). Recarregar (F5/puxar para atualizar),
   // voltar/avançar ou aba restaurada só mostram o cartão, sem carimbar.
   let navType = 'navigate';
