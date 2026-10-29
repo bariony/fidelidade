@@ -62,11 +62,11 @@
   .tabs button{margin:0;padding:9px 10px;font-size:.95rem;background:#fff;color:var(--ink);box-shadow:3px 3px 0 #14296B}
   .tabs button[aria-pressed=true]{background:var(--c);color:#fff}
   .note2{font-size:.86rem;color:var(--mut);margin-top:12px}
-  #ptr{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50;opacity:0;background:rgba(251,247,238,.55)}
-  #ptr .pc{display:grid;justify-items:center;gap:6px;padding:44px 28px 14px;background:#fff;border:3px solid #14296B;border-radius:22px;box-shadow:5px 5px 0 #14296B;transform:translateY(-8vh)}
-  #ptr svg{width:84px;height:84px;overflow:visible}
+  #ptr{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:50;opacity:0;background:rgba(251,247,238,.97)}
+  #ptr .pc{display:grid;justify-items:center;gap:6px;padding:30px 28px 0;transform:translateY(-8vh)}
+  #ptr svg{width:64px;height:64px;overflow:visible}
   #ptr .sb{transform-box:fill-box;transform-origin:50% 50%}
-  #ptr b{font-family:'Fredoka',sans-serif;font-size:1.05rem;color:#14296B;letter-spacing:.2px}
+  #ptr b{font-family:'Fredoka',sans-serif;font-size:.95rem;color:#14296B;letter-spacing:.2px}
   #ptr.spin .sb{animation:stp 1.1s cubic-bezier(.5,0,.4,1) infinite}
   #ptr.spin .bar{animation:bar 1.1s ease-out infinite;transform-box:fill-box;transform-origin:50% 50%}
   @keyframes stp{0%{transform:translateY(-34px) rotate(0)}55%{transform:translateY(-34px) rotate(360deg)}72%{transform:translateY(0) rotate(360deg)}78%{transform:translateY(3px) rotate(360deg) scale(1.04,.94)}88%,100%{transform:translateY(0) rotate(360deg)}}
