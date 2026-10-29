@@ -205,7 +205,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -261,7 +261,7 @@ const soon = s => (s.status === 'ativa' && s.days_left <= 7) || (s.status === 't
 function filtered(){
   const q = S.q.trim().toLowerCase();
   return S.stores.filter(s => {
-    if(S.filter === 'vencem7' ? !soon(s) : S.filter !== 'todas' && s.status !== S.filter) return false;
+    if(S.filter === 'cancelou' ? !s.cancelled_at : S.filter === 'vencem7' ? !soon(s) : S.filter !== 'todas' && s.status !== S.filter) return false;
     return !q || [s.name, s.email, s.referred_by, s.rep_name].some(v => (v || '').toLowerCase().includes(q));
   });
 }
@@ -276,7 +276,7 @@ const cyclePct = s => Math.max(0, Math.min(100, (1 - s.days_left / Math.max(1, s
 const progCls = s => s.status === 'vencida' || s.status === 'bloqueada' ? 'bad' : (s.status === 'tolerancia' || s.days_left <= 7 ? 'warn' : '');
 function card(s){
   return `<article class="sc s-${s.status}" data-id="${s.id}" tabindex="0">
-    <div class="h"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div class="nm"><b>${esc(s.name)}</b><span>${esc(s.email || '')}</span></div><span class="pill st-${s.status}">${STATUS[s.status]}</span></div>
+    <div class="h"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div class="nm"><b>${esc(s.name)}</b><span>${esc(s.email || '')}</span></div><span class="pill st-${s.status}">${STATUS[s.status]}</span>${s.cancelled_at ? '<span class="pill st-vencida" title="Cancelou a assinatura">Cancelou</span>' : ''}</div>
     <div class="ren"><div class="r1"><span>Renovação</span><b>${fmtDate(s.renews_at)}</b></div><div class="prog ${progCls(s)}"><i style="width:${cyclePct(s)}%"></i></div><div style="margin-top:6px">${dueText(s)}</div></div>
     <div class="nums"><div><b>${s.stamps_today}</b><small>hoje</small></div><div><b>${s.stamps_7d}</b><small>7 dias</small></div><div><b>${s.stamps_30d}</b><small>30 dias</small></div>${spark(s.spark || [], '#14296B')}</div>
     <div class="foot"><span>${s.customers} ${pl(s.customers, 'cliente', 'clientes')} · ${s.stamps_total} ${pl(s.stamps_total, 'carimbo', 'carimbos')}</span>${s.rep_name || s.referred_by ? `<span class="aff">Rep: ${esc(s.rep_name || s.referred_by)}</span>` : '<span class="go">Abrir →</span>'}</div></article>`;
@@ -286,7 +286,7 @@ function viewList(){
   const rows = filtered(), attn = c('tolerancia') + c('vencida') + c('bloqueada');
   const affs = new Set(L.map(s => s.rep_id).filter(Boolean)).size;
   const chips = [['todas', 'Todas', L.length], ['ativa', 'Ativas', c('ativa')], ['trial', 'Em teste', c('trial')], ['vencem7', 'Vencem em 7 dias', L.filter(soon).length],
-    ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')]]
+    ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')], ['cancelou', 'Cancelaram', L.filter(x => x.cancelled_at).length]]
     .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
   const hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
   root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}
@@ -304,7 +304,7 @@ function viewList(){
       ${!rows.length ? '<p class="sub" style="text-align:center;padding:40px">Nenhuma loja neste filtro.</p>' : S.view === 'cards' ? `<div class="cards">${rows.map(card).join('')}</div>` :
       `<div class="tw"><table><thead><tr><th>Loja</th><th>Status</th><th>Aquisição</th><th>Renovação</th><th>Representante</th><th class="n">Hoje</th><th class="n">7 dias</th><th class="n">30 dias</th><th class="n">Total</th><th class="n">Clientes</th></tr></thead><tbody>
       ${rows.map(s => `<tr data-id="${s.id}"><td><div class="cell"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div><b>${esc(s.name)}</b><br><span class="dl">${esc(s.email || '')}</span></div></div></td>
-        <td><span class="pill st-${s.status}">${STATUS[s.status]}</span></td><td>${fmtDate(s.acquired_at)}</td><td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td><td>${esc(s.rep_name || s.referred_by || '—')}</td>
+        <td><span class="pill st-${s.status}">${STATUS[s.status]}</span>${s.cancelled_at ? ' <span class="pill st-vencida">Cancelou</span>' : ''}</td><td>${fmtDate(s.acquired_at)}</td><td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td><td>${esc(s.rep_name || s.referred_by || '—')}</td>
         <td class="n">${s.stamps_today}</td><td class="n">${s.stamps_7d}</td><td class="n">${s.stamps_30d}</td><td class="n">${s.stamps_total}</td><td class="n">${s.customers}</td></tr>`).join('')}</tbody></table></div>`}
     </div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
@@ -352,7 +352,7 @@ function viewDetail(){
   const html = `<div class="hero"><div class="wrap">${navBar('<button class="btn ghost small" id="out">Sair</button>')}
       <div style="margin-top:22px"><button class="back" id="back">← Todas as lojas</button></div>
       <div class="dh"><div class="av lg" style="background:${grad(s.name)}">${esc(ini(s.name))}</div>
-        <div class="t"><h1>${esc(s.name)}</h1><p>${esc(s.email || '')} · cadastrada em ${fmtDate(s.created_at)}${s.referred_by ? ' · indicou: ' + esc(s.referred_by) : ''}</p><span class="pill st-${s.status}">${STATUS[s.status]}</span></div>${ring(s)}</div></div></div>
+        <div class="t"><h1>${esc(s.name)}</h1><p>${esc(s.email || '')} · cadastrada em ${fmtDate(s.created_at)}${s.referred_by ? ' · indicou: ' + esc(s.referred_by) : ''}</p><span class="pill st-${s.status}">${STATUS[s.status]}</span>${s.cancelled_at ? ' <span class="pill st-vencida">Cancelou em ' + fmtDate(s.cancelled_at) + '</span>' : ''}</div>${ring(s)}</div></div></div>
     <div class="wrap pad">
       <div class="tiles">
         <div class="tile"><div class="k"><i>🔥</i>Carimbos hoje</div><b>${s.stamps_today}</b></div>
@@ -364,7 +364,7 @@ function viewDetail(){
         <section class="panel"><h2><i>💳</i>Pagamento e plano</h2>
           ${payBox}
           <div class="steps">${step('Aquisição', s.acquired_at, s.acquired_at <= today)}${step('+ ' + s.ship_days + ' dias de envio', dShip, dShip <= today)}${step('+ ' + s.plan_days + ' dias de plano', dPlan, dPlan <= today)}${step('Renovação atual', s.renews_at, s.renews_at <= today, 'last')}</div>
-          <p class="sub">O 1º mês já vem no kit. Depois do vencimento, a loja tem 7 dias de tolerância antes de parar os carimbos.</p>
+          <p class="sub">O 1º mês já vem no kit. Depois do vencimento, a loja tem 10 dias de carência antes de parar os carimbos e as tags.</p>
           <div class="sect"><h3>Acesso</h3>
             <div class="acts">${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger small" id="block">Bloquear acesso</button>'}</div>
             <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div>
@@ -424,8 +424,9 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
+const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
 const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
+  : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
 const tabsBar = () => `<div class="tabs" role="tablist">${TABS.map(([k, l]) => { const n = badge(k); return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${l}${n ? `<i>${n}</i>` : ''}</button>`; }).join('')}</div>`;
 function bindTabs(){
@@ -434,6 +435,7 @@ function bindTabs(){
 async function loadTab(all){
   const jobs = [];
   if(all || S.tab === 'pedidos' || S.tab === 'reps' || S.tab === 'lojas') jobs.push(rpc('fid_super_reps').then(r => { if(r && r.items){ S.reps = r.items; S.next = r.next_payday; } }));
+  if(all || S.tab === 'atend') jobs.push(rpc('fid_super_tickets').then(r => { if(r && r.items) S.tickets = r.items; }));
   if(all || S.tab === 'pedidos') jobs.push(rpc('fid_super_orders').then(r => { if(r && r.items) S.orders = r.items; }));
   if(all || S.tab === 'repasses'){
     jobs.push(rpc('fid_super_cycle_preview').then(r => { if(r && r.items) S.preview = r; }));
@@ -455,10 +457,50 @@ function heroTab(title, sub){
     <div class="title"><h1>${title}</h1><p>${sub}</p></div></div></div>`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind();
+}
+
+/* atendimentos */
+const TKL = {duvida:'Dúvida', problema:'Problema', reembolso:'Reembolso', cancelamento:'Cancelamento'};
+function viewTickets(){
+  const L = S.tickets, open = L.filter(t => t.status !== 'resolvido');
+  const card = t => {
+    const w = waLink(t.whatsapp), b = t.billing, done = t.status === 'resolvido';
+    const bl = b ? `<p class="sub"><b>Cobrança:</b> ${b.kind === 'sale' ? 'Kit' : 'Mensalidade'} ${money(b.amount)} em ${fmtDT(b.created_at)} · ${b.in_window ? '<span class="pill st-ativa">Dentro dos 7 dias</span>' : '<span class="pill st-tolerancia">Fora do prazo de 7 dias</span>'} · ${b.asaas ? 'paga pelo Asaas' : 'lançada à mão (sem Asaas)'}${b.refunded ? ' · <b>já reembolsada</b>' : ''}</p>` : '';
+    const cx = t.kind === 'cancelamento' ? `<p class="sub">Plano segue ativo até <b>${fmtDate(t.renews_at)}</b>. A assinatura já foi cancelada no Asaas.</p>` : '';
+    const refundBtn = t.kind === 'reembolso' && b && !b.refunded && !done ? `<button class="btn small" data-aprov="${t.id}" data-asaas="${b.asaas ? 1 : 0}" data-bid="${b.id}">Aprovar reembolso${b.asaas ? ' no Asaas' : ' (manual)'}</button>` : '';
+    return `<article class="rcard"><div class="top"><div><h3>${esc(t.store_name)}</h3><p class="sub" style="margin:2px 0 0">${esc(t.buyer_name || '')} · ${fmtDT(t.created_at)}</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill st-${t.kind === 'cancelamento' || t.kind === 'reembolso' ? 'vencida' : 'trial'}">${TKL[t.kind]}</span><span class="pill st-${done ? 'ativa' : t.needs_admin ? 'tolerancia' : 'trial'}">${done ? 'Resolvido' : t.needs_admin ? 'Aguardando você' : 'Respondido'}</span></div></div>
+      <div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(t.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b style="font-size:.95rem">${esc(t.email || '—')}</b><small>e-mail</small></div><div><b>${STATUS[t.store_status] || t.store_status}</b><small>plano até ${fmtDate(t.renews_at)}</small></div></div>
+      ${bl}${cx}
+      <div style="display:grid;gap:6px;margin:10px 0">${t.msgs.map(m => `<div style="padding:8px 12px;border-radius:12px;background:${m.from_admin ? '#E0ECFF' : '#F6F1E6'};${m.from_admin ? 'margin-left:24px' : 'margin-right:24px'};white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.body)}<br><small style="color:#6b7280">${m.from_admin ? 'Você' : 'Lojista'} · ${fmtDT(m.created_at)}</small></div>`).join('')}</div>
+      ${done ? '' : `<textarea data-txt="${t.id}" rows="2" maxlength="2000" placeholder="Escreva a resposta (opcional ao resolver)" style="width:100%"></textarea>
+      <div class="acts">${refundBtn}${t.kind === 'cancelamento' ? '' : `<button class="btn line small" data-send="${t.id}">Responder</button>`}<button class="btn line small" data-resolve="${t.id}">Responder e resolver</button><button class="btn line small" data-open="${t.store_id}">Abrir loja</button></div>`}
+      ${done ? `<div class="acts"><button class="btn line small" data-open="${t.store_id}">Abrir loja</button></div>` : ''}</article>`;
+  };
+  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'pedido aberto', 'pedidos abertos')} · cancelamentos, reembolsos e ajuda dos lojistas`) + `<div class="wrap pad after">${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
+  bind(){
+    const txt = id => root.querySelector(`[data-txt="${id}"]`).value.trim();
+    root.querySelectorAll('[data-send]').forEach(b => b.onclick = () => { const v = txt(b.dataset.send); if(!v) return toast('Escreva a resposta', true); act(b, 'fid_super_ticket_reply', {p_ticket:b.dataset.send, p_body:v, p_resolve:false}, 'Resposta enviada ✓'); });
+    root.querySelectorAll('[data-resolve]').forEach(b => b.onclick = () => act(b, 'fid_super_ticket_reply', {p_ticket:b.dataset.resolve, p_body:txt(b.dataset.resolve), p_resolve:true}, 'Pedido resolvido ✓'));
+    root.querySelectorAll('[data-aprov]').forEach(b => b.onclick = async () => {
+      const id = b.dataset.aprov;
+      if(b.dataset.asaas === '1'){
+        if(!confirm('Aprovar o reembolso? O estorno é enviado ao Asaas agora, a comissão do representante é cancelada e, se for o kit, a loja é bloqueada e a assinatura cancelada.')) return;
+        b.disabled = true; const r = await sb.functions.invoke('asaas-conta', {body:{action:'refund', ticket:id, note:txt(id)}}); b.disabled = false;
+        let code = r.data && r.data.error; if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
+        if(r.data && r.data.ok) return reload('Reembolso enviado ao Asaas ✓ O resto é automático.');
+        return toast(code === 'ja_reembolsado' ? 'Esta cobrança já foi reembolsada.' : 'O Asaas não aceitou o estorno agora. Confira no painel do Asaas.', true);
+      }
+      if(!confirm('Esta cobrança não veio do Asaas. Registrar o reembolso aqui no sistema? O dinheiro você devolve por fora.')) return;
+      const r = await rpc('fid_super_refund', {p_billing:+b.dataset.bid, p_note:'pedido do lojista'}); if(!r) return;
+      await rpc('fid_super_ticket_reply', {p_ticket:id, p_body:txt(id) || 'Reembolso aprovado.', p_resolve:true}); reload('Reembolso registrado ✓');
+    });
+    root.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { S.tab = 'lojas'; openStore(b.dataset.open); });
+  }};
 }
 
 /* pedidos */

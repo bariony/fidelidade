@@ -195,6 +195,22 @@
   .auth .brand{padding:0 0 22px}
   .auth .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 
+  .fab{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:0;background:var(--red);color:#fff;border:2.5px solid var(--ink);border-radius:99px;box-shadow:var(--hard);font-weight:700}
+  .fab button{background:none;border:0;color:#fff;cursor:pointer;min-height:44px;padding:0 16px;font-weight:700}
+  .fab .x{padding:0 12px 0 4px;opacity:.85;font-size:1.1rem}
+  .ovl{position:fixed;inset:0;background:rgba(20,41,107,.45);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard);padding:20px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
+  .modal h2{margin-bottom:6px}
+  .sub2{color:var(--muted);font-size:.92rem}
+  .subbox{display:grid;gap:12px}
+  .brow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1.5px solid var(--line);flex-wrap:wrap}
+  .brow:first-child{border-top:0}
+  .brow b{font-family:'Fredoka',sans-serif}
+  .thread{display:grid;gap:8px;margin:10px 0}
+  .bub{padding:9px 12px;border-radius:12px;border:2px solid var(--ink);background:var(--paper);max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere}
+  .bub.adm{background:var(--lilac);justify-self:end}
+  .bub small{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);margin-left:6px}
   #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;border-radius:12px;color:#fff;font-weight:600;z-index:99;box-shadow:4px 4px 0 var(--ink);border:2.5px solid var(--ink);max-width:90vw;display:none}
 
   @media (max-width:1180px){
@@ -375,6 +391,7 @@ window.addEventListener('unhandledrejection', e => toast('Erro: ' + ((e.reason &
 
 /* ---------- ícones ---------- */
 const ICON = {
+  card:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>',
   home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
   users:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.3c1.8.8 3 2.6 3 4.7"/></svg>',
   mega:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l8 4V6L6 10z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg>',
@@ -387,7 +404,7 @@ const ICON = {
 };
 const LOGO = '<svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>';
 const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['loja','Loja','store'],['regras','Regras','sliders']];
+const NAV = [['hoje','Hoje','home'],['clientes','Clientes','users'],['retiradas','Retiradas','gift'],['campanhas','Campanhas','mega'],['tags','Tags','tap'],['loja','Loja','store'],['regras','Regras','sliders'],['assinatura','Assinatura','card']];
 
 /* ---------- utilidades ---------- */
 function head(title, sub, right){
@@ -440,7 +457,7 @@ async function load(){
   const {data:stores, error:e0} = await sb.from('fid_stores').select('*').order('created_at');
   if(e0){ toast('Não foi possível carregar: ' + e0.message, true); return; }
   if(!stores || !stores.length){ S.store = null; render(); return; }
-  S.store = stores[0];
+  S.store = stores[0]; loadBill(true);
   const [t, c, st, pe, rc] = await Promise.all([
     sb.from('fid_tags').select('*').eq('store_id', S.store.id).order('created_at'),
     sb.from('fid_customers').select('*').eq('store_id', S.store.id).order('last_stamp_at', {ascending:false, nullsFirst:false}).range(0, 4999),
@@ -464,7 +481,114 @@ async function openCustomer(cid, stay){
   S.detail = {c:c.data, ev:ev.data || []};
   if(stay) render(); else go('cliente');
 }
-function go(view){ S.view = view; render(); window.scrollTo(0, 0); }
+function go(view){ S.view = view; render(); window.scrollTo(0, 0); if(view === 'assinatura') loadBill(); }
+
+/* ---------- assinatura, ajuda e atendimentos ---------- */
+const brl = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const fdate = d => d ? new Date(d.length > 10 ? d : d + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+const fdt = d => new Date(d).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+const KIND_LBL = {sale:'Kit Carimbô', renewal:'Mensalidade', refund:'Reembolso'};
+const TK_LBL = {duvida:'Dúvida', problema:'Problema', reembolso:'Reembolso', cancelamento:'Cancelamento'};
+const TK_ST = {aberto:'Aguardando resposta', respondido:'Respondido', resolvido:'Resolvido'};
+S.bill = null; S.helpHidden = false; S.modal = null;
+const billUnread = () => S.bill && S.bill.tickets ? S.bill.tickets.filter(t => t.needs_owner).length : 0;
+async function loadBill(quiet){
+  const {data, error} = await sb.rpc('fid_my_billing');
+  if(error || !data || data.error){ if(!quiet) toast('Não foi possível carregar a assinatura.', true); return; }
+  S.bill = data; if(S.user && S.store) render();
+}
+async function callConta(body){
+  const r = await sb.functions.invoke('asaas-conta', {body});
+  let code = r.data && r.data.error;
+  if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
+  return {data:r.data, code};
+}
+function helpFab(){
+  const m = S.modal;
+  const fab = S.helpHidden ? '' : `<div class="fab"><button id="fabopen" type="button">Preciso de ajuda</button><button class="x" id="fabx" type="button" aria-label="Esconder o botão de ajuda">×</button></div>`;
+  if(!m) return fab;
+  const wa = (window.FID && FID.SALES_WHATSAPP || '').replace(/\D/g, '');
+  if(m.type === 'help') return fab + `<div class="ovl" id="ovl"><form class="modal" id="mform" role="dialog" aria-label="Pedir ajuda"><h2>Como podemos ajudar?</h2><p class="sub2">Respondemos aqui no painel, na aba Assinatura.</p>
+    <label for="mk">Assunto</label><select id="mk"><option value="duvida">Tenho uma dúvida</option><option value="problema">Estou com um problema</option></select>
+    <label for="mm">Mensagem</label><textarea id="mm" maxlength="2000" required placeholder="Conte o que aconteceu"></textarea>
+    <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Enviar pedido</button><button class="btn line" type="button" id="mcancel">Fechar</button>${wa ? `<a class="btn line" target="_blank" rel="noopener" href="https://wa.me/${wa}" style="text-decoration:none">WhatsApp</a>` : ''}</div></form></div>`;
+  if(m.type === 'refund') return fab + `<div class="ovl" id="ovl"><form class="modal" id="mform" role="dialog" aria-label="Pedir reembolso"><h2>Pedir reembolso</h2><p class="sub2">${esc(m.label)} · ${brl(m.amount)}. Você está dentro dos 7 dias de arrependimento. A gente analisa e, aprovado, o estorno vai para a mesma forma de pagamento.</p>
+    <label for="mm">Quer contar o motivo? (opcional)</label><textarea id="mm" maxlength="2000"></textarea>
+    <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Enviar pedido de reembolso</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;
+  return fab;
+}
+function bindFab(){
+  const o = $('#fabopen'); if(o) o.onclick = () => { S.modal = {type:'help'}; render(); setTimeout(() => { const t = $('#mm'); if(t) t.focus(); }, 30); };
+  const x = $('#fabx'); if(x) x.onclick = () => { S.helpHidden = true; render(); };
+  const c = $('#mcancel'); if(c) c.onclick = () => { S.modal = null; render(); };
+  const ov = $('#ovl'); if(ov) ov.onclick = e => { if(e.target === ov){ S.modal = null; render(); } };
+  const f = $('#mform'); if(f) f.onsubmit = async ev => {
+    ev.preventDefault();
+    const m = S.modal, msg = $('#mm').value.trim(), btn = f.querySelector('.btn'); 
+    const kind = m.type === 'refund' ? 'reembolso' : $('#mk').value;
+    if(m.type === 'help' && msg.length < 3){ $('#merr').textContent = 'Escreva uma mensagem.'; return; }
+    btn.disabled = true;
+    const {data, error} = await sb.rpc('fid_ticket_create', {p_kind:kind, p_message:msg || 'Quero o reembolso desta cobrança.', p_billing:m.type === 'refund' ? m.id : null});
+    btn.disabled = false;
+    const ERRS = {muitos_abertos:'Você já tem vários pedidos abertos. Aguarde a resposta.', pedido_ja_aberto:'Já existe um pedido de reembolso desta cobrança.', ja_reembolsado:'Esta cobrança já foi reembolsada.', mensagem_invalida:'Confira a mensagem.'};
+    if(error || (data && data.error)){ $('#merr').textContent = (data && ERRS[data.error]) || 'Não foi possível enviar. Tente de novo.'; return; }
+    S.modal = null; toast('Pedido enviado ✓ Respondemos aqui na aba Assinatura.'); await loadBill(true); if(S.view !== 'assinatura') render();
+  };
+}
+function viewAssinatura(){
+  const b = S.bill;
+  if(!b) return {html: head('Assinatura', 'Plano, cobranças e atendimento') + '<p class="sub2">Carregando…</p>'};
+  const st = b.store, canceled = !!st.cancelled_at, d = Math.round((new Date(st.renews_at + 'T12:00:00') - new Date(new Date().toISOString().slice(0, 10) + 'T12:00:00')) / DAY);
+  let tone = 'info', pill = 'Ativo', line = '';
+  if(st.pending_payment){ pill = 'Aguardando pagamento'; line = 'Assim que o pagamento do kit for confirmado, o painel é liberado.'; }
+  else if(st.blocked){ tone = 'bad'; pill = 'Bloqueado'; line = 'O acesso está bloqueado. Fale com a gente pelo botão de ajuda.'; }
+  else if(st.status === 'vencida'){ tone = 'bad'; pill = 'Vencido'; line = 'Os carimbos estão pausados. Pague para voltar na hora.'; }
+  else if(st.status === 'tolerancia'){ tone = 'warn'; pill = 'Em carência'; line = `Seu plano venceu em ${fdate(st.renews_at)}. Você tem mais ${10 + d} ${pl(10 + d, 'dia', 'dias')} para pagar, antes de pausar os carimbos.`; }
+  else if(canceled){ tone = 'warn'; pill = 'Cancelada'; line = `Assinatura cancelada. Seu plano segue ativo até ${fdate(st.renews_at)}, sem novas cobranças.`; }
+  else if(st.is_trial){ pill = 'Em teste'; line = `Período de teste até ${fdate(st.renews_at)}.`; }
+  else { line = `Plano ativo. Próxima cobrança em ${fdate(st.renews_at)} · ${brl(b.price)} por mês.`; }
+  const canPay = st.subscription && !canceled && !st.blocked && !st.pending_payment;
+  const canCancel = st.subscription && !canceled && !st.blocked && !st.pending_payment;
+  const rows = b.billing.length ? b.billing.map(x => {
+    const ref = x.kind === 'refund', can = !ref && !x.refunded && x.in_window && !x.refund_asked;
+    const tag = ref ? '<span class="pill">Devolvido</span>' : x.refunded ? '<span class="pill">Reembolsado</span>' : x.refund_asked ? '<span class="pill">Reembolso em análise</span>' : '<span class="pill" style="background:#DDF5EA">Pago</span>';
+    return `<div class="brow"><div><b>${KIND_LBL[x.kind] || x.kind}</b><br><span class="sub2">${fdt(x.created_at)}${x.renews_after && !ref ? ' · cobre até ' + fdate(x.renews_after) : ''}</span></div>
+      <div style="text-align:right"><b>${brl(Math.abs(x.amount))}</b>${ref ? ' (volta para você)' : ''}<br>${tag}${can ? ` <button class="btn line small" data-refund="${x.id}" data-lbl="${KIND_LBL[x.kind]}" data-amt="${x.amount}">Pedir reembolso</button>` : ''}</div></div>`;
+  }).join('') : '<p class="sub2">Nenhuma cobrança ainda.</p>';
+  const tks = b.tickets.length ? b.tickets.map(t => `<div class="brow" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${TK_LBL[t.kind]}${t.needs_owner ? '<span class="dot" title="Nova resposta"></span>' : ''}</b><span class="pill">${TK_ST[t.status]}</span></div>
+    <div class="thread">${t.msgs.map(m => `<div class="bub ${m.from_admin ? 'adm' : ''}">${esc(m.body)}<small>${m.from_admin ? 'Carimbô' : 'Você'} · ${fdt(m.created_at)}</small></div>`).join('')}</div>
+    ${t.status !== 'resolvido' && t.kind !== 'cancelamento' ? `<form data-reply="${t.id}" style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" maxlength="2000" placeholder="Responder" style="flex:1;min-width:180px" required><button class="btn small">Enviar</button></form>` : ''}</div>`).join('') : '<p class="sub2">Você ainda não abriu nenhum pedido. Use o botão <b>Preciso de ajuda</b>.</p>';
+  const html = head('Assinatura', 'Plano, cobranças e atendimento') + `<div class="subbox">
+    <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
+      <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
+      <p class="sub2">Mensalidade de ${brl(b.price)}. O 1º mês já vem com o kit. Depois do vencimento você tem ${b.grace_days} dias de carência antes de pausar os carimbos e as tags.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
+    <section class="panel"><h2>Histórico de cobranças</h2><p class="sub2" style="margin-bottom:6px">Reembolso do kit ou da mensalidade: até ${b.refund_days} dias depois do pagamento. Passou desse prazo? Fale com a gente pelo botão de ajuda.</p>${rows}</section>
+    <section class="panel"><h2>Seus pedidos de ajuda</h2>${tks}</section></div>`;
+  return {html, bind(){
+    const pay = $('#payn'); if(pay) pay.onclick = async () => {
+      pay.disabled = true; const r = await callConta({action:'pay_link'}); pay.disabled = false;
+      if(r.data && r.data.url){ window.open(r.data.url, '_blank', 'noopener'); return; }
+      toast(r.code === 'sem_cobranca_aberta' ? 'Nenhuma cobrança aberta agora. A próxima é gerada perto do vencimento.' : 'Não foi possível abrir a cobrança. Tente de novo ou peça ajuda.', true);
+    };
+    const cs = $('#cancelsub'); if(cs) cs.onclick = async () => {
+      if(!confirm('Cancelar a assinatura?\n\nSeu plano segue ativo até ' + fdate(st.renews_at) + ' e você não será cobrado de novo. Depois dessa data os carimbos e as tags pausam.')) return;
+      cs.disabled = true; const r = await callConta({action:'cancel'}); cs.disabled = false;
+      if(r.data && r.data.ok){ toast('Assinatura cancelada. Seu plano segue até ' + fdate(st.renews_at) + '.'); await loadBill(true); await load(); go('assinatura'); }
+      else toast('Não foi possível cancelar agora. Peça ajuda pelo botão.', true);
+    };
+    root.querySelectorAll('[data-refund]').forEach(x => x.onclick = () => { S.modal = {type:'refund', id:+x.dataset.refund, label:x.dataset.lbl, amount:x.dataset.amt}; render(); });
+    root.querySelectorAll('[data-reply]').forEach(f => f.onsubmit = async ev => {
+      ev.preventDefault(); const i = f.querySelector('input'), btn = f.querySelector('button'); btn.disabled = true;
+      const {data, error} = await sb.rpc('fid_ticket_reply', {p_ticket:f.dataset.reply, p_body:i.value}); btn.disabled = false;
+      if(error || (data && data.error)) return toast('Não foi possível enviar.', true);
+      await loadBill(true);
+    });
+    (b.tickets || []).filter(t => t.needs_owner).forEach(t => { sb.rpc('fid_ticket_seen', {p_ticket:t.id}); t.needs_owner = false; });
+  }};
+}
 
 /* ---------- aviso de plano ---------- */
 function planBanner(){
@@ -473,8 +597,8 @@ function planBanner(){
   let tone = '', msg = '';
   if(s.pending_payment) { tone = 'info'; msg = 'Aguardando a confirmação do pagamento. Assim que o pagamento for confirmado, o painel é liberado automaticamente.'; }
   else if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
-  else if(d < -7) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
-  else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Renove em até ' + (7 + d) + ' ' + pl(7 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
+  else if(d < -(s.cancelled_at ? 0 : 10)) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
+  else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Pague em até ' + (10 + d) + ' ' + pl(10 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
   else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
   else if(d <= 7) { tone = 'info'; msg = 'Seu plano renova em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
   return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
@@ -485,17 +609,17 @@ function render(){
   if(!S.user) return viewLogin();
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;
-  const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}</button>`;
+  const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}${id === 'assinatura' && billUnread() ? `<span class="bdg">${billUnread()}</span>` : ''}</button>`;
   const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Admin" aria-label="Admin">${ICON.users}<span class="lb">Admin</span></a>` : '';
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
-  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras})[S.view]();
+  const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras, assinatura:viewAssinatura})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <nav class="nav" aria-label="Seções">${nav}${sup}</nav>
     <div class="foot">
       ${mq.matches ? '' : `<button class="navbtn" id="col" data-tip="Expandir menu" aria-label="Recolher ou expandir o menu">${ICON.chev}<span class="lb">Recolher menu</span></button>`}
       <button class="navbtn" id="out" data-tip="Sair" aria-label="Sair">${ICON.out}<span class="lb">Sair</span></button>
       <div class="email">${esc(S.user.email || '')}</div>
-    </div></aside><main>${planBanner()}${v.html}</main></div>`;
+    </div></aside><main>${planBanner()}${v.html}</main></div>${helpFab()}`;
   root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
   $('#out').onclick = async () => { await sb.auth.signOut(); S.user = null; S.store = null; S.isSuper = false; S.superFor = null; S.customers = []; S.detail = null; render(); };
   const cb = $('#col');
@@ -506,6 +630,7 @@ function render(){
     setTimeout(() => { if(S.view === 'hoje') drawChart(); }, 260);
   };
   if(cb && !S.collapsed) cb.dataset.tip = 'Recolher menu';
+  bindFab();
   if(v.bind) v.bind();
   if(S.view === 'hoje') S.firstPaint = false;
 }

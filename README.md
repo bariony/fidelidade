@@ -22,3 +22,10 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - Código em `supabase/functions/`. O admin continua com "Confirmar à mão" para pagamentos fora do Asaas.
 - Admin, detalhe da loja: topo mostra "Kit pago pelo Asaas" e a assinatura; formulários manuais (venda do kit, renovação, teste) ficam em "Ajustes manuais".
 - Reembolso de um kit bloqueia a loja e cancela a assinatura no Asaas (webhook).
+
+## Assinatura, ajuda e cancelamento (v14)
+- Carência: 10 dias depois do vencimento (quem cancelou não tem carência). `fid_plan_status` é a fonte única.
+- Lojista (`lojista.html`, aba Assinatura): plano, "Pagar agora" (link da cobrança aberta no Asaas), cancelar (plano segue até o vencimento), histórico com "Pedir reembolso" (7 dias), pedidos de ajuda com respostas. Botão flutuante "Preciso de ajuda" (fechar esconde até recarregar).
+- Admin (`super.html`, aba Atendimentos): fila de ajuda, cancelamentos e reembolsos; "Aprovar reembolso no Asaas" manda o estorno e o webhook faz o resto. Lojas que cancelaram têm selo e filtro.
+- Edge Function `asaas-conta` (JWT): `pay_link`, `cancel`, `refund`. Tabelas `fid_tickets` e `fid_ticket_msgs` (só por RPC).
+- Sem teste grátis: a loja do pedido nasce bloqueada (`pending_payment`) até o Asaas confirmar; `fid_stores` não aceita INSERT direto.
