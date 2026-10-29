@@ -172,6 +172,8 @@
   .acts select{width:auto;min-width:220px}
   details.lines summary{cursor:pointer;color:var(--primary-d);font-weight:700;margin-top:10px}
   .stt{background:#FEF0D0;color:#92400E}
+  .hint{display:block;color:var(--muted);font-size:.8rem;margin-top:5px;line-height:1.35}
+  .prev{margin-top:16px;background:#F7F4FD;border:1.5px dashed #C9B8F2;border-radius:14px;padding:12px 14px;font-size:.9rem;line-height:1.55}
   .rcard a,.st a{color:var(--primary-d)}
   .panel .rcard{box-shadow:none;border:1.5px solid var(--line)}
   @media (max-width:900px){.grid2{grid-template-columns:1fr}.cols{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.seg{margin-left:0}}
@@ -481,10 +483,12 @@ function repFormHtml(r){
   return `<form class="rcard" id="rf"><h3>${r ? 'Editar representante' : 'Novo representante'}</h3>
     <div class="cols"><div><label for="rn1">Nome</label><input id="rn1" type="text" required maxlength="80" value="${esc(v.name)}"></div><div><label for="rc">Código do link (letras e números)</label><input id="rc" type="text" required maxlength="20" pattern="[a-zA-Z0-9]{3,20}" value="${esc(v.code)}" placeholder="ex.: joao"></div>
     <div><label for="re">E-mail</label><input id="re" type="email" value="${esc(v.email || '')}"></div><div><label for="rw">WhatsApp</label><input id="rw" type="text" value="${esc(v.whatsapp || '')}"></div>
-    <div><label for="rk">Custo do kit (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"></div><div><label for="rs">% do lucro do kit</label><input id="rs" type="number" step="0.01" min="0" max="100" value="${v.kit_share_pct}"></div>
-    <div><label for="rr">% da mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"></div><div></div>
+    <div><label for="rk">Seu custo por kit (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"><span class="hint">O que você gasta para montar e enviar 1 kit. Hoje: 45. Não é o lucro.</span></div>
+    <div><label for="rs">Representante recebe: % do lucro do kit</label><input id="rs" type="number" step="0.01" min="0" max="100" value="${v.kit_share_pct}"><span class="hint">Lucro = valor que o cliente pagou − seu custo. Ex.: 50.</span></div>
+    <div><label for="rr">Representante recebe: % de cada mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"><span class="hint">Sobre o valor da mensalidade paga (R$ 49,97). Ex.: 20.</span></div><div></div>
     <div><label for="rdk">Libera o kit após (dias)</label><input id="rdk" type="number" min="0" max="120" value="${v.release_kit_days}"></div><div><label for="rdr">Libera a mensalidade após (dias)</label><input id="rdr" type="number" min="0" max="120" value="${v.release_recur_days}"></div></div>
     <label style="display:flex;gap:8px;align-items:center"><input id="ra" type="checkbox" style="width:auto;min-height:0" ${v.active ? 'checked' : ''}> Ativo (o link só vale enquanto estiver ativo)</label>
+    <div class="prev" id="rprev"></div>
     <p class="sub">Mudanças valem só para vendas e mensalidades novas. O que já foi lançado não muda.</p>
     <div class="acts"><button class="btn" id="rsave">Salvar</button><button class="btn line" type="button" id="rcancel">Cancelar</button></div></form>`;
 }
@@ -509,6 +513,11 @@ function viewReps(){
     root.querySelectorAll('[data-view]').forEach(b => b.onclick = async () => { const r = L.find(x => x.id === b.dataset.view); S.repOpen = {id:r.id, d:null}; render(); await loadTab(); render(false); });
     const f = $('#rf');
     if(f){
+      const prev = () => {
+        const c = +$('#rk').value || 0, sh = +$('#rs').value || 0, rc = +$('#rr').value || 0, lucro = Math.max(0, 149 - c), rk = Math.round(lucro * sh) / 100, rm = Math.round(49.97 * rc) / 100;
+        $('#rprev').innerHTML = `<b>Exemplo com as regras acima</b><br>Kit de R$ 149,00 − seu custo ${money(c)} = lucro de ${money(lucro)}. Representante recebe ${money(rk)} e você fica com ${money(lucro - rk)}.<br>Mensalidade de R$ 49,97: representante recebe ${money(rm)} e você fica com ${money(49.97 - rm)}.`;
+      };
+      ['rk', 'rs', 'rr'].forEach(i => $('#' + i).oninput = prev); prev();
       $('#rcancel').onclick = () => { S.repForm = null; render(false); };
       f.onsubmit = async ev => {
         ev.preventDefault(); const cur = S.repForm === 'new' ? null : S.repForm, btn = $('#rsave'); btn.disabled = true;
