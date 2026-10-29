@@ -267,7 +267,7 @@ function viewList(){
     ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')]]
     .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
   const hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
-  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="admin.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}
+  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}
       <div class="title"><h1>Visão geral</h1><p>${hoje.charAt(0).toUpperCase() + hoje.slice(1)} · ${L.length} ${pl(L.length, 'loja', 'lojas')} na plataforma</p></div></div></div>
     <div class="wrap pad">
       <div class="tiles">
