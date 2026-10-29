@@ -1,8 +1,576 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carimbô</title>
-<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#14296B">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@600&display=swap" rel="stylesheet">
-<body style="font-family:'Nunito',system-ui;max-width:420px;margin:15vh auto;padding:0 16px;text-align:center;background:#FBF7EE;color:#14296B">
-<h1 style="font-family:'Fredoka',system-ui;font-size:3rem;margin:0">carimb<span style="color:#E03A2F">ô</span></h1>
-<p>Bateu o carimbo, ganhou.</p><p>Lojista: <a href="lojista.html" style="color:#14296B">acessar o painel</a></p>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carimbô: cartão fidelidade por toque, sem app</title>
+<meta name="description" content="O cliente encosta o celular no bastão e o carimbo aparece na hora. Sem baixar app, sem cartão de papel. Kit com 2 bastões, placa NFC de avaliação do Google e painel do lojista.">
+<meta property="og:title" content="Carimbô: bateu o carimbo, ganhou.">
+<meta property="og:description" content="Cartão fidelidade por toque NFC. O cliente encosta, o carimbo aparece. Sem app.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://carimbo.io/">
+<meta property="og:image" content="https://carimbo.io/img/bastao-hero.webp">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#14296B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14296B;--navy2:#0c1b4d;--red:#E03A2F;--kraft:#EAD9B6;--paper:#FBF7EE;--mut:#4a5a8c;--hard:5px 5px 0 var(--navy);--r:22px}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--paper);color:var(--navy);font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:17px;line-height:1.55}
+  img{max-width:100%;height:auto;display:block}
+  h1,h2,h3{font-family:'Fredoka',system-ui,sans-serif;font-weight:700;line-height:1.05;letter-spacing:-.012em;margin:0}
+  h2{font-size:clamp(2rem,4.6vw,3.3rem)}
+  h3{font-size:1.35rem;line-height:1.15}
+  p{margin:0}
+  a{color:inherit}
+  .wrap{width:min(1160px,100% - 40px);margin:0 auto}
+  .narrow{max-width:640px}
+  .lead{font-size:1.14rem;color:var(--mut)}
+  :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:6px}
+
+  /* botões do UI kit */
+  .btn{appearance:none;border:3px solid var(--navy);background:var(--red);color:#fff;font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.12rem;padding:14px 24px;border-radius:16px;box-shadow:var(--hard);cursor:pointer;transition:transform .12s,box-shadow .12s;line-height:1.1}
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--navy)}
+  .btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--navy)}
+  .btn.line{background:#fff;color:var(--navy)}
+  .btn.small{font-size:.98rem;padding:10px 16px;box-shadow:3px 3px 0 var(--navy);border-radius:13px}
+  .btn.big{font-size:1.3rem;padding:18px 30px}
+  .btn.onnavy{border-color:var(--paper);box-shadow:5px 5px 0 var(--paper)}
+  .btn.onnavy:active{box-shadow:1px 1px 0 var(--paper)}
+
+  /* cabeçalho */
+  header{position:sticky;top:0;z-index:30;background:rgba(251,247,238,.94);backdrop-filter:blur(8px);border-bottom:3px solid var(--navy)}
+  .bar{display:flex;align-items:center;gap:22px;height:68px}
+  .logo{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.9rem;text-decoration:none;letter-spacing:-.02em;display:flex;align-items:center;gap:9px}
+  .logo svg{width:30px;height:30px}
+  .logo i{font-style:normal;color:var(--red)}
+  nav{display:flex;gap:6px;margin-left:auto}
+  nav a{padding:8px 12px;text-decoration:none;font-weight:700;border-radius:10px}
+  nav a:hover{background:var(--kraft)}
+  .bar .btn{margin-left:6px}
+  @media(max-width:900px){nav{display:none}.bar .btn{margin-left:auto}}
+
+  /* seções e picote */
+  section{position:relative;padding:92px 0}
+  section[id]{scroll-margin-top:66px}
+  .kraft{background:var(--kraft)}
+  .navy{background:var(--navy);color:var(--paper)}
+  .tear::before{content:"";position:absolute;left:0;right:0;top:-1px;height:14px;background:radial-gradient(circle at 12px 0,var(--above,var(--paper)) 9px,transparent 9.5px) 0 0/24px 14px repeat-x}
+  .sh{margin-bottom:44px}
+  .sh p{margin-top:16px}
+
+  /* HERO */
+  .hero{padding:54px 0 96px}
+  .hgrid{display:grid;grid-template-columns:1.02fr .98fr;gap:54px;align-items:center}
+  .hero h1{font-size:clamp(3rem,7.4vw,6.2rem);line-height:.96;letter-spacing:-.025em}
+  .hero .lead{margin-top:24px;max-width:30em}
+  .cta-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:34px;align-items:center}
+  .proof{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 22px;font-weight:700;font-size:.98rem}
+  .proof span{display:flex;align-items:center;gap:8px}
+  .proof svg{width:20px;height:20px;stroke:var(--red);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .price-note{font-size:.95rem;color:var(--mut);font-weight:600}
+  @media(max-width:900px){.hgrid{grid-template-columns:1fr;gap:40px}.hero{padding-top:34px}}
+
+  /* palco da animação */
+  .stage{position:relative;container-type:inline-size;width:min(100%,590px);margin:0 auto;aspect-ratio:1/.95;background:var(--navy);border:3px solid var(--navy);border-radius:34px;box-shadow:10px 10px 0 var(--red);overflow:hidden;
+    background-image:radial-gradient(circle at 70% 40%,#2a4fb4 0,transparent 55%),radial-gradient(circle,rgba(251,247,238,.16) 1.4px,transparent 1.8px);background-size:auto,26px 26px}
+  .mark{position:absolute;border:1.6cqw solid rgba(224,58,47,.34);border-radius:50%;width:var(--s);height:var(--s);left:var(--x);top:var(--y);transform:rotate(var(--r))}
+  .mark::after{content:"";position:absolute;left:28%;top:-34%;width:44%;height:26%;border:1.2cqw solid rgba(224,58,47,.34);border-bottom:0;border-right:0;transform:rotate(45deg);transform-origin:center}
+  .phone{position:absolute;left:9%;top:8%;width:53%;aspect-ratio:9/13.4;container-type:inline-size;background:var(--paper);border:.9cqw solid var(--paper);border-radius:7cqw;box-shadow:2cqw 2cqw 0 rgba(0,0,0,.28);transform:perspective(1400px) rotateY(calc(-13deg + var(--ry,0deg))) rotateX(calc(4deg + var(--rx,0deg))) rotateZ(-1.5deg);transition:transform .25s ease-out;will-change:transform}
+  .phone.hit{animation:nudge .42s ease-out}
+  @keyframes nudge{0%{translate:0 0}30%{translate:-1.4cqw .4cqw}100%{translate:0 0}}
+  .notch{position:absolute;left:50%;top:2.4cqw;width:26cqw;height:5.4cqw;background:var(--navy);border-radius:4cqw;transform:translateX(-50%);z-index:2}
+  .ps{position:absolute;inset:0;padding:11cqw 5cqw 5cqw;background:var(--paper);border-radius:6.2cqw;color:var(--navy);overflow:hidden}
+  .mh{background:var(--navy);border-radius:6cqw;padding:6cqw 5.5cqw 5cqw;color:var(--paper);box-shadow:1.4cqw 1.4cqw 0 var(--navy2)}
+  .mh b{display:block;font-family:'Fredoka',sans-serif;font-size:8.6cqw;line-height:1.1}
+  .mh small{display:block;font-size:5.2cqw;opacity:.85;margin:1cqw 0 5cqw}
+  .dots{display:grid;grid-template-columns:repeat(5,1fr);gap:2.8cqw}
+  .dot{aspect-ratio:1;border-radius:50%;border:.7cqw dashed rgba(251,247,238,.5);display:grid;place-items:center;transition:background .2s}
+  .dot svg{width:62%;height:62%;opacity:0;transform:scale(.2)}
+  .dot.on{background:var(--paper);border-color:var(--paper)}
+  .dot.on svg{opacity:1;transform:scale(1)}
+  .dot.pop{animation:pop .55s cubic-bezier(.2,1.7,.4,1)}
+  @keyframes pop{0%{transform:scale(.4)}100%{transform:scale(1)}}
+  .mt{text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:8.2cqw;margin-top:7cqw;line-height:1.1;min-height:9cqw}
+  .ms{text-align:center;font-size:5cqw;color:var(--mut);margin-top:2cqw;min-height:7cqw}
+  .mp{margin-top:5cqw;background:var(--red);color:#fff;border:.8cqw solid var(--navy);border-radius:4.2cqw;box-shadow:1.4cqw 1.4cqw 0 var(--navy);font-family:'Fredoka',sans-serif;font-weight:600;font-size:5.4cqw;text-align:center;padding:3.4cqw 0;opacity:0;transform:translateY(2cqw);transition:.3s}
+  .mp.show{opacity:1;transform:none}
+  .wand{position:absolute;left:calc(79cqw - 10.5cqw);top:calc(38cqw - 20.9cqw);width:21cqw;transform:translateX(52cqw) rotate(90deg);transition:transform .62s cubic-bezier(.3,.9,.3,1);z-index:3;pointer-events:none}
+  .wand.in{transform:translateX(0) rotate(90deg)}
+  .wand img{width:100%;height:auto;filter:drop-shadow(.8cqw .8cqw 0 rgba(8,18,60,.5))}
+  .contact{position:absolute;left:58.5cqw;top:38cqw;width:0;height:0;z-index:4}
+  .ring{position:absolute;left:0;top:0;width:19cqw;height:19cqw;margin:-9.5cqw 0 0 -9.5cqw;border:1cqw solid var(--red);border-radius:50%;opacity:0}
+  .contact.go .ring{animation:rip 1s ease-out forwards}
+  .contact.go .ring:nth-child(2){animation-delay:.14s}
+  .contact.go .ring:nth-child(3){animation-delay:.28s}
+  @keyframes rip{0%{transform:scale(.2);opacity:.95}100%{transform:scale(2.6);opacity:0}}
+  .tum{position:absolute;left:2cqw;top:-24cqw;font-family:'Fredoka',sans-serif;font-weight:700;font-size:11.5cqw;color:var(--paper);-webkit-text-stroke:0;text-shadow:1cqw 1cqw 0 var(--red);transform:rotate(-9deg) scale(0);opacity:0;white-space:nowrap}
+  .contact.go .tum{animation:tum 1.5s cubic-bezier(.2,1.6,.4,1) forwards}
+  @keyframes tum{0%{transform:rotate(-9deg) scale(0);opacity:0}18%{transform:rotate(-9deg) scale(1.1);opacity:1}75%{transform:rotate(-9deg) scale(1);opacity:1}100%{transform:rotate(-9deg) scale(.9) translateY(-3cqw);opacity:0}}
+  @media(max-width:520px){.stage{box-shadow:7px 7px 0 var(--red);border-radius:26px}}
+
+  /* DADOS */
+  .big-n{font-family:'Fredoka',sans-serif;font-weight:700;line-height:.9;font-size:clamp(3.8rem,9.2vw,7.6rem);letter-spacing:-.04em;color:var(--paper);white-space:nowrap}
+  .dgrid{display:grid;grid-template-columns:1fr 1.05fr;gap:60px;align-items:start}
+  .dgrid h2{color:var(--paper)}
+  .src{font-size:.88rem;opacity:.75;margin-top:22px;max-width:36em}
+  .statline{display:flex;flex-wrap:wrap;gap:34px;margin-top:34px}
+  .statline div b{display:block;font-family:'Fredoka',sans-serif;font-size:2.4rem;line-height:1}
+  .statline div span{font-size:.95rem;opacity:.85}
+  .calc{background:var(--paper);color:var(--navy);border:3px solid var(--paper);border-radius:var(--r);padding:28px;box-shadow:8px 8px 0 var(--red)}
+  .calc h3{margin-bottom:4px}
+  .calc .sub{color:var(--mut);font-size:.95rem;margin-bottom:18px}
+  .fld{display:grid;grid-template-columns:1fr 150px;gap:14px;align-items:center;margin:12px 0}
+  .fld label{font-weight:700;line-height:1.25}
+  .fld .in{display:flex;align-items:center;border:3px solid var(--navy);border-radius:13px;background:#fff;overflow:hidden}
+  .fld .in span{padding:0 0 0 12px;font-weight:700;color:var(--mut)}
+  .fld input{width:100%;border:0;background:transparent;font:700 1.1rem 'Nunito',sans-serif;color:var(--navy);padding:11px 12px 11px 6px;min-width:0}
+  .fld input:focus{outline:none}
+  .fld .in:focus-within{box-shadow:0 0 0 3px var(--red)}
+  .res{margin-top:20px;display:grid;gap:12px}
+  .rbox{border:3px solid var(--navy);border-radius:16px;padding:14px 16px;background:var(--kraft)}
+  .rbox small{display:block;font-weight:700;color:var(--mut);font-size:.88rem}
+  .rbox b{font-family:'Fredoka',sans-serif;font-size:2rem;line-height:1.1;display:block}
+  .rbox.good{background:var(--navy);color:var(--paper);border-color:var(--navy)}
+  .rbox.good small{color:rgba(251,247,238,.78)}
+  @media(max-width:900px){.dgrid{grid-template-columns:1fr;gap:44px}.fld{grid-template-columns:1fr}}
+
+  /* COMO FUNCIONA */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;counter-reset:s}
+  .step{position:relative;padding-top:30px}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:52px;height:52px;border-radius:50%;background:var(--red);color:#fff;border:3px solid var(--navy);display:grid;place-items:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.5rem;box-shadow:3px 3px 0 var(--navy);z-index:2}
+  .step .box{background:#fff;border:3px solid var(--navy);border-radius:var(--r);padding:44px 24px 24px;box-shadow:var(--hard);height:100%}
+  .step h3{margin-bottom:8px}
+  .step p{color:var(--mut)}
+  @media(max-width:820px){.steps{grid-template-columns:1fr}}
+
+  /* CLIENTE: celulares */
+  .cgrid{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+  .phones{display:flex;justify-content:center;gap:clamp(10px,2vw,22px);align-items:flex-start}
+  .pf{width:min(30%,232px);border:3px solid var(--navy);border-radius:30px;padding:8px;background:var(--navy);box-shadow:var(--hard)}
+  .pf img{border-radius:22px;width:100%}
+  .pcap{display:block;text-align:center;font-weight:800;font-size:.86rem;margin-top:12px;color:var(--navy)}
+  .pcol{width:min(31%,236px)}
+  .pcol .pf{width:100%}
+  .checks{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:16px}
+  .checks li{display:grid;grid-template-columns:30px 1fr;gap:12px}
+  .checks svg{width:28px;height:28px;stroke:#fff;fill:var(--red);stroke-width:0}
+  .checks b{display:block;font-family:'Fredoka',sans-serif;font-size:1.2rem;line-height:1.2}
+  .checks span{color:var(--mut)}
+  @media(max-width:900px){.cgrid{grid-template-columns:1fr;gap:46px}.phones{order:2}}
+
+  /* LOJISTA */
+  .lgrid{display:grid;grid-template-columns:330px 1fr;gap:34px;align-items:start}
+  .tabs{display:grid;gap:12px}
+  .tab{appearance:none;text-align:left;background:#fff;border:3px solid var(--navy);border-radius:16px;padding:14px 16px;cursor:pointer;color:var(--navy);font-family:inherit;box-shadow:3px 3px 0 var(--navy);transition:.12s}
+  .tab b{display:block;font-family:'Fredoka',sans-serif;font-size:1.18rem;line-height:1.2}
+  .tab span{display:none;color:var(--mut);font-size:.96rem;margin-top:4px;line-height:1.4}
+  .tab[aria-selected=true]{background:var(--navy);color:var(--paper);box-shadow:5px 5px 0 var(--red)}
+  .tab[aria-selected=true] span{display:block;color:rgba(251,247,238,.85)}
+  .bf{border:3px solid var(--navy);border-radius:20px;overflow:hidden;background:#fff;box-shadow:10px 10px 0 var(--navy)}
+  .bf .top{display:flex;align-items:center;gap:7px;padding:11px 14px;background:var(--kraft);border-bottom:3px solid var(--navy)}
+  .bf .top i{width:11px;height:11px;border-radius:50%;background:var(--navy);opacity:.9}
+  .bf .top i:first-child{background:var(--red)}
+  .bf .url{margin-left:10px;background:var(--paper);border:2px solid var(--navy);border-radius:999px;padding:2px 14px;font-weight:700;font-size:.86rem}
+  .bf img{width:100%;aspect-ratio:1440/900;object-fit:cover}
+  .extras{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:58px;border-top:3px solid var(--navy)}
+  .ex{padding:24px 24px 0 0}
+  .ex+.ex{padding-left:24px;border-left:3px solid var(--navy)}
+  .ex h3{margin-bottom:6px}
+  .ex p{color:var(--mut)}
+  @media(max-width:980px){.lgrid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.tab span{display:none!important}.extras{grid-template-columns:1fr}.ex,.ex+.ex{padding:20px 0 0;border-left:0}}
+
+  /* BASTÃO */
+  .pgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:52px;align-items:center}
+  .photo{border:3px solid var(--paper);border-radius:28px;overflow:hidden;box-shadow:10px 10px 0 var(--red)}
+  .photo img{width:100%;aspect-ratio:16/9;object-fit:cover}
+  .navy .lead{color:rgba(251,247,238,.82)}
+  .specs{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:14px}
+  .specs li{padding-bottom:14px;border-bottom:2px solid rgba(251,247,238,.22)}
+  .specs b{font-family:'Fredoka',sans-serif;font-size:1.2rem}
+  .specs span{display:block;opacity:.8}
+  @media(max-width:900px){.pgrid{grid-template-columns:1fr}.photo img{aspect-ratio:4/3}}
+
+  /* SEGURANÇA */
+  .sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 56px}
+  .rule{padding:22px 0;border-top:3px solid var(--navy);display:grid;grid-template-columns:44px 1fr;gap:14px}
+  .rule svg{width:34px;height:34px;stroke:var(--navy);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .rule p{color:var(--mut);margin-top:4px}
+  @media(max-width:820px){.sgrid{grid-template-columns:1fr}}
+
+  /* PREÇO */
+  .ticket{display:grid;grid-template-columns:1.25fr .75fr;background:#fff;border:3px solid var(--navy);border-radius:28px;box-shadow:10px 10px 0 var(--navy);position:relative;overflow:hidden}
+  .ticket .l{padding:40px 40px 40px}
+  .ticket .r{background:var(--navy);color:var(--paper);padding:40px 34px;display:flex;flex-direction:column;justify-content:center;border-left:3px dashed var(--paper);position:relative}
+  .ticket .r::before,.ticket .r::after{content:"";position:absolute;left:-18px;width:33px;height:33px;border-radius:50%;background:var(--paper);border:3px solid var(--navy)}
+  .ticket .r::before{top:-18px}.ticket .r::after{bottom:-18px}
+  .incl{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:13px}
+  .incl li{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:start}
+  .incl svg{width:24px;height:24px;stroke:var(--red);fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+  .incl small{color:var(--mut);font-weight:700}
+  .was{font-size:1.1rem;opacity:.8;text-decoration:line-through;text-decoration-thickness:2px}
+  .now{font-family:'Fredoka',sans-serif;font-weight:700;font-size:clamp(3.4rem,7vw,4.8rem);line-height:1;margin:4px 0 2px;letter-spacing:-.03em}
+  .now small{font-size:1.2rem;letter-spacing:0;font-weight:600}
+  .once{font-weight:700;opacity:.9}
+  .then{margin-top:22px;padding-top:18px;border-top:2px solid rgba(251,247,238,.3);font-size:1.02rem}
+  .then b{font-family:'Fredoka',sans-serif;font-size:1.5rem}
+  .seal{position:absolute;right:-6px;top:-6px;width:112px;height:112px;transform:rotate(12deg);z-index:2}
+  .r .btn{margin-top:26px;background:var(--red);border-color:var(--paper);box-shadow:5px 5px 0 var(--paper)}
+  @media(max-width:860px){.seal{width:84px;height:84px;right:-4px;top:-4px}.ticket .l h3{padding-right:76px}.ticket{grid-template-columns:1fr}.ticket .r{border-left:0;border-top:3px dashed var(--paper)}.ticket .r::before{left:-18px;top:-18px}.ticket .r::after{left:auto;right:-18px;top:-18px;bottom:auto}.ticket .l,.ticket .r{padding:30px 24px}}
+  .guar{display:flex;flex-wrap:wrap;gap:12px 30px;margin-top:34px;font-weight:700}
+  .guar span{display:flex;gap:9px;align-items:center}
+  .guar svg{width:22px;height:22px;stroke:var(--red);fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+  /* FAQ */
+  .faq{max-width:820px}
+  details{border-top:3px solid var(--navy);padding:4px 0}
+  details:last-child{border-bottom:3px solid var(--navy)}
+  summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:20px;align-items:center;font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.28rem;padding:18px 0;line-height:1.25}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";flex:none;width:34px;height:34px;border:3px solid var(--navy);border-radius:50%;display:grid;place-items:center;font-size:1.4rem;line-height:1;background:#fff;box-shadow:2px 2px 0 var(--navy)}
+  details[open] summary::after{content:"–";background:var(--red);color:#fff}
+  details p{color:var(--mut);padding:0 54px 20px 0;max-width:46em}
+
+  /* FINAL */
+  .final{text-align:center;padding:110px 0}
+  .final h2{font-size:clamp(2.6rem,7vw,5.4rem);line-height:.98}
+  .final p{margin:20px auto 34px;max-width:30em;color:rgba(251,247,238,.85);font-size:1.15rem}
+  footer{background:var(--navy2);color:var(--paper);padding:34px 0;font-size:.95rem}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:14px 30px;align-items:center;justify-content:space-between}
+  footer .logo{font-size:1.5rem}
+  footer a{opacity:.85}
+  .noscript{padding:10px;text-align:center;background:var(--kraft)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#topo" aria-label="Carimbô, início">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>
+      <span>carimb<i>ô</i></span>
+    </a>
+    <nav aria-label="Seções">
+      <a href="#como">Como funciona</a>
+      <a href="#cliente">Para o cliente</a>
+      <a href="#painel">Painel</a>
+      <a href="#preco">Preço</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <button class="btn small" type="button" data-cta="header">Quero o kit</button>
+  </div>
+</header>
+
+<main id="topo">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hgrid">
+    <div>
+      <h1>Bateu o carimbo, ganhou.</h1>
+      <p class="lead">O cliente encosta o celular no bastão e o carimbo aparece na hora, no cartão dele. Sem baixar app, sem cartão de papel para perder na carteira.</p>
+      <div class="cta-row">
+        <button class="btn big" type="button" data-cta="hero">Quero o kit por R$ 149</button>
+        <a class="btn line big" href="#como" style="text-decoration:none">Ver como funciona</a>
+      </div>
+      <p class="price-note" style="margin-top:16px">Preço de lançamento. Depois, R$ 49,97 por mês. Cancele quando quiser.</p>
+      <div class="proof">
+        <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Funciona em iPhone e Android</span>
+        <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Nada para instalar</span>
+        <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Pronto no mesmo dia</span>
+      </div>
+    </div>
+
+    <!-- animação: bastão encosta no celular -->
+    <div class="stage" id="stage" role="img" aria-label="Animação: o bastão encosta no celular, o carimbo aparece no cartão e confetes explodem">
+      <i class="mark" style="--s:19cqw;--x:3cqw;--y:70cqw;--r:-14deg"></i>
+      <i class="mark" style="--s:11cqw;--x:84cqw;--y:6cqw;--r:12deg"></i>
+      <i class="mark" style="--s:15cqw;--x:80cqw;--y:78cqw;--r:-8deg"></i>
+      <div class="phone" id="phone">
+        <div class="notch"></div>
+        <div class="ps">
+          <div class="mh"><b>Gelateria Bali</b><small id="hn">Olá, Marina · 7/10</small>
+            <div class="dots" id="dots"></div></div>
+          <div class="mt" id="mt"></div>
+          <div class="ms" id="ms"></div>
+          <div class="mp" id="mp">Resgatar agora</div>
+        </div>
+      </div>
+      <div class="wand" id="wand"><img src="img/bastao-recorte.webp" alt="" width="510" height="1005"></div>
+      <div class="contact" id="contact"><i class="ring"></i><i class="ring"></i><i class="ring"></i><span class="tum">Tum!</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DADOS -->
+<section class="navy tear" id="porque" style="--above:var(--paper)">
+  <div class="wrap dgrid">
+    <div>
+      <div class="big-n" aria-hidden="true">5 a 25×</div>
+      <h2 style="margin-top:22px">Trazer um cliente novo custa de 5 a 25 vezes mais do que fazer um cliente voltar.</h2>
+      <p class="lead" style="margin-top:18px">Quem já passou na sua porta já conhece o seu produto, o seu preço e o seu atendimento. Falta só um motivo para voltar. O carimbo é esse motivo.</p>
+      <div class="statline">
+        <div><b>25% a 95%</b><span>mais lucro com apenas 5% a mais de clientes que voltam</span></div>
+      </div>
+      <p class="src">Estimativas citadas pela Harvard Business Review e pelos estudos de Frederick Reichheld, da Bain &amp; Company. O resultado varia por segmento; use a simulação ao lado com os seus números.</p>
+    </div>
+
+    <form class="calc" id="calc" onsubmit="return false">
+      <h3>Quanto custa um cliente novo na sua loja?</h3>
+      <p class="sub">Troque os valores de exemplo pelos seus.</p>
+      <div class="fld"><label for="c1">Quanto você gasta por mês para atrair clientes novos (anúncio, panfleto, parceria)?</label><div class="in"><span>R$</span><input id="c1" type="number" inputmode="decimal" min="0" value="600"></div></div>
+      <div class="fld"><label for="c2">Quantos clientes novos isso traz por mês?</label><div class="in"><input id="c2" type="number" inputmode="numeric" min="1" value="12"></div></div>
+      <div class="fld"><label for="c3">Quanto um cliente gasta por visita, em média?</label><div class="in"><span>R$</span><input id="c3" type="number" inputmode="decimal" min="1" value="35"></div></div>
+      <div class="res" aria-live="polite">
+        <div class="rbox"><small>Cada cliente novo te custa</small><b id="r1">R$ 50,00</b></div>
+        <div class="rbox good"><small>O Carimbô (R$ 49,97 por mês) se paga com</small><b id="r2">2 visitas a mais</b></div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como">
+  <div class="wrap">
+    <div class="sh narrow"><h2>Um toque. É só isso que o cliente faz.</h2><p class="lead">Nada de pedir para baixar app, procurar cartão ou lembrar de mostrar o papel.</p></div>
+    <div class="steps">
+      <div class="step"><div class="box"><h3>O cliente encosta o celular no bastão</h3><p>O bastão fica no balcão. O chip NFC dentro dele abre o cartão da sua loja no navegador do celular, sem app.</p></div></div>
+      <div class="step"><div class="box"><h3>O carimbo aparece na hora</h3><p>Na primeira vez ele informa nome e WhatsApp. Nas próximas, o cartão já abre e o carimbo bate sozinho, com confete e vibração.</p></div></div>
+      <div class="step"><div class="box"><h3>Completou, resgata no balcão</h3><p>O cliente toca em Resgatar, apresenta a tela e você confirma a entrega no painel. Sem conversa, sem conta para fazer.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLIENTE -->
+<section class="kraft tear" id="cliente" style="--above:var(--paper)">
+  <div class="wrap cgrid">
+    <div>
+      <h2>O cartão que o cliente nunca perde.</h2>
+      <p class="lead" style="margin-top:16px;color:var(--navy)">Ele fica no celular, mostra quantos carimbos faltam e avisa quando o prêmio está pronto.</p>
+      <ul class="checks">
+        <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M6.5 12.5l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Sem baixar nada</b><span>Funciona direto no navegador. Se quiser, o cliente coloca o ícone do Carimbô na tela inicial em dois toques.</span></div></li>
+        <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M6.5 12.5l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Troca de celular sem perder carimbo</b><span>Basta digitar o WhatsApp cadastrado e o cartão volta com tudo.</span></div></li>
+        <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M6.5 12.5l4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>Com a cara da sua loja</b><span>Cor, nome, prêmio e meta de carimbos são seus. O cliente vê a sua marca.</span></div></li>
+      </ul>
+    </div>
+    <div class="phones">
+      <div class="pcol" style="transform:rotate(-3deg) translateY(18px)"><div class="pf"><img src="img/c_stamp.webp" alt="Cartão com a mensagem Tum! Carimbo batido!" width="780" height="1240" ></div><span class="pcap">Carimbo batido</span></div>
+      <div class="pcol" style="z-index:2"><div class="pf"><img src="img/c_prize.webp" alt="Cartão completo com o botão Resgatar agora" width="780" height="1240" ></div><span class="pcap">Prêmio liberado</span></div>
+      <div class="pcol" style="transform:rotate(3deg) translateY(18px)"><div class="pf"><img src="img/c_pend.webp" alt="Resgate pendente com contagem do prazo" width="780" height="1240" ></div><span class="pcap">Resgate com prazo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PAINEL -->
+<section id="painel">
+  <div class="wrap">
+    <div class="sh narrow"><h2>E você enxerga a loja inteira.</h2><p class="lead">O painel mostra quem passou hoje, quem está sumindo e quem está a um carimbo do prêmio. Dá para chamar cada grupo no WhatsApp com um toque.</p></div>
+    <div class="lgrid">
+      <div class="tabs" role="tablist" aria-label="Telas do painel">
+        <button class="tab" role="tab" aria-selected="true" data-img="img/l_hoje.webp" data-alt="Painel Hoje: carimbos do dia, gráfico de movimento e clientes por frequência"><b>Hoje</b><span>Carimbos do dia, movimento dos últimos 14 dias ou 6 meses e seus clientes por frequência: fiéis, regulares e ocasionais.</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-img="img/l_clientes.webp" data-alt="Lista de clientes com cartão, data de entrada e último carimbo"><b>Clientes</b><span>Todos os clientes em uma lista limpa, com filtros: em risco de sumir, quase lá, com prêmio esperando.</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-img="img/l_ficha.webp" data-alt="Ficha de um cliente com histórico de carimbos e prêmios"><b>Ficha do cliente</b><span>Histórico de cada visita, média de dias entre visitas, cartão atual e ajuste manual quando precisar.</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-img="img/l_retiradas.webp" data-alt="Tela de retiradas de prêmios"><b>Retiradas</b><span>Prêmios pedidos pelos clientes, com prazo. Você confere o nome, entrega e toca em Entregue.</span></button>
+      </div>
+      <div class="bf">
+        <div class="top"><i></i><i></i><i></i><span class="url">carimbo.io/lojista</span></div>
+        <img id="shot" src="img/l_hoje.webp" alt="Painel Hoje: carimbos do dia, gráfico de movimento e clientes por frequência" width="2880" height="1800" >
+      </div>
+    </div>
+    <div class="extras">
+      <div class="ex"><h3>Campanhas no WhatsApp</h3><p>Escolha o grupo (em risco, quase lá, com prêmio) e abra a conversa no WhatsApp com um toque.</p></div>
+      <div class="ex"><h3>Regras do seu jeito</h3><p>Defina quantos carimbos formam o prêmio, o prazo de retirada, o intervalo entre carimbos e o limite por dia.</p></div>
+      <div class="ex"><h3>Vários pontos de toque</h3><p>Balcão, caixa, mesa. Cada bastão é identificado, e você vê de onde vieram os carimbos.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BASTÃO -->
+<section class="navy tear" id="bastao" style="--above:var(--paper)">
+  <div class="wrap pgrid">
+    <div class="photo"><img src="img/bastao-hero.webp" alt="Bastão Carimbô, feito em impressão 3D, com chip NFC na base" width="1920" height="1080" ></div>
+    <div>
+      <h2>O bastão que faz o cliente sorrir.</h2>
+      <p class="lead" style="margin-top:16px">Pesa pouco, fica de pé no balcão e tem o chip NFC embutido. É o único objeto que o cliente precisa tocar.</p>
+      <ul class="specs">
+        <li><b>Sem bateria, sem cabo</b><span>O chip NFC funciona só com a aproximação do celular.</span></li>
+        <li><b>Troca de prêmio sem trocar o bastão</b><span>O endereço do bastão é sempre o da sua loja. Você muda regras e prêmio pelo painel.</span></li>
+        <li><b>Vem em dupla</b><span>Um no balcão e outro no caixa ou na mesa. Cada um aparece separado nos seus relatórios.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- SEGURANÇA -->
+<section id="seguranca">
+  <div class="wrap">
+    <div class="sh narrow"><h2>Carimbo de verdade não se repete à toa.</h2><p class="lead">Quem usa cartão fidelidade sabe: sempre tem alguém tentando levar vantagem. O Carimbô trava isso por padrão.</p></div>
+    <div class="sgrid">
+      <div class="rule"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 3h6"/></svg><div><h3>Tempo mínimo entre carimbos</h3><p>Você define o intervalo. Encostar de novo antes do tempo não carimba.</p></div></div>
+      <div class="rule"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><div><h3>Limite por dia</h3><p>Cada cliente ganha no máximo o número de carimbos que você escolher por dia.</p></div></div>
+      <div class="rule"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11.2A7 7 0 0 0 5 9.8C5 14.9 12 21 12 21z"/><circle cx="12" cy="10" r="2.5"/></svg><div><h3>Presença na loja (opcional)</h3><p>Ative a confirmação por localização e só quem está no balcão carimba.</p></div></div>
+      <div class="rule"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.6-3.2 7.8-8 9-4.8-1.2-8-4.4-8-9V6z"/><path d="M8.5 12l2.5 2.5L15.5 10"/></svg><div><h3>Resgate confirmado por você</h3><p>O prêmio só sai quando você confere o nome no painel e toca em Entregue. O pedido tem prazo e expira sozinho.</p></div></div>
+      <div class="rule"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg><div><h3>Link do carimbo que muda</h3><p>Depois de carimbar, o endereço na tela do cliente muda. Recarregar ou voltar na página só mostra o cartão.</p></div></div>
+      <div class="rule"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M7 9h10M7 13h6"/></svg><div><h3>Histórico completo</h3><p>Cada carimbo, bônus e resgate fica registrado com data, hora e ponto de toque.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PREÇO -->
+<section class="kraft tear" id="preco" style="--above:var(--paper)">
+  <div class="wrap">
+    <div class="sh narrow"><h2>Entre no lançamento do Carimbô.</h2><p class="lead" style="color:var(--navy)">Um kit completo para você começar hoje. O primeiro mês de painel já vem pago.</p></div>
+    <div class="ticket">
+      <svg class="seal" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="cp" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs><circle cx="60" cy="60" r="56" fill="#E03A2F" stroke="#14296B" stroke-width="4"/><circle cx="60" cy="60" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 4"/><text font-family="Fredoka,sans-serif" font-weight="700" font-size="12.5" fill="#fff" letter-spacing="1.6"><textPath href="#cp" startOffset="0">PREÇO DE LANÇAMENTO • </textPath></text><text x="60" y="68" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="700" font-size="26" fill="#fff">-40%</text></svg>
+      <div class="l">
+        <h3 style="font-size:1.9rem">Kit de boas-vindas</h3>
+        <ul class="incl">
+          <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><div><b>2 bastões Carimbô</b><br><small>Um para o balcão, outro para o caixa ou a mesa.</small></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><div><b>Placa NFC de avaliação do Google</b><br><small>Vendida sozinha por R$ 80. O cliente encosta e deixa a avaliação.</small></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><div><b>Painel do lojista, 30 dias incluídos</b><br><small>Clientes, campanhas, retiradas e regras.</small></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><div><b>Configuração da sua loja</b><br><small>Cor, nome, prêmio e meta de carimbos, prontos para usar.</small></div></li>
+          <li><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg><div><b>Suporte direto no WhatsApp</b><br><small>Dúvida no balcão? A gente responde.</small></div></li>
+        </ul>
+      </div>
+      <div class="r">
+        <span class="was">de R$ 249</span>
+        <div class="now">R$ 149</div>
+        <span class="once">uma vez só</span>
+        <div class="then"><b>R$ 49,97 por mês</b> a partir do 2º mês, para manter o painel, a gestão e a manutenção do sistema. Esse valor fica garantido para quem entrar no lançamento.</div>
+        <button class="btn big" type="button" data-cta="preco">Quero o kit</button>
+      </div>
+    </div>
+    <div class="guar">
+      <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Assinatura no Pix ou no cartão</span>
+      <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Cancele quando quiser</span>
+      <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Preço de lançamento por tempo limitado</span>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="perguntas">
+  <div class="wrap">
+    <div class="sh"><h2>Perguntas que todo lojista faz.</h2></div>
+    <div class="faq">
+      <details><summary>O cliente precisa baixar algum aplicativo?</summary><p>Não. O cartão abre no navegador do celular quando ele encosta no bastão. Se ele quiser, pode colocar um ícone na tela inicial, mas é opcional.</p></details>
+      <details><summary>Funciona em qualquer celular?</summary><p>Funciona nos iPhones e nos Androids que têm NFC, que hoje são a grande maioria. Para o raro aparelho sem NFC, o link do bastão também pode ser aberto na mão.</p></details>
+      <details><summary>E se o cliente trocar de celular ou apagar o histórico?</summary><p>Ele toca em "Já tenho cartão", digita o WhatsApp cadastrado e o cartão volta com todos os carimbos.</p></details>
+      <details><summary>O que acontece depois dos 30 dias?</summary><p>O painel continua por R$ 49,97 por mês, no Pix ou no cartão, para manter a gestão e a manutenção do sistema. Se você decidir parar, é só cancelar, sem multa e sem fidelidade.</p></details>
+      <details><summary>Dá para mudar o prêmio e a meta de carimbos?</summary><p>Dá, a qualquer momento, pelo painel, em Regras. Você também escolhe a cor da sua loja e o prazo para o cliente retirar o prêmio.</p></details>
+      <details><summary>Como evito que alguém tente fraudar?</summary><p>Cada cliente tem um tempo mínimo entre carimbos e um limite por dia, e você pode exigir confirmação de presença na loja. O prêmio só sai depois que você confere a tela e confirma a entrega no painel.</p></details>
+      <details><summary>Quanto tempo leva para começar?</summary><p>No mesmo dia. A gente configura a sua loja, você coloca o bastão no balcão e o primeiro cliente já pode carimbar.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="navy final tear" style="--above:var(--paper)">
+  <div class="wrap">
+    <h2>Seu cliente já conhece a sua loja. Dê um motivo para ele voltar.</h2>
+    <p>Kit completo por R$ 149 e 30 dias de painel incluídos. Preço de lançamento por tempo limitado.</p>
+    <button class="btn big onnavy" type="button" data-cta="final">Quero o kit por R$ 149</button>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="logo"><span>carimb<i>ô</i></span></span>
+    <span>Bateu o carimbo, ganhou.</span>
+    <a href="lojista.html">Lojista: acessar o painel</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+<script>
+(function(){
+  /* CTAs: sem redirecionamento por enquanto (data-cta identifica cada botão para ligar depois) */
+  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); }); });
+
+  /* simulação */
+  var $ = function(id){ return document.getElementById(id); };
+  var brl = function(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); };
+  function calc(){
+    var a = parseFloat($('c1').value) || 0, n = Math.max(1, parseFloat($('c2').value) || 1), t = Math.max(1, parseFloat($('c3').value) || 1);
+    $('r1').textContent = brl(a / n);
+    var v = Math.max(1, Math.ceil(49.97 / t));
+    $('r2').textContent = v + (v === 1 ? ' visita a mais' : ' visitas a mais');
+  }
+  ['c1','c2','c3'].forEach(function(id){ $(id).addEventListener('input', calc); }); calc();
+
+  /* abas do painel */
+  var tabs = document.querySelectorAll('.tab'), shot = $('shot');
+  tabs.forEach(function(t){ t.addEventListener('click', function(){
+    tabs.forEach(function(x){ x.setAttribute('aria-selected', x === t ? 'true' : 'false'); });
+    shot.src = t.dataset.img; shot.alt = t.dataset.alt;
+  }); });
+
+  /* animação do herói */
+  var STAMP = '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg>';
+  var dotsEl = $('dots'), dots = [];
+  for (var i = 0; i < 10; i++){ var d = document.createElement('div'); d.className = 'dot'; d.innerHTML = STAMP; dotsEl.appendChild(d); dots.push(d); }
+  var N0 = 7, n = N0, wand = $('wand'), phone = $('phone'), contact = $('contact'), stage = $('stage');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function paint(){
+    dots.forEach(function(d, i){ d.classList.toggle('on', i < n); });
+    $('hn').textContent = 'Olá, Marina · ' + n + '/10';
+  }
+  function say(){
+    var left = 10 - n;
+    if (n >= 10){ $('mt').textContent = '🎁 Você ganhou um prêmio!'; $('ms').textContent = 'Sorvete 2 bolas'; $('mp').classList.add('show'); }
+    else { $('mt').textContent = 'Tum! Carimbo batido!'; $('ms').textContent = 'Faltam ' + left + ' para ganhar: Sorvete 2 bolas'; $('mp').classList.remove('show'); }
+  }
+  function idle(){ $('mt').textContent = ''; $('ms').textContent = 'Encoste o celular no bastão'; $('mp').classList.remove('show'); }
+  paint(); idle();
+  function boom(big){
+    if (!window.confetti) return;
+    var r = contact.getBoundingClientRect();
+    var o = {x: (r.left) / innerWidth, y: (r.top) / innerHeight};
+    var colors = ['#14296B','#E03A2F','#EAD9B6','#2fa86a','#ffc857'];
+    confetti({particleCount: big ? 150 : 70, spread: big ? 110 : 80, startVelocity: big ? 48 : 38, angle: 150, origin: o, colors: colors, ticks: 170, zIndex: 40, scalar: .95});
+    confetti({particleCount: big ? 90 : 40, spread: 70, startVelocity: 30, angle: 60, origin: {x: Math.max(0, o.x - .2), y: o.y + .05}, colors: colors, ticks: 150, zIndex: 40});
+  }
+  function hit(){
+    n++; paint(); say();
+    var d = dots[n - 1]; d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop');
+    phone.classList.remove('hit'); void phone.offsetWidth; phone.classList.add('hit');
+    contact.classList.remove('go'); void contact.offsetWidth; contact.classList.add('go');
+    boom(n >= 10);
+  }
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+  var on = false, busy = false;
+  async function run(){
+    if (busy) return; busy = true;
+    while (on){
+      n = N0; paint(); idle(); await sleep(700);
+      for (var k = 0; k < 3 && on; k++){
+        wand.classList.add('in'); await sleep(640); if (!on) break;
+        hit(); await sleep(k === 2 ? 3600 : 2200);
+        wand.classList.remove('in'); await sleep(k === 2 ? 700 : 900);
+      }
+      await sleep(500);
+    }
+    busy = false;
+  }
+  if (reduce){ n = 8; paint(); say(); wand.style.transform = 'rotate(90deg)'; wand.style.transition = 'none'; }
+  else if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){ on = es[0].isIntersecting; if (on) run(); }, {threshold: .35}).observe(stage);
+  } else { on = true; run(); }
+
+  /* inclinação leve do celular acompanhando o mouse (só em telas com mouse) */
+  if (!reduce && window.matchMedia && matchMedia('(hover:hover)').matches){
+    stage.addEventListener('pointermove', function(e){
+      var r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      phone.style.setProperty('--ry', (x * 10) + 'deg'); phone.style.setProperty('--rx', (-y * 8) + 'deg');
+    });
+    stage.addEventListener('pointerleave', function(){ phone.style.setProperty('--ry', '0deg'); phone.style.setProperty('--rx', '0deg'); });
+  }
+})();
+</script>
 </body>
+</html>
