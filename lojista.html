@@ -471,7 +471,8 @@ function planBanner(){
   const s = S.store; if(!s || !s.renews_at) return '';
   const d = Math.round((new Date(s.renews_at + 'T12:00:00') - new Date(new Date().toISOString().slice(0, 10) + 'T12:00:00')) / DAY);
   let tone = '', msg = '';
-  if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
+  if(s.pending_payment) { tone = 'info'; msg = 'Aguardando a confirmação do pagamento. Assim que o pagamento for confirmado, o painel é liberado automaticamente.'; }
+  else if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
   else if(d < -7) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
   else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Renove em até ' + (7 + d) + ' ' + pl(7 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
   else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
@@ -532,20 +533,11 @@ function viewLogin(msg){
   };
 }
 function viewCreate(){
-  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
-    <h1>Crie a sua loja</h1>
-    <label for="n">Nome do estabelecimento</label><input id="n" name="n" type="text" required>
-    <label for="r">Prêmio</label><input id="r" name="r" type="text" value="Brinde grátis" required>
-    <div class="cols"><div><label for="g">Carimbos para o prêmio</label><input id="g" name="g" type="number" min="2" max="50" value="10"></div>
-    <div><label for="cd">Intervalo entre carimbos (min)</label><input id="cd" name="cd" type="number" min="0" value="60"></div></div>
-    <div class="actions"><button class="btn">Criar loja e primeira tag</button></div></form></div>`;
-  $('#f').onsubmit = async ev => {
-    ev.preventDefault(); const f = ev.target;
-    const {data:s, error} = await sb.from('fid_stores').insert({owner:S.user.id, name:f.n.value, reward:f.r.value, stamps_goal:+f.g.value, cooldown_minutes:+f.cd.value}).select().single();
-    if(error) return toast('Não foi possível criar a loja: ' + error.message, true);
-    await sb.from('fid_tags').insert({id:code(), store_id:s.id, label:'Balcão'});
-    load();
-  };
+  root.innerHTML = `<div class="auth"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
+    <h1>Você ainda não tem uma loja</h1>
+    <p class="sub">A loja é criada quando você pede o kit Carimbô. Depois que o pagamento é confirmado, o painel é liberado.</p>
+    <div class="actions"><a class="btn" href="comprar.html" style="text-decoration:none;text-align:center">Pedir meu kit</a><button class="btn line" type="button" id="out">Sair</button></div></div>`;
+  $('#out').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 }
 
 /* ---------- Hoje ---------- */
