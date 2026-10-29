@@ -62,6 +62,10 @@
   .tabs button{margin:0;padding:9px 10px;font-size:.95rem;background:#fff;color:var(--ink);box-shadow:3px 3px 0 #14296B}
   .tabs button[aria-pressed=true]{background:var(--c);color:#fff}
   .note2{font-size:.86rem;color:var(--mut);margin-top:12px}
+  #ptr{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:50;transform:translateY(-56px);opacity:0}
+  #ptr i{width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--c);border-top-color:transparent;box-shadow:2px 2px 0 #14296B}
+  #ptr.spin i{animation:ptrs .7s linear infinite}@keyframes ptrs{to{transform:rotate(360deg)}}
+  html.standalone,html.standalone body{overscroll-behavior-y:contain}
 </style>
 </head>
 <body>
@@ -394,6 +398,31 @@ function getPos(){
 
 // Página restaurada do cache do navegador (botão voltar): não carimba, só mostra.
 window.addEventListener('pageshow', e => { if(e.persisted){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(s=>{ if(!s.error) render(s,{viewOnly:true}); }); } });
+
+/* ---------- puxar para atualizar (app instalado) ---------- */
+(function(){
+  if(!IS_APP) return;
+  document.documentElement.classList.add('standalone');
+  const el = document.createElement('div'); el.id = 'ptr'; el.innerHTML = '<i></i>'; document.body.appendChild(el);
+  let y0 = null, d = 0, busy = false; const MAX = 90, GO = 64;
+  const set = (v, anim) => { el.style.transition = anim ? 'transform .2s, opacity .2s' : 'none'; el.style.transform = 'translateY(' + (v - 56) + 'px)'; el.style.opacity = Math.min(1, v / 40); };
+  addEventListener('touchstart', e => { y0 = (!busy && !location.hash && (document.scrollingElement.scrollTop <= 0) && e.touches.length === 1) ? e.touches[0].clientY : null; d = 0; }, {passive:true});
+  addEventListener('touchmove', e => {
+    if(y0 === null) return;
+    d = Math.max(0, e.touches[0].clientY - y0);
+    if(d > 0){ set(Math.min(MAX, d * .5), false); el.firstChild.style.transform = 'rotate(' + d * 3 + 'deg)'; }
+  }, {passive:true});
+  addEventListener('touchend', async () => {
+    if(y0 === null) return; y0 = null;
+    if(d * .5 < GO * .5){ set(0, true); return; }
+    busy = true; el.firstChild.style.transform = ''; el.classList.add('spin'); set(GO * .6, true);
+    const t = store(KEY);
+    try {
+      if(t){ const n = await rpc('fid_state',{p_tag:tag,p_token:t}); if(!n.error) render(n,{viewOnly:true}); }
+    } catch(e){}
+    setTimeout(() => { el.classList.remove('spin'); set(0, true); busy = false; }, 500);
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
