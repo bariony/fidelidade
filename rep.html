@@ -85,6 +85,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>
+const RECOVERY = /type=recovery/.test(location.hash);
 const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
 const root = document.getElementById('app');
 const $ = s => document.querySelector(s);
@@ -110,24 +111,77 @@ async function rpc(fn, args){
   return data;
 }
 
-function viewLogin(msg){
-  root.innerHTML = `<div class="auth"><div class="brand">${LOGO}<span>carimb<span style="color:var(--red)">ô</span></span></div>
-    <h1>Área do representante</h1>
-    <form id="f"><label for="e">E-mail</label><input id="e" type="email" required autocomplete="email">
-    <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="current-password">
-    <p class="err" role="alert">${esc(msg || '')}</p>
-    <div class="actions"><button class="btn" value="in">Entrar</button><button class="btn line" value="up" formnovalidate>Criar acesso</button></div></form>
-    <p class="sub" style="margin-top:14px">Primeiro acesso? Toque em <b>Criar acesso</b> e depois informe o código de convite que a Carimbô enviou.</p></div>`;
+const BRAND = () => `<div class="brand">${LOGO}<span>carimb<span style="color:var(--red)">ô</span></span></div>`;
+const tr = (e) => /Invalid login/i.test(e.message) ? 'E-mail ou senha incorretos.' : /rate limit|seconds/i.test(e.message) ? 'Muitas tentativas. Espere um minuto e tente de novo.' : e.message;
+function viewLogin(msg, info, email){
+  root.innerHTML = `<div class="auth">${BRAND()}
+    <h1>Entrar na área do representante</h1>
+    <form id="f"><label for="e">E-mail</label><input id="e" type="email" required autocomplete="email" value="${esc(email || '')}">
+    <label for="p">Senha</label><input id="p" type="password" required minlength="6" autocomplete="current-password">
+    <p class="err" role="alert">${esc(msg || '')}</p>${info ? `<p class="sub" style="color:#12805C">${esc(info)}</p>` : ''}
+    <div class="actions"><button class="btn">Entrar</button></div></form>
+    <p class="sub" style="margin-top:14px"><a href="#" id="forgot">Esqueci minha senha</a></p>
+    <hr style="border:0;border-top:1px solid #E5DFD3;margin:18px 0">
+    <p class="sub"><b>Primeiro acesso?</b> Você precisa do código de convite que a Carimbô enviou.</p>
+    <button class="btn line" type="button" id="first" style="margin-top:8px">Criar meu acesso</button></div>`;
+  $('#forgot').onclick = ev => { ev.preventDefault(); viewForgot($('#e').value); };
+  $('#first').onclick = () => viewSignup();
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
-    const a = ev.submitter && ev.submitter.value, e = $('#e').value, p = $('#p').value;
-    const r = a === 'up' ? await sb.auth.signUp({email:e, password:p}) : await sb.auth.signInWithPassword({email:e, password:p});
-    if(r.error) return viewLogin(r.error.message);
-    if(!r.data.session){
-      const r2 = await sb.auth.signInWithPassword({email:e, password:p});
-      if(r2.error) return viewLogin('Não deu para entrar: ' + r2.error.message);
-    }
+    const r = await sb.auth.signInWithPassword({email:$('#e').value.trim(), password:$('#p').value});
+    if(r.error) return viewLogin(tr(r.error), '', $('#e').value);
     boot();
+  };
+}
+function viewSignup(msg){
+  root.innerHTML = `<div class="auth">${BRAND()}
+    <h1>Criar meu acesso</h1><p class="sub">Use o código de convite que a Carimbô enviou. Ele vale uma única vez.</p>
+    <form id="f"><label for="c">Código de convite</label><input id="c" required autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="e">Seu e-mail</label><input id="e" type="email" required autocomplete="email">
+    <label for="p">Crie uma senha (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <p class="err" role="alert">${esc(msg || '')}</p>
+    <div class="actions"><button class="btn">Criar acesso</button><button class="btn line" type="button" id="back">Voltar</button></div></form></div>`;
+  $('#back').onclick = () => viewLogin();
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const e = $('#e').value.trim(), p = $('#p').value;
+    let r = await sb.auth.signUp({email:e, password:p});
+    if(r.error) return viewSignup(tr(r.error));
+    if(!r.data.session){
+      r = await sb.auth.signInWithPassword({email:e, password:p});
+      if(r.error) return viewSignup('Este e-mail já tem cadastro e a senha não confere. Use outro e-mail ou, se for o seu, volte e toque em "Esqueci minha senha".');
+    }
+    const c = await sb.rpc('fid_rep_claim', {p_invite:$('#c').value});
+    if(c.error) return viewSignup(c.error.message);
+    if(c.data && c.data.error) return viewSignup(ERR[c.data.error] || c.data.error);
+    boot();
+  };
+}
+function viewForgot(email, msg){
+  root.innerHTML = `<div class="auth">${BRAND()}
+    <h1>Esqueci minha senha</h1><p class="sub">Informe o e-mail do seu acesso. Enviamos um link para você criar uma senha nova.</p>
+    <form id="f"><label for="e">E-mail</label><input id="e" type="email" required autocomplete="email" value="${esc(email || '')}">
+    <p class="err" role="alert">${esc(msg || '')}</p>
+    <div class="actions"><button class="btn">Enviar link</button><button class="btn line" type="button" id="back">Voltar</button></div></form></div>`;
+  $('#back').onclick = () => viewLogin();
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await sb.auth.resetPasswordForEmail($('#e').value.trim(), {redirectTo: location.origin + location.pathname});
+    if(r.error) return viewForgot($('#e').value, tr(r.error));
+    viewLogin('', 'Pronto! Se esse e-mail tiver acesso, enviamos o link. Confira também o spam.');
+  };
+}
+function viewNewPass(msg){
+  root.innerHTML = `<div class="auth">${BRAND()}
+    <h1>Crie uma senha nova</h1>
+    <form id="f"><label for="p">Senha nova (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <p class="err" role="alert">${esc(msg || '')}</p>
+    <div class="actions"><button class="btn">Salvar senha</button></div></form></div>`;
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await sb.auth.updateUser({password:$('#p').value});
+    if(r.error) return viewNewPass(tr(r.error));
+    history.replaceState(null, '', location.pathname); toast('Senha alterada ✓'); boot();
   };
 }
 function viewInvite(msg){
@@ -144,6 +198,7 @@ function viewInvite(msg){
   };
 }
 async function boot(){
+  if(RECOVERY) return viewNewPass();
   const {data:{session}} = await sb.auth.getSession();
   if(!session) return viewLogin();
   const d = await rpc('fid_rep_dashboard');
