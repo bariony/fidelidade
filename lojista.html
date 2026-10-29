@@ -557,15 +557,18 @@ function viewAssinatura(){
     return `<div class="brow"><div><b>${KIND_LBL[x.kind] || x.kind}</b><br><span class="sub2">${fdt(x.created_at)}${x.renews_after && !ref ? ' · cobre até ' + fdate(x.renews_after) : ''}</span></div>
       <div style="text-align:right"><b>${brl(Math.abs(x.amount))}</b>${ref ? ' (volta para você)' : ''}<br>${tag}${can ? ` <button class="btn line small" data-refund="${x.id}" data-lbl="${KIND_LBL[x.kind]}" data-amt="${x.amount}">Pedir reembolso</button>` : ''}</div></div>`;
   }).join('') : '<p class="sub2">Nenhuma cobrança ainda.</p>';
-  const tks = b.tickets.length ? b.tickets.map(t => `<div class="brow" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${TK_LBL[t.kind]}${t.needs_owner ? '<span class="dot" title="Nova resposta"></span>' : ''}</b><span class="pill">${TK_ST[t.status]}</span></div>
+  const tks = b.tickets.length ? b.tickets.map(t => {
+    const done = t.status === 'resolvido', first = (t.msgs[0] && t.msgs[0].body) || '';
+    return `<details class="brow tk" style="display:block" ${done ? '' : 'open'}><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><span><b>${TK_LBL[t.kind]}${t.needs_owner ? '<span class="dot" title="Nova resposta"></span>' : ''}</b> <span class="sub2">· ${fdate(t.created_at)}${done ? ' · ' + esc(first.length > 50 ? first.slice(0, 50) + '…' : first) : ''}</span></span><span><span class="pill">${TK_ST[t.status]}</span>${done ? ' <span class="sub2" style="text-decoration:underline">ver conversa</span>' : ''}</span></summary>
     <div class="thread">${t.msgs.map(m => `<div class="bub ${m.from_admin ? 'adm' : ''}">${esc(m.body)}<small>${m.from_admin ? 'Carimbô' : 'Você'} · ${fdt(m.created_at)}</small></div>`).join('')}</div>
-    ${t.status !== 'resolvido' && t.kind !== 'cancelamento' ? `<form data-reply="${t.id}" style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" maxlength="2000" placeholder="Responder" style="flex:1;min-width:180px" required><button class="btn small">Enviar</button></form>` : ''}</div>`).join('') : '<p class="sub2">Você ainda não abriu nenhum pedido. Use o botão <b>Preciso de ajuda</b>.</p>';
+    ${!done && t.kind !== 'cancelamento' ? `<form data-reply="${t.id}" style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" maxlength="2000" placeholder="Responder" style="flex:1;min-width:180px" required><button class="btn small">Enviar</button></form>` : ''}</details>`;
+  }).join('') : '<p class="sub2">Você ainda não abriu nenhum pedido. Use o botão <b>Preciso de ajuda</b>.</p>';
   const html = head('Assinatura', 'Plano, cobranças e atendimento') + `<div class="subbox">
     <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
       <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
       <p class="sub2">Mensalidade de ${brl(b.price)}. O 1º mês já vem com o kit. Depois do vencimento você tem ${b.grace_days} dias de carência antes de pausar os carimbos e as tags.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
-    <section class="panel"><h2>Histórico de cobranças</h2><p class="sub2" style="margin-bottom:6px">Reembolso do kit ou da mensalidade: até ${b.refund_days} dias depois do pagamento. Passou desse prazo? Fale com a gente pelo botão de ajuda.</p>${rows}</section>
+    <section class="panel"><h2>Histórico de cobranças</h2>${rows}</section>
     <section class="panel"><h2>Seus pedidos de ajuda</h2>${tks}</section></div>`;
   return {html, bind(){
     const pay = $('#payn'); if(pay) pay.onclick = async () => {
