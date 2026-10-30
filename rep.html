@@ -276,7 +276,7 @@ function render(){
       <div class="a ${cx ? 'cx' : (l.amount < 0 ? 'neg' : '')}">${money(l.amount)}</div></div>`;
   }).join('');
   const pays = d.payouts.map(p => `<div class="ln"><div><b>Repasse de ${fmtDate(p.cycle)}</b> <span class="pill ${p.paid_at ? 'p-paga' : 'p-em_repasse'}">${p.paid_at ? 'Pago em ' + fmtDate(p.paid_at) : 'A pagar'}</span></div><div class="a">${money(p.total)}</div></div>`).join('');
-  root.innerHTML = `<div class="hero"><div class="wrap"><div class="nav"><div class="brand">${LOGO}<span>carimb<span style="color:#FF7B6E">ô</span></span><span class="crown">Representante</span></div><button class="btn ghost" id="out">Sair</button></div>
+  root.innerHTML = `<div class="hero"><div class="wrap"><div class="nav"><div class="brand">${LOGO}<span>carimb<span style="color:#FF7B6E">ô</span></span><span class="crown">Representante</span></div><span style="display:flex;gap:8px"><a class="btn ghost" href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener" style="text-decoration:none">Instagram</a><button class="btn ghost" id="out">Sair</button></span></div>
       <div class="hello"><h1>Olá, ${esc(r.name.split(' ')[0])}</h1><p>Próximo repasse: <b>${fmtDate(d.next_payday)}</b></p></div></div></div>
     <div class="wrap pad">
       <div class="tiles">

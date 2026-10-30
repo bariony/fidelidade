@@ -423,6 +423,7 @@ window.addEventListener('unhandledrejection', e => toast('Erro: ' + ((e.reason &
 
 /* ---------- ícones ---------- */
 const ICON = {
+  ig:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6"/></svg>',
   card:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>',
   home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
   users:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.3c1.8.8 3 2.6 3 4.7"/></svg>',
@@ -769,6 +770,7 @@ function renderMain(){
     <nav class="nav" aria-label="Seções">${nav}${sup}</nav>
     <div class="foot">
       ${mq.matches ? '' : `<button class="navbtn" id="col" data-tip="Expandir menu" aria-label="Recolher ou expandir o menu">${ICON.chev}<span class="lb">Recolher menu</span></button>`}
+      <a class="navbtn" href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener" data-tip="Instagram" aria-label="Instagram da Carimbô">${ICON.ig}<span class="lb">Instagram</span></a>
       <button class="navbtn" id="out" data-tip="Sair" aria-label="Sair">${ICON.out}<span class="lb">Sair</span></button>
       <div class="email">${esc(S.user.email || '')}</div>
     </div></aside><main>${planBanner()}${v.html}</main></div>${helpFab()}`;
