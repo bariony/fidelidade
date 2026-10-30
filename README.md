@@ -47,3 +47,4 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - **Secret obrigatório:** `ANTHROPIC_API_KEY` (Supabase → Edge Functions → Secrets). O lojista nunca vê a chave.
 - Uso por pergunta (tokens, ferramentas) em `fid_tum_usage`, sem limite por enquanto. SQL em `tum.sql`.
 - Privacidade: nomes de clientes vão ao provedor de IA nas perguntas; o WhatsApp só entra na consulta de uma pessoa. Vale citar na política de privacidade.
+- Admin (`super.html#/tum`): aba **Tum** com perguntas, tokens, custo estimado, uso por loja e últimas perguntas (RPC `fid_super_tum_usage`, só super). Visual do admin simplificado (sem cabeçalho escuro, sem sombras duras e sem ícones decorativos).

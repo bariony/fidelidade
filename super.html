@@ -178,6 +178,66 @@
   .panel .rcard{box-shadow:none;border:1.5px solid var(--line)}
   @media (max-width:900px){.grid2{grid-template-columns:1fr}.cols{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.seg{margin-left:0}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ===== visual simples (sobrescreve o acima) ===== */
+  :root{--sh:none}
+  body{background:#fff}
+  .hero,.hero.slim{background:#fff;color:var(--ink);padding:14px 0 0;border-bottom:1px solid var(--line)}
+  .hero.slim{padding-bottom:0}
+  .logo{width:32px;height:32px;border:0;border-radius:8px;box-shadow:none;background:none}
+  .logo svg{width:28px;height:28px}
+  .brand span[style]{color:var(--red)!important}
+  .crown{color:var(--muted);border-color:var(--line);letter-spacing:.08em}
+  .btn{box-shadow:none;border-width:1px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700;min-height:40px;padding:8px 16px}
+  .btn:active{transform:none;box-shadow:none}
+  .btn.line,.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.line:hover,.btn.ghost:hover{background:var(--paper);border-color:var(--ink)}
+  .btn.danger{border-width:1px}
+  .btn.small{min-height:34px;padding:5px 12px}
+  .title{margin-top:18px}
+  .title h1{font-size:1.5rem;font-weight:700;color:var(--ink)}
+  .title p{color:var(--muted)}
+  .hero .wrap>.title{padding-bottom:16px}
+  .tabs{gap:0;margin-top:14px;overflow-x:auto;flex-wrap:nowrap}
+  .tab{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--muted);padding:10px 4px;margin-right:20px;font-family:'Nunito',sans-serif;font-weight:700;white-space:nowrap}
+  .tab:hover{background:none;color:var(--ink)}
+  .tab[aria-selected=true]{background:none;color:var(--ink);border-bottom-color:var(--red)}
+  .tab i{margin-left:6px}
+  .back{color:var(--muted)}.back:hover{color:var(--ink)}
+  .tiles{margin-top:22px;gap:12px}
+  .tile,.panel,.rcard,.tw,.sc{box-shadow:none;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .tile .k i,.panel h2 i{display:none}
+  .tile b{font-family:'Nunito',sans-serif;font-size:1.8rem;margin-top:6px}
+  .tile.warn b,.tile.bad b{color:inherit}
+  .tile.big b{margin-bottom:0}
+  svg.sp,.nums svg{display:none}
+  .nums{grid-template-columns:repeat(3,1fr)}
+  .nums div b{font-family:'Nunito',sans-serif}
+  .mini div{background:#fff;border-radius:10px}
+  .sc{padding:18px}.sc::before{display:none}
+  .sc:hover{transform:none;box-shadow:none;border-color:var(--ink)}
+  .av,.av.lg{background:var(--paper)!important;color:var(--ink);border:1px solid var(--line);box-shadow:none;border-radius:10px}
+  .av.lg{width:56px;height:56px;font-size:1.2rem}
+  .pill{font-weight:700}
+  .prog{height:5px}.prog i{background:var(--ink)}.prog.warn i{background:var(--warn)}.prog.bad i{background:var(--bad)}
+  .st-bloqueada{background:var(--ink)}
+  .foot{border-top:1px solid var(--line)}
+  .aff{background:var(--paper)}
+  th{background:var(--paper)}
+  tbody tr:hover{background:var(--paper)}
+  th,td{border-bottom-color:var(--line)}
+  .dh{margin-top:18px}.dh h1{font-size:1.5rem;font-family:'Nunito',sans-serif;font-weight:800;color:var(--ink)}.dh p{color:var(--muted)}
+  .hero .dh{padding-bottom:18px}
+  .ring{width:108px;height:108px}.ring b{font-size:1.5rem;color:var(--ink);font-family:'Nunito',sans-serif}.ring small{color:var(--muted);font-size:.64rem;max-width:80px}
+  .panel h2,.rcard h3,.sect h3{font-family:'Nunito',sans-serif;font-weight:800}
+  .search input,.chip,.seg,input,select,textarea{border-width:1px}
+  input:focus,select:focus,textarea:focus{box-shadow:none;border-color:var(--ink)}
+  .chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink)}
+  .seg button[aria-pressed=true]{background:var(--paper);color:var(--ink)}
+  .mrow div,.kv div,.prev{background:var(--paper)}
+  .auth{box-shadow:none;border:1px solid var(--line)}
+  .bars i{border-radius:3px 3px 0 0}.bars i.z{background:var(--line)}
+  h1,h2,h3,.brand{font-family:'Nunito',system-ui,sans-serif}
 </style>
 </head>
 <body>
@@ -205,7 +265,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -333,10 +393,10 @@ function bars(rows, lab){
     <div class="hlab"><span>${lab(rows[0])}</span><span>${lab(rows[rows.length - 1])}</span></div>`;
 }
 function ring(s){
-  const p = cyclePct(s) / 100, R = 46, C = 2 * Math.PI * R, col = s.status === 'ativa' ? '#34D399' : s.status === 'trial' ? '#60A5FA' : s.status === 'tolerancia' ? '#FBBF24' : '#F87171';
+  const p = cyclePct(s) / 100, R = 46, C = 2 * Math.PI * R, col = s.status === 'ativa' ? '#0E7A47' : s.status === 'trial' ? '#1D4ED8' : s.status === 'tolerancia' ? '#B45309' : '#C0392B';
   const n = s.status === 'bloqueada' ? '—' : Math.abs(s.days_left);
   const lab = s.status === 'bloqueada' ? 'bloqueada' : s.days_left >= 0 ? pl(s.days_left, 'dia', 'dias') + ' p/ renovar' : pl(-s.days_left, 'dia', 'dias') + ' atraso';
-  return `<div class="ring"><svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="${R}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="9"/><circle cx="56" cy="56" r="${R}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - (s.days_left < 0 ? 1 : p))}"/></svg><div class="c"><div><b>${n}</b><br><small>${lab}</small></div></div></div>`;
+  return `<div class="ring"><svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="${R}" fill="none" stroke="#E4D9C0" stroke-width="9"/><circle cx="56" cy="56" r="${R}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - (s.days_left < 0 ? 1 : p))}"/></svg><div class="c"><div><b>${n}</b><br><small>${lab}</small></div></div></div>`;
 }
 function viewDetail(){
   const {s, d} = S.detail, today = S.today, dd = d && d.daily, mm = d && d.monthly;
@@ -424,7 +484,7 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses']];
+const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
 const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
@@ -442,6 +502,7 @@ async function loadTab(all){
     jobs.push(rpc('fid_super_cycle_preview').then(r => { if(r && r.items) S.preview = r; }));
     jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
   }
+  if(all || S.tab === 'tum') jobs.push(rpc('fid_super_tum_usage', {p_days:S.tumDays}).then(r => { if(r && r.totals) S.tum = r; }));
   if(S.tab === 'reps' && S.repOpen) jobs.push(rpc('fid_super_rep', {p_rep:S.repOpen.id}).then(r => { if(r && !r.error) S.repOpen.d = r; }));
   await Promise.all(jobs);
 }
@@ -458,10 +519,39 @@ function heroTab(title, sub){
     <div class="title"><h1>${title}</h1><p>${sub}</p></div></div></div>`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind();
+}
+
+
+/* uso do Tum (IA) */
+const TUM_PRICE = {in:0.10, out:0.50}; // US$ por milhão de tokens (Haiku 5.5, prompts até 100 mil tokens)
+const usd = (i, o) => (i * TUM_PRICE.in + o * TUM_PRICE.out) / 1e6;
+const fmtUsd = v => 'US$ ' + v.toFixed(v < 1 ? 3 : 2).replace('.', ',');
+const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
+function viewTum(){
+  const T = S.tum;
+  if(!T) return {html: heroTab('Tum', 'Carregando…') + '<div class="wrap pad after"></div>', bind(){}};
+  const t = T.totals, q = +t.questions, cost = usd(+t.input_tokens, +t.output_tokens), td = T.today;
+  const mx = Math.max(1, ...T.by_day.map(x => x.questions));
+  const bars = T.by_day.map(x => `<i style="height:${Math.max(2, x.questions / mx * 100)}%" class="${x.questions ? '' : 'z'}" title="${fmtDate(x.date)}: ${x.questions}"></i>`).join('');
+  const rows = T.by_store.map(r => `<tr><td><b>${esc(r.store)}</b></td><td class="n">${fmtN(r.questions)}</td><td class="n">${fmtN(+r.input_tokens + +r.output_tokens)}</td><td class="n">${fmtUsd(usd(+r.input_tokens, +r.output_tokens))}</td><td>${fmtDT(r.last_at)}</td></tr>`).join('');
+  const rec = T.recent.map(r => `<div class="ln2"><div><b>${esc(r.question || '')}</b><br><small>${esc(r.store || '')} · ${fmtDT(r.at)}</small></div><div class="a">${fmtN(r.tokens)} tokens</div></div>`).join('');
+  return {html: heroTab('Tum', `Assistente de IA das lojas · últimos ${T.days} dias`) + `<div class="wrap pad after">
+    <div class="bar" style="margin-top:0"><div class="seg" role="group" aria-label="Período" style="margin-left:0">${[7, 30, 90].map(d => `<button data-d="${d}" aria-pressed="${S.tumDays === d}">${d} dias</button>`).join('')}</div></div>
+    <div class="tiles" style="margin-top:0">
+      <div class="tile"><div class="k">Perguntas</div><b>${fmtN(q)}</b><small>${fmtN(td.questions)} hoje</small></div>
+      <div class="tile"><div class="k">Lojas usando</div><b>${fmtN(t.stores)}</b><small>${q ? (q / Math.max(1, t.stores)).toFixed(1).replace('.', ',') : 0} perguntas por loja</small></div>
+      <div class="tile"><div class="k">Tokens</div><b>${fmtN(+t.input_tokens + +t.output_tokens)}</b><small>${fmtN(t.input_tokens)} entrada · ${fmtN(t.output_tokens)} saída</small></div>
+      <div class="tile"><div class="k">Custo estimado</div><b>${fmtUsd(cost)}</b><small>${q ? fmtUsd(cost / q) + ' por pergunta' : 'sem uso ainda'}</small></div>
+    </div>
+    <p class="sub">Estimativa com o preço do Haiku 5.5: US$ 0,10 por milhão de tokens de entrada e US$ 0,50 de saída. O valor real está no console da Anthropic.</p>
+    <section class="panel" style="margin-top:18px"><h2>Perguntas por dia</h2><div class="bars">${bars}</div><div class="hlab"><span>${fmtDate(T.by_day[0] && T.by_day[0].date)}</span><span>hoje</span></div></section>
+    <section class="panel" style="margin-top:18px"><h2>Por loja</h2>${rows ? `<div class="tw" style="margin-top:12px"><table style="min-width:560px"><thead><tr><th>Loja</th><th class="n">Perguntas</th><th class="n">Tokens</th><th class="n">Custo</th><th>Último uso</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="sub">Nenhuma pergunta neste período.</p>'}</section>
+    <section class="panel" style="margin-top:18px"><h2>Últimas perguntas</h2><p class="sub">Úteis para descobrir o que os lojistas mais querem saber e melhorar o manual do Tum.</p>${rec || '<p class="sub">Nada por aqui ainda.</p>'}</section></div>`,
+    bind(){ root.querySelectorAll('[data-d]').forEach(b => b.onclick = async () => { S.tumDays = +b.dataset.d; await loadTab(); render(false); }); }};
 }
 
 /* atendimentos */
@@ -668,7 +758,7 @@ function viewPayouts(){
 }
 
 /* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
-const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses'};
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
 function parseRoute(){

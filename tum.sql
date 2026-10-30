@@ -178,3 +178,32 @@ begin
     execute format('grant execute on function public.%s to authenticated', f);
   end loop;
 end $$;
+
+-- Uso do Tum no admin (só super). Aplicado via migration tum_usage_admin.
+create or replace function public.fid_super_tum_usage(p_days int default 30)
+returns jsonb language plpgsql stable security definer set search_path to 'public', 'pg_temp' as $$
+declare d int := greatest(1, least(coalesce(p_days, 30), 365)); r jsonb;
+begin
+  if not public.fid_is_super() then return jsonb_build_object('error','sem_permissao'); end if;
+  select jsonb_build_object(
+    'days', d,
+    'totals', (select jsonb_build_object('questions', count(*), 'input_tokens', coalesce(sum(input_tokens),0), 'output_tokens', coalesce(sum(output_tokens),0),
+        'tool_calls', coalesce(sum(tool_calls),0), 'stores', count(distinct store_id))
+      from public.fid_tum_usage where created_at > now() - make_interval(days => d)),
+    'today', (select jsonb_build_object('questions', count(*), 'input_tokens', coalesce(sum(input_tokens),0), 'output_tokens', coalesce(sum(output_tokens),0))
+      from public.fid_tum_usage where (created_at at time zone 'America/Sao_Paulo')::date = (now() at time zone 'America/Sao_Paulo')::date),
+    'by_store', (select coalesce(jsonb_agg(x order by (x->>'questions')::int desc, x->>'store'), '[]'::jsonb) from (
+      select jsonb_build_object('store_id', s.id, 'store', s.name, 'questions', count(*), 'input_tokens', sum(u.input_tokens), 'output_tokens', sum(u.output_tokens),
+        'last_at', max(u.created_at)) x
+      from public.fid_tum_usage u join public.fid_stores s on s.id = u.store_id
+      where u.created_at > now() - make_interval(days => d) group by s.id, s.name) q),
+    'by_day', (select coalesce(jsonb_agg(jsonb_build_object('date', g.day, 'questions', coalesce(x.n, 0)) order by g.day), '[]'::jsonb)
+      from (select gs::date as day from generate_series(((now() at time zone 'America/Sao_Paulo')::date - (d - 1))::timestamp, (now() at time zone 'America/Sao_Paulo')::date::timestamp, interval '1 day') gs) g
+      left join (select (created_at at time zone 'America/Sao_Paulo')::date as day, count(*) as n from public.fid_tum_usage group by 1) x on x.day = g.day),
+    'recent', (select coalesce(jsonb_agg(jsonb_build_object('at', u.created_at, 'store', s.name, 'question', u.question, 'tokens', coalesce(u.input_tokens,0) + coalesce(u.output_tokens,0), 'tools', u.tool_calls) order by u.created_at desc), '[]'::jsonb)
+      from (select * from public.fid_tum_usage order by created_at desc limit 30) u left join public.fid_stores s on s.id = u.store_id)
+  ) into r;
+  return r;
+end $$;
+revoke all on function public.fid_super_tum_usage(int) from public, anon;
+grant execute on function public.fid_super_tum_usage(int) to authenticated;
