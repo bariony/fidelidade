@@ -176,10 +176,12 @@ function viewNewPass(msg){
   root.innerHTML = `<div class="auth">${BRAND()}
     <h1>Crie uma senha nova</h1>
     <form id="f"><label for="p">Senha nova (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <label for="p2">Repita a senha nova</label><input id="p2" type="password" required minlength="6" autocomplete="new-password">
     <p class="err" role="alert">${esc(msg || '')}</p>
     <div class="actions"><button class="btn">Salvar senha</button></div></form></div>`;
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
+    if($('#p').value !== $('#p2').value) return viewNewPass('As senhas não são iguais. Digite de novo.');
     const r = await sb.auth.updateUser({password:$('#p').value});
     if(r.error) return viewNewPass(tr(r.error));
     history.replaceState(null, '', location.pathname); toast('Senha alterada ✓'); boot();

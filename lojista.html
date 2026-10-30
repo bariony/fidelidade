@@ -790,14 +790,14 @@ const onMq = () => { if(S.user && S.store) render(); };
 if(mq.addEventListener) mq.addEventListener('change', onMq); else if(mq.addListener) mq.addListener(onMq);
 
 /* ---------- entrada e criação da loja ---------- */
-function viewLogin(msg){
+function viewLogin(msg, info){
   root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <h1>Entrar no painel</h1>
     <label for="e">E-mail</label><input id="e" name="e" type="email" required autocomplete="email">
     <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" name="p" type="password" required minlength="6" autocomplete="current-password">
     <div class="actions"><button class="btn" value="in">Entrar</button><button class="btn line" value="up" formnovalidate>Criar conta</button></div>
     <p style="margin-top:14px"><a href="#" id="forgot">Esqueci minha senha</a></p>
-    <p class="err" role="alert">${esc(msg || '')}</p></form></div>`;
+    <p class="err" role="alert">${esc(msg || '')}</p>${info ? `<p style="color:var(--good);font-weight:700;margin-top:12px">${esc(info)}</p>` : ''}</form></div>`;
   $('#forgot').onclick = ev => { ev.preventDefault(); viewForgot($('#e').value); };
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
@@ -824,17 +824,19 @@ function viewForgot(email, msg){
     const e = $('#e').value.trim();
     const r = await sb.auth.resetPasswordForEmail(e, {redirectTo: location.origin + location.pathname});
     if(r.error) return viewForgot(e, r.error.message);
-    viewLogin('Pronto! Se esse e-mail tiver acesso, enviamos o link. Confira também o spam.');
+    viewLogin('', 'Pronto! Se esse e-mail tiver acesso, enviamos o link. Confira também o spam.');
   };
 }
 function viewNewPass(msg){
   root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <h1>Crie uma senha nova</h1>
     <label for="p">Senha nova (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <label for="p2">Repita a senha nova</label><input id="p2" type="password" required minlength="6" autocomplete="new-password">
     <div class="actions"><button class="btn">Salvar senha</button></div>
     <p class="err" role="alert">${esc(msg || '')}</p></form></div>`;
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
+    if($('#p').value !== $('#p2').value) return viewNewPass('As senhas não são iguais. Digite de novo.');
     const r = await sb.auth.updateUser({password:$('#p').value});
     if(r.error) return viewNewPass(r.error.message);
     history.replaceState(null, '', location.pathname); boot();
