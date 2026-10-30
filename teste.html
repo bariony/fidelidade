@@ -155,6 +155,7 @@ async function submit(ev){
     const {data, error} = await sb.rpc('fid_trial_redeem', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa')});
     if(error) throw new Error('Não foi possível ativar agora. Tente de novo.');
     if(data && data.error){ if(data.error === 'ja_tem_loja'){ location.href = 'lojista.html'; return; } throw new Error(MSG[data.error] || data.error); }
+    sb.functions.invoke('send-email', {body:{kind:'welcome_shop'}}).catch(() => {});
     box('Teste ativado! ✓', 'Sua loja <b>' + esc(v('lj')) + '</b> está pronta, com ' + S.days + ' dias de teste.', '<a class="btn" href="lojista.html#/hoje">Entrar no painel</a>');
     setTimeout(() => { location.href = 'lojista.html#/hoje'; }, 1800);
   } catch(e){ err(e.message || 'Não foi possível ativar. Tente de novo.'); btn.disabled = false; btn.textContent = 'Ativar meu teste'; }

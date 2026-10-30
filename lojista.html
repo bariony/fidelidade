@@ -394,6 +394,7 @@
 <script src="config.js"></script>
 <script>
 const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
+const RECOVERY = /type=recovery/.test(location.hash);
 const root = document.getElementById('app');
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -795,7 +796,9 @@ function viewLogin(msg){
     <label for="e">E-mail</label><input id="e" name="e" type="email" required autocomplete="email">
     <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" name="p" type="password" required minlength="6" autocomplete="current-password">
     <div class="actions"><button class="btn" value="in">Entrar</button><button class="btn line" value="up" formnovalidate>Criar conta</button></div>
+    <p style="margin-top:14px"><a href="#" id="forgot">Esqueci minha senha</a></p>
     <p class="err" role="alert">${esc(msg || '')}</p></form></div>`;
+  $('#forgot').onclick = ev => { ev.preventDefault(); viewForgot($('#e').value); };
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
     const a = ev.submitter && ev.submitter.value, e = ev.target.e.value, p = ev.target.p.value;
@@ -805,7 +808,36 @@ function viewLogin(msg){
       const r2 = await sb.auth.signInWithPassword({email:e, password:p});
       if(r2.error) return viewLogin('Conta criada, mas não deu para entrar: ' + r2.error.message);
     }
+    if(a === 'up') sb.functions.invoke('send-email', {body:{kind:'welcome_shop'}}).catch(() => {});
     boot();
+  };
+}
+function viewForgot(email, msg){
+  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
+    <h1>Esqueci minha senha</h1><p>Informe o e-mail do seu acesso. Enviamos um link para você criar uma senha nova.</p>
+    <label for="e">E-mail</label><input id="e" type="email" required autocomplete="email" value="${esc(email || '')}">
+    <div class="actions"><button class="btn">Enviar link</button><button class="btn line" type="button" id="back">Voltar</button></div>
+    <p class="err" role="alert">${esc(msg || '')}</p></form></div>`;
+  $('#back').onclick = () => viewLogin();
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const e = $('#e').value.trim();
+    const r = await sb.auth.resetPasswordForEmail(e, {redirectTo: location.origin + location.pathname});
+    if(r.error) return viewForgot(e, r.error.message);
+    viewLogin('Pronto! Se esse e-mail tiver acesso, enviamos o link. Confira também o spam.');
+  };
+}
+function viewNewPass(msg){
+  root.innerHTML = `<div class="auth"><form id="f"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
+    <h1>Crie uma senha nova</h1>
+    <label for="p">Senha nova (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <div class="actions"><button class="btn">Salvar senha</button></div>
+    <p class="err" role="alert">${esc(msg || '')}</p></form></div>`;
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault();
+    const r = await sb.auth.updateUser({password:$('#p').value});
+    if(r.error) return viewNewPass(r.error.message);
+    history.replaceState(null, '', location.pathname); boot();
   };
 }
 function viewCreate(){
@@ -1277,6 +1309,7 @@ function viewRegras(){
 
 /* ---------- início ---------- */
 async function boot(){
+  if(RECOVERY && !S.recovered){ S.recovered = true; await new Promise(r => setTimeout(r, 400)); return viewNewPass(); }
   const {data:{session}} = await sb.auth.getSession();
   S.user = session ? session.user : null;
   const r0 = parseHash(); if(r0) S.view = r0.view === 'cliente' ? 'clientes' : r0.view;

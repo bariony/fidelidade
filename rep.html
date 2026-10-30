@@ -154,6 +154,7 @@ function viewSignup(msg){
     const c = await sb.rpc('fid_rep_claim', {p_invite:$('#c').value});
     if(c.error) return viewSignup(c.error.message);
     if(c.data && c.data.error) return viewSignup(ERR[c.data.error] || c.data.error);
+    sb.functions.invoke('send-email', {body:{kind:'welcome_rep'}}).catch(() => {});
     boot();
   };
 }
@@ -194,7 +195,7 @@ function viewInvite(msg){
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
     const r = await rpc('fid_rep_claim', {p_invite:$('#c').value});
-    if(r && r.ok) boot(); else if(r) viewInvite(ERR[r.error] || r.error);
+    if(r && r.ok){ sb.functions.invoke('send-email', {body:{kind:'welcome_rep'}}).catch(() => {}); boot(); } else if(r) viewInvite(ERR[r.error] || r.error);
   };
 }
 async function boot(){

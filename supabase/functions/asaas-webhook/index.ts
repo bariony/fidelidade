@@ -59,6 +59,17 @@ Deno.serve(async (req) => {
         if (error) throw error;
         if (data?.error && data.error !== "pedido_nao_esta_aguardando_pagamento") throw new Error(data.error);
         result = data?.error ? "pedido_ja_tratado" : "kit_pago";
+        if (!data?.error) {
+          // e-mail "pedido confirmado" ao comprador (não bloqueia o webhook se falhar)
+          try {
+            const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ kind: "order_paid", order_id: pay.externalReference }),
+            });
+            if (!r.ok) console.error("email order_paid", r.status, await r.text());
+          } catch (e) { console.error("email order_paid", String(e)); }
+        }
 
         // cria a assinatura da mensalidade (começa quando acaba o mês incluso)
         const storeId = data?.store_id;

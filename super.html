@@ -747,7 +747,7 @@ function viewOrders(){
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const v = prompt('Valor do kit, sem o frete (R$). É a base da comissão do representante:', b.dataset.amt); if(v === null) return; const n = parseFloat(String(v).replace(',', '.'));
       if(!(n > 0)) return toast('Informe um valor válido', true);
-      act(b, 'fid_super_confirm_order', {p_order:b.dataset.pay, p_amount:n}, 'Pagamento confirmado ✓ A comissão do representante já foi lançada.');
+      const oid = b.dataset.pay; act(b, 'fid_super_confirm_order', {p_order:oid, p_amount:n}, 'Pagamento confirmado ✓ A comissão do representante já foi lançada. E-mail de pedido confirmado enviado.').then(r => { if(r) sb.functions.invoke('send-email', {body:{kind:'order_paid', order_id:oid}}).catch(() => {}); });
     });
     root.querySelectorAll('[data-ship]').forEach(b => b.onclick = () => { const t = b.dataset.pick === '1' ? '' : prompt('Código de rastreio (opcional):', ''); if(t === null) return; act(b, 'fid_super_order_status', {p_order:b.dataset.ship, p_status:'enviado', p_tracking:t}, b.dataset.pick === '1' ? 'Marcado como entregue ✓' : 'Marcado como enviado ✓'); });
     root.querySelectorAll('[data-cx]').forEach(b => b.onclick = () => { if(confirm('Cancelar este pedido? A loja continua existindo.')) act(b, 'fid_super_order_status', {p_order:b.dataset.cx, p_status:'cancelado'}, 'Pedido cancelado'); });
