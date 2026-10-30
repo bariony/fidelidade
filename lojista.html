@@ -55,20 +55,20 @@
   /* ---------- estrutura e menu ---------- */
   .shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;transition:grid-template-columns .2s ease}
   .shell.collapsed{grid-template-columns:76px minmax(0,1fr)}
-  .rail{background:#fff;border-right:3px solid var(--ink);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;z-index:30}
-  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.6rem;letter-spacing:-.01em;padding:2px 8px 22px;color:var(--ink)}
+  .rail{background:#fff;border-right:3px solid var(--ink);padding:12px 12px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;z-index:30}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.6rem;letter-spacing:-.01em;padding:2px 8px 12px;color:var(--ink)}
   .brand svg{flex:none}
   .brand em{font-style:normal;color:var(--red)}
-  .nav{display:flex;flex-direction:column;gap:4px}
+  .nav{display:flex;flex-direction:column;gap:2px}
   a.navbtn{text-decoration:none;box-sizing:border-box}
-  .navbtn{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border:0;border-radius:12px;background:none;color:var(--muted);font-weight:500;cursor:pointer;text-align:left}
+  .navbtn{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border:0;border-radius:12px;background:none;color:var(--muted);font-weight:500;cursor:pointer;text-align:left}
   .navbtn svg{width:21px;height:21px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
   .navbtn:hover{background:var(--lilac);color:var(--primary-d)}
   .navbtn[aria-current=page]{background:var(--primary);color:#fff;font-weight:600;box-shadow:3px 3px 0 var(--red)}
-  .rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:12px}
+  .rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding-top:8px;margin-top:auto}
   .rail .email{padding:6px 12px 0;font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
   .collapsed .lb,.collapsed .brand span,.collapsed .email{display:none}
-  .collapsed .navbtn{justify-content:center;padding:11px 0}
+  .collapsed .navbtn{justify-content:center;padding:8px 0}
   .collapsed .brand{justify-content:center;padding-left:0;padding-right:0}
   .collapsed #col svg{transform:rotate(180deg)}
   .collapsed .navbtn:hover::after,.collapsed .navbtn:focus-visible::after{content:attr(data-tip);position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);background:var(--ink);color:#fff;padding:6px 11px;border-radius:8px;font-size:.85rem;font-weight:500;white-space:nowrap;z-index:60;pointer-events:none}
