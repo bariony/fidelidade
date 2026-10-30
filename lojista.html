@@ -198,6 +198,37 @@
   .fab{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:0;background:var(--red);color:#fff;border:2.5px solid var(--ink);border-radius:99px;box-shadow:var(--hard);font-weight:700}
   .fab button{background:none;border:0;color:#fff;cursor:pointer;min-height:44px;padding:0 16px;font-weight:700}
   .fab .x{padding:0 12px 0 4px;opacity:.85;font-size:1.1rem}
+
+  /* ---------- Tum, assistente da loja ---------- */
+  #tum{position:fixed;right:18px;bottom:78px;z-index:70;font-family:inherit}
+  #tum .tbtn{display:flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border:2.5px solid var(--ink);border-radius:99px;box-shadow:var(--hard);min-height:48px;padding:0 18px 0 14px;font-weight:800;font-size:1rem;cursor:pointer;font-family:'Fredoka',inherit}
+  #tum .tbtn:active{transform:translate(2px,2px);box-shadow:none}
+  #tum .tbtn svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #tum .tpanel{display:none;position:absolute;right:0;bottom:60px;width:min(400px,calc(100vw - 24px));height:min(560px,calc(100vh - 150px));background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard);overflow:hidden;flex-direction:column}
+  #tum.open .tpanel{display:flex}
+  #tum.open .tbtn{display:none}
+  #tum .thead{display:flex;align-items:center;gap:10px;background:var(--primary);color:#fff;padding:10px 12px;border-bottom:3px solid var(--ink)}
+  #tum .thead b{font-family:'Fredoka',inherit;font-size:1.15rem;line-height:1}
+  #tum .thead small{display:block;opacity:.85;font-size:.76rem}
+  #tum .thead .sp{flex:1}
+  #tum .thead button{background:none;border:0;color:#fff;cursor:pointer;font-size:1.3rem;min-width:36px;min-height:36px;border-radius:8px}
+  #tum .tmsgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+  #tum .m{max-width:88%;padding:9px 12px;border-radius:14px;border:2px solid var(--ink);font-size:.95rem;line-height:1.4;word-wrap:break-word}
+  #tum .m.u{align-self:flex-end;background:var(--kraft)}
+  #tum .m.a{align-self:flex-start;background:#fff}
+  #tum .m.a ul{margin:6px 0 2px;padding-left:18px}
+  #tum .m .cp{display:inline-block;margin-top:8px;background:none;border:2px solid var(--ink);border-radius:99px;padding:3px 10px;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--ink)}
+  #tum .m.err{background:#FDECEA}
+  #tum .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px;background:var(--paper)}
+  #tum .chips button{background:#fff;border:2px solid var(--ink);border-radius:99px;padding:5px 11px;font-size:.84rem;font-weight:700;cursor:pointer;color:var(--ink)}
+  #tum form{display:flex;gap:8px;padding:10px;border-top:3px solid var(--ink);background:#fff}
+  #tum textarea{flex:1;resize:none;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font:inherit;font-size:1rem;min-height:42px;max-height:100px}
+  #tum form button{border:2.5px solid var(--ink);background:var(--red);color:#fff;border-radius:12px;font-weight:800;padding:0 14px;cursor:pointer}
+  #tum form button:disabled{opacity:.55;cursor:default}
+  #tum .dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--ink);animation:tumd 1s infinite}
+  #tum .dots span:nth-child(2){animation-delay:.15s}#tum .dots span:nth-child(3){animation-delay:.3s}
+  @keyframes tumd{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  @media (max-width:520px){#tum{right:12px;bottom:74px}#tum .tpanel{position:fixed;right:8px;left:8px;width:auto;bottom:8px;height:calc(100vh - 16px)}}
   .ovl{position:fixed;inset:0;background:rgba(20,41,107,.45);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
   .modal{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard);padding:20px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
   .modal h2{margin-bottom:6px}
@@ -642,8 +673,89 @@ function planBanner(){
   return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
 }
 
+
+/* ---------- Tum: assistente pessoal da loja ---------- */
+const TUM = { msgs:[], busy:false, open:false, built:false };
+const TUM_CHIPS = ['Resumo do mês','Qual dia é mais cheio?','Quem mais volta?','Clientes sumidos há 30 dias','Que prêmio devo dar?','Como configuro o NFC Tools?'];
+function tumFmt(t){
+  const lines = esc(t).split('\n'); let out = '', ul = false;
+  for(const l of lines){
+    const b = l.match(/^\s*[-*•]\s+(.*)$/);
+    if(b){ if(!ul){ out += '<ul>'; ul = true; } out += '<li>' + b[1] + '</li>'; continue; }
+    if(ul){ out += '</ul>'; ul = false; }
+    out += (l.trim() ? l : '<br>') + (l.trim() ? '<br>' : '');
+  }
+  if(ul) out += '</ul>';
+  return out.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(<br>)+$/,'');
+}
+function tumBuild(){
+  const el = document.createElement('div'); el.id = 'tum';
+  el.innerHTML = `<button class="tbtn" id="tumopen" type="button" aria-label="Abrir o Tum, assistente da loja"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a4 4 0 0 1 4 4c0 1.6-.9 2.6-1.8 3.5-.5.5-.7 1-.7 1.5h-3c0-.5-.2-1-.7-1.5C9 9.6 8 8.6 8 7a4 4 0 0 1 4-4z"/><path d="M4 15h16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Tum</button>
+  <section class="tpanel" role="dialog" aria-label="Tum, assistente da loja">
+    <div class="thead"><div><b>Tum</b><small>Assistente da sua loja</small></div><span class="sp"></span><button type="button" id="tumnew" title="Nova conversa" aria-label="Nova conversa">↺</button><button type="button" id="tumclose" aria-label="Fechar">×</button></div>
+    <div class="tmsgs" id="tummsgs" aria-live="polite"></div><div class="chips" id="tumchips"></div>
+    <form id="tumform"><textarea id="tumin" rows="1" maxlength="1000" placeholder="Pergunte sobre a sua loja…" aria-label="Pergunta para o Tum"></textarea><button id="tumsend" type="submit">Enviar</button></form>
+  </section>`;
+  document.body.appendChild(el);
+  $('#tumopen').onclick = () => tumToggle(true);
+  $('#tumclose').onclick = () => tumToggle(false);
+  $('#tumnew').onclick = () => { if(TUM.busy) return; TUM.msgs = []; tumDraw(); };
+  $('#tumform').onsubmit = e => { e.preventDefault(); tumAsk($('#tumin').value); };
+  $('#tumin').onkeydown = e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); tumAsk($('#tumin').value); } };
+  $('#tumchips').onclick = e => { const b = e.target.closest('button'); if(b) tumAsk(b.textContent); };
+  $('#tummsgs').onclick = async e => {
+    const b = e.target.closest('.cp'); if(!b) return;
+    const txt = TUM.msgs[+b.dataset.i] && TUM.msgs[+b.dataset.i].content;
+    try { await navigator.clipboard.writeText(txt); b.textContent = 'Copiado ✓'; } catch(_){ toast('Não deu para copiar. Selecione o texto.', true); }
+  };
+  TUM.built = true; tumDraw();
+}
+function tumToggle(o){
+  TUM.open = o; $('#tum').classList.toggle('open', o);
+  if(o){ tumDraw(); setTimeout(() => { const i = $('#tumin'); if(i) i.focus(); }, 40); }
+}
+function tumDraw(){
+  const box = $('#tummsgs'); if(!box) return;
+  const nome = S.store && S.store.name ? S.store.name : 'sua loja';
+  let h = '';
+  if(!TUM.msgs.length) h = `<div class="m a">Tum! Eu sou o Tum, assistente da <b>${esc(nome)}</b>. Posso te contar como a loja está indo, quem são seus clientes, escrever mensagem de campanha, sugerir prêmio e te ajudar com a configuração. Pergunte à vontade.</div>`;
+  TUM.msgs.forEach((m, i) => {
+    if(m.role === 'user') h += `<div class="m u">${esc(m.content)}</div>`;
+    else h += `<div class="m a ${m.err ? 'err' : ''}">${tumFmt(m.content)}${m.err ? '' : `<br><button class="cp" type="button" data-i="${i}">Copiar</button>`}</div>`;
+  });
+  if(TUM.busy) h += '<div class="m a"><span class="dots"><span></span><span></span><span></span></span></div>';
+  box.innerHTML = h; box.scrollTop = box.scrollHeight;
+  $('#tumchips').style.display = TUM.msgs.length ? 'none' : 'flex';
+  if(!TUM.msgs.length) $('#tumchips').innerHTML = TUM_CHIPS.map(c => `<button type="button">${esc(c)}</button>`).join('');
+  $('#tumsend').disabled = TUM.busy;
+}
+async function tumAsk(q){
+  q = (q || '').trim(); if(!q || TUM.busy) return;
+  $('#tumin').value = ''; TUM.msgs.push({role:'user', content:q}); TUM.busy = true; tumDraw();
+  let reply = '', err = false;
+  try {
+    const hist = TUM.msgs.filter(m => !m.err).slice(-12).map(m => ({role:m.role, content:m.content}));
+    const r = await sb.functions.invoke('tum-chat', {body:{messages:hist}});
+    let code = r.data && r.data.error;
+    if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
+    if(code === 'tum_nao_configurado') { reply = 'O Tum ainda está sendo ligado por aqui. Tente de novo daqui a pouco.'; err = true; }
+    else if(code === 'nao_autenticado') { reply = 'Sua sessão expirou. Entre de novo no painel.'; err = true; }
+    else if(code || r.error || !r.data || !r.data.reply) { reply = 'Não consegui responder agora. Tente de novo em instantes.'; err = true; }
+    else reply = r.data.reply;
+  } catch(e){ reply = 'Sem conexão com o Tum agora. Confira a internet e tente de novo.'; err = true; }
+  TUM.msgs.push({role:'assistant', content:reply, err}); TUM.busy = false; tumDraw();
+}
+function tumSync(){
+  const on = !!(S.user && S.store);
+  if(on && !TUM.built) tumBuild();
+  const el = $('#tum'); if(!el) return;
+  el.style.display = on ? '' : 'none';
+  if(!on){ TUM.msgs = []; TUM.open = false; el.classList.remove('open'); tumDraw(); }
+}
+
 /* ---------- renderização geral ---------- */
-function render(){
+function render(){ try { return renderMain(); } finally { tumSync(); } }
+function renderMain(){
   if(!S.user) return viewLogin();
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;

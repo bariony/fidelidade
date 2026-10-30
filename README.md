@@ -39,3 +39,11 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - Sem assinatura, o teste pausa no vencimento (sem carência de 10 dias). Com assinatura vale a carência normal.
 - Comissão: sem kit, não há comissão de aquisição; o rep ganha só os 20% de cada mensalidade (teste conta como 1º período).
 - Tabelas/RPCs: `fid_trial_invites`, `fid_rep_trial_create`, `fid_super_trial_create`, `fid_super_trials`, `fid_super_trial_cancel`, `fid_super_rep_trial_limits`, `fid_trial_peek`, `fid_trial_redeem`.
+
+## v17 — Tum, assistente de IA da loja
+
+- Botão **Tum** no painel do lojista (acima do botão de ajuda): chat em linguagem natural sobre a própria loja (dia/horário mais cheio, quem volta, quem tem prêmio, resumo do mês), mensagens de campanha para WhatsApp, sugestão de prêmio e meta, e orientação de configuração (manual, FAQ, NFC Tools, localização anti-fraude).
+- Edge Function `tum-chat` (JWT): chama a Anthropic (Haiku, `TUM_MODEL` para trocar) com tool-use sobre as RPCs `tum_overview`, `tum_customers`, `tum_customer`, executadas com o JWT do lojista. O escopo (só a loja dele) é garantido pelo banco, não pelo prompt. O manual fica em `supabase/functions/tum-chat/knowledge.ts`.
+- **Secret obrigatório:** `ANTHROPIC_API_KEY` (Supabase → Edge Functions → Secrets). O lojista nunca vê a chave.
+- Uso por pergunta (tokens, ferramentas) em `fid_tum_usage`, sem limite por enquanto. SQL em `tum.sql`.
+- Privacidade: nomes de clientes vão ao provedor de IA nas perguntas; o WhatsApp só entra na consulta de uma pessoa. Vale citar na política de privacidade.

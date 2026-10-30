@@ -1,0 +1,90 @@
+// Base de conhecimento do Tum: manual de implantação, painel, regras e FAQ.
+// Fica no código da função (não no banco) para ser versionada junto com o produto.
+export const KNOWLEDGE = `
+# O QUE É O CARIMBÔ
+Cartão fidelidade digital por toque (NFC). O cliente encosta o celular no bastão da loja e o carimbo aparece na hora, sem baixar app e sem cartão de papel. Funciona em iPhone (7 ou mais novo) e na maioria dos Androids com NFC.
+Como funciona por dentro: cada bastão guarda um link da loja. Ao encostar, o link abre no navegador e o carimbo é batido. O bastão não tem bateria. Prêmio e regras mudam pelo painel, sem mexer no bastão.
+O kit traz 2 bastões Carimbô e 1 placa NFC de avaliação do Google. Depois do período incluso, a mensalidade é R$ 49,97 e pode ser cancelada quando quiser.
+O som "Tum!" é o barulho do carimbo batendo: daí o seu nome.
+
+# PAINEL DO LOJISTA (carimbo.io/lojista.html)
+Menu: Hoje, Clientes, Retiradas, Campanhas, Tags, Loja, Regras, Assinatura.
+- Hoje: carimbos do dia, movimento dos últimos dias, clientes por frequência (fiéis, regulares, ocasionais) e quem vale contato (em risco, quase lá, com prêmio).
+- Clientes: lista com busca, filtros e a ficha de cada um (cartão, histórico, botão de WhatsApp, ajuste manual de carimbos).
+- Retiradas: prêmios que os clientes pediram. Confira o nome, entregue o prêmio e toque em Entregue. O pedido tem prazo e expira sozinho. Nada é entregue automaticamente.
+- Campanhas: listas de clientes por situação com botão de campanha por WhatsApp.
+- Tags: um ponto de toque por bastão (ex.: Balcão, Caixa, Mesa). Cada tag tem seu link. Dá para desativar uma tag se o bastão for perdido.
+- Loja: nome, símbolo do carimbo, cores e links no cartão (WhatsApp, Instagram, Facebook, site, avaliação no Google).
+- Regras: carimbos para o prêmio, prêmio, prazo para retirar, intervalo entre carimbos, máximo por dia, exigir que o cliente esteja na loja, PIN do atendente. Salvar em "Salvar regras".
+- Assinatura: plano, cobranças, pagar a mensalidade, pedir ajuda ou reembolso. O botão "Preciso de ajuda" abre um pedido de suporte respondido na aba Assinatura.
+
+# IMPLANTAÇÃO EM 6 PASSOS (cerca de 15 minutos)
+Você precisa: 2 bastões com chip NFC, a placa NFC do Google, um celular com NFC, o app grátis NFC Tools e o e-mail e senha da compra.
+1. Entrar no painel (carimbo.io/lojista.html).
+2. Personalizar o cartão: menu Loja (nome, símbolo, cores, links). Salvar loja.
+3. Definir as regras: menu Regras.
+4. Criar as tags: menu Tags, Nova tag (ex.: Balcão), Criar tag, e tocar em Copiar link. Cada bastão tem o seu próprio link. Nunca grave o mesmo link nos dois bastões.
+5. Gravar o link no bastão com o NFC Tools (abaixo).
+6. Testar como cliente (abaixo).
+
+## Gravar o link no bastão (NFC Tools), passo a passo
+1. Pegue o bastão 1 e o celular e abra o app NFC Tools.
+2. Toque em Ler e aproxime o celular do bastão.
+3. Vá em Gravar > Adicionar um registro > URL / URI.
+4. Cole o link da tag do bastão 1 (copiado no painel, em Tags) e toque em OK.
+5. Toque em Gravar e aproxime o celular do bastão de novo até aparecer que gravou com sucesso.
+6. Teste: aproxime o celular do bastão. Se aparecer que ganhou um carimbo, o bastão 1 está funcionando.
+7. Repita com o bastão 2, colando o link da outra tag.
+Placa NFC do Google: mesmo processo, mas grava o link de avaliação do Google da loja, não o do Carimbô.
+Cuidado: o NFC Tools tem opção de bloquear a tag contra regravação. Só faça isso depois de testar. Depois de bloqueada, a tag não pode mais ser alterada.
+
+## Onde encostar o celular
+- Android: a antena NFC fica no centro, na parte de trás. Varia por modelo; se não ler, mova devagar até achar.
+- iPhone: a antena fica na parte superior de trás, perto da câmera.
+
+## Testar como cliente
+1. Encoste o celular no bastão (de preferência outro celular).
+2. O cartão abre no navegador. Na primeira vez o cliente informa nome e WhatsApp.
+3. O carimbo é batido na hora, com confete e vibração: "Tum! Carimbo batido!".
+4. Encoste de novo logo em seguida: não deve carimbar por causa do intervalo definido. É a proteção funcionando.
+5. Confira no painel, em Hoje.
+Quando o cliente completa o cartão, toca em Resgatar e mostra a tela. No painel, em Retiradas, o lojista confere o nome, entrega o prêmio e toca em Entregue.
+
+# PROTEÇÃO CONTRA FRAUDE (recomendar sempre)
+- Intervalo entre carimbos: 30 a 60 minutos. Evita o cliente encostar várias vezes seguidas.
+- Máximo por dia: 1 ou 2 carimbos por cliente. Carimbo bom é visita de verdade.
+- Exigir que o cliente esteja na loja: ative a localização. Marque a opção em Regras, abra a tela dentro da loja e toque em "Usar minha localização atual". Raio de 100 a 200 metros. O cliente precisa permitir a localização do celular quando o cartão pedir. Isso impede carimbar de longe.
+- PIN do atendente: o resgate do prêmio pode ser confirmado com PIN no celular do cliente.
+- Bastão perdido: desative a tag dele em Tags e crie outra para o substituto.
+- Prêmio só sai depois que o lojista confirma em Retiradas.
+
+# ONDE COLOCAR OS BASTÕES E O QUE FALAR
+- Balcão, perto de onde o cliente paga, de pé, visível, com espaço para encostar o celular. O segundo bastão no caixa, na mesa ou na saída. A placa do Google onde o cliente espera ou ao lado do caixa.
+- Frase para a equipe: "Encosta o celular aqui no bastão e ganha seu carimbo." e "Com N carimbos, você ganha [prêmio]." Todo atendente deve oferecer o carimbo ao fechar a conta.
+
+# COMO ESCOLHER O PRÊMIO E A META
+- O prêmio deve ter valor percebido alto para o cliente e custo baixo para a loja. Regra de bolso: o custo do prêmio fica entre 5% e 10% do que o cliente gasta até completar o cartão.
+- Prefira prêmios que levem o cliente a voltar e a gastar mais: item de entrada, adicional ou "mais um" (ex.: bola extra, café, hidratação, acessório), em vez de desconto grande.
+- Meta de carimbos: 8 a 10 funciona bem para negócios de visita semanal. Para negócios de visita rara (ex.: mensal), 5 a 6. Use a frequência real: se o intervalo médio entre visitas é de 7 dias e a meta é 10, o cliente leva uns 70 dias para ganhar. Se demorar demais, reduza a meta.
+- Prêmio com prazo de retirada (padrão 7 dias) cria urgência e evita acúmulo.
+- Carimbo bônus (Instagram, Facebook, site): um carimbo único por cliente que ajuda a crescer as redes. O Google fica sem bônus de propósito: a política do Google proíbe recompensa por avaliação.
+
+# CAMPANHAS DE REATIVAÇÃO (mensagens de WhatsApp)
+- Mensagem curta, calorosa, com o nome do cliente, o que ele já tem (ex.: "faltam 2 carimbos") e um motivo claro para voltar. Sem pressão e sem textão.
+- Ofereça 2 ou 3 versões com tons diferentes e termine com um convite simples ("Te espero por aqui!").
+- O lojista envia pelo botão de WhatsApp na ficha do cliente ou na aba Campanhas. O Tum escreve o texto, mas não envia nada sozinho.
+- Fale só com clientes que se cadastraram no cartão e evite mandar a mesma mensagem muitas vezes.
+
+# PLANO, COBRANÇA E AJUDA
+- Mensalidade R$ 49,97, cancelável quando quiser. O plano segue valendo até o vencimento depois de cancelar.
+- Reembolso do kit em até 7 dias pela aba Assinatura.
+- Para suporte humano: botão "Preciso de ajuda" no painel.
+
+# FAQ RÁPIDO
+- "O bastão não lê": mova o celular devagar no ponto da antena (Android: centro de trás; iPhone: parte superior), tire a capinha grossa ou metálica e confira se o link foi gravado (abra NFC Tools e toque em Ler).
+- "O cliente encostou e não ganhou carimbo": pode ser o intervalo entre carimbos, o limite por dia, a localização desligada (se exigida), ou plano suspenso.
+- "Cliente perdeu o cartão": o cartão fica salvo no celular dele; se trocou de celular, ele recupera informando o WhatsApp na tela do cartão.
+- "Quero mudar o prêmio ou a meta": menu Regras e Salvar regras. Vale para os próximos carimbos e resgates.
+- "Como adiciono carimbo manual?": ficha do cliente, ajuste manual.
+- "Preciso de mais um bastão": peça pelo botão Preciso de ajuda.
+`;
