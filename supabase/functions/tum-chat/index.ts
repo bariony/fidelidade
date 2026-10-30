@@ -4,7 +4,7 @@
 //   (só a loja dele) é garantido pelo banco, não pelo prompt.
 // - A chave da Anthropic fica no secret ANTHROPIC_API_KEY (o lojista nunca vê).
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { KNOWLEDGE } from "./knowledge.ts";
+import { MANUAL, MANUAL_TOPICS } from "./knowledge.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -17,53 +17,49 @@ const json = (b: unknown, s = 200) =>
 const MODEL = Deno.env.get("TUM_MODEL") ?? "claude-haiku-5-5";
 const MAX_LOOPS = 5;
 const MAX_TURNS = 12;
-const MAX_CHARS = 2000;
+const MAX_CHARS = 1000;
 
-const TOOLS = [
+const TOOLS: any[] = [
   {
     name: "tum_overview",
-    description:
-      "Visão geral da loja num período: configuração (prêmio, meta de carimbos, regras), totais (clientes, carimbos, prêmios ganhos/pedidos/entregues/expirados), carimbos por dia da semana, por hora do dia, por dia (ou mês) e por tag. Use para: dia/horário mais cheio, resumo do mês, quantos prêmios foram dados, movimento. Datas no formato YYYY-MM-DD.",
+    description: "Resumo da loja num período: regras/prêmio, totais (clientes, carimbos, prêmios ganhos/entregues), carimbos por dia da semana, por hora, por dia/mês e por tag.",
     input_schema: {
       type: "object",
       properties: {
-        p_days: { type: "integer", description: "Últimos N dias (padrão 30). Use 365 para o ano, 7 para a semana." },
-        p_from: { type: "string", description: "Início do período (YYYY-MM-DD). Se informado com p_to, ignora p_days." },
-        p_to: { type: "string", description: "Fim do período (YYYY-MM-DD)." },
+        p_days: { type: "integer", description: "Últimos N dias (padrão 30)." },
+        p_from: { type: "string", description: "YYYY-MM-DD (usa com p_to)." },
+        p_to: { type: "string", description: "YYYY-MM-DD." },
       },
     },
   },
   {
     name: "tum_customers",
-    description:
-      "Lista clientes ordenados, com carimbos, prêmios, visitas, intervalo médio entre visitas e última visita. Use para rankings (quem mais volta, mais tem prêmio, mais visitas) e para achar quem está há X dias sem visitar (p_inactive_days). Não traz WhatsApp.",
+    description: "Lista de clientes ordenada, com carimbos, prêmios, visitas, intervalo médio e última visita. Sem WhatsApp. Serve para rankings e para achar quem está sumido.",
     input_schema: {
       type: "object",
       properties: {
-        p_search: { type: "string", description: "Filtra por parte do nome." },
-        p_inactive_days: { type: "integer", description: "Só clientes sem visita há pelo menos N dias." },
-        p_sort: {
-          type: "string",
-          enum: ["last", "visits", "total", "rewards", "inactive", "frequency"],
-          description:
-            "last=visitou mais recentemente; visits=mais dias de visita no período; total=mais carimbos no total; rewards=mais prêmios; inactive=mais tempo sem visitar; frequency=menor intervalo médio entre visitas.",
-        },
-        p_limit: { type: "integer", description: "Máximo de linhas (padrão 15, máx 40)." },
-        p_days: { type: "integer", description: "Janela, em dias, para visit_days_in_period (padrão 30). Use 7 para 'na semana'." },
+        p_search: { type: "string", description: "Parte do nome." },
+        p_inactive_days: { type: "integer", description: "Só quem está há pelo menos N dias sem visitar." },
+        p_sort: { type: "string", enum: ["last", "visits", "total", "rewards", "inactive", "frequency"], description: "last=mais recente; visits=mais visitas no período; total=mais carimbos; rewards=mais prêmios; inactive=mais tempo sumido; frequency=volta mais rápido." },
+        p_limit: { type: "integer", description: "Máx. de linhas (padrão 8, máx 40)." },
+        p_days: { type: "integer", description: "Janela das visitas (padrão 30; 7 = semana)." },
       },
     },
   },
   {
     name: "tum_customer",
-    description:
-      "Ficha detalhada de UM cliente pelo nome (até 5 resultados): visitas nos últimos 30/90 dias e total, prêmios, última visita e dia da semana, WhatsApp e últimos eventos. Use para perguntas sobre uma pessoa específica.",
-    input_schema: {
-      type: "object",
-      properties: { p_search: { type: "string", description: "Nome (ou parte do nome) do cliente." } },
-      required: ["p_search"],
-    },
+    description: "Ficha de UM cliente pelo nome (até 5 resultados): visitas 30/90 dias e total, prêmios, última visita, WhatsApp, últimos eventos.",
+    input_schema: { type: "object", properties: { p_search: { type: "string", description: "Nome do cliente." } }, required: ["p_search"] },
+  },
+  {
+    name: "tum_manual",
+    description: "Manual do Carimbô. Use SÓ para dúvidas de configuração, NFC, regras, fraude, prêmio, planos, problemas. Tópicos: " +
+      Object.entries(MANUAL_TOPICS).map(([k, v]) => `${k} (${v})`).join("; ") + ".",
+    input_schema: { type: "object", properties: { topic: { type: "string", enum: Object.keys(MANUAL) } }, required: ["topic"] },
   },
 ];
+// cache_control no último item: tools + system viram prefixo em cache (lê a 10% do preço quando passa do mínimo).
+TOOLS[TOOLS.length - 1].cache_control = { type: "ephemeral" };
 
 const WEEKDAYS = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
 
@@ -80,31 +76,45 @@ function nowBR() {
 
 function systemPrompt(storeName: string) {
   const n = nowBR();
-  return `Você é o Tum, assistente pessoal da loja "${storeName}", dentro do painel do Carimbô (cartão fidelidade por toque NFC). O nome vem do som do carimbo batendo: "Tum!".
+  return `Você é o Tum, assistente da loja "${storeName}" no Carimbô (cartão fidelidade por toque NFC). Hoje: ${n.wd}, ${n.br}, ${n.time} (Brasília).
 
-HOJE: ${n.wd}, ${n.br}, ${n.time} (horário de Brasília). Use isso para "ontem", "essa semana", "mês passado" etc.
+Regras:
+- Português do Brasil, simpático e direto. Respostas curtas (o lojista está no balcão, no celular). Pouca formatação.
+- Números, nomes e datas só vêm das ferramentas; nunca invente. Chame a ferramenta antes de responder sobre dados, com o mínimo necessário (uma chamada costuma bastar).
+- Dúvida de configuração/NFC/regras/prêmio/plano: chame tum_manual com o tópico certo e responda em passos curtos. Se não achar, sugira o "?" do chat para falar com a equipe.
+- Várias pessoas com o mesmo nome: pergunte qual. "Visita" = dia com carimbo. Datas já em Brasília.
+- Campanha de WhatsApp: use dados reais (nome, carimbos que faltam, prêmio), 2 versões curtas com tons diferentes, sem número de telefone.
+- Prêmio/meta: use tum_overview e tum_customers. Segurança/fraude: recomende exigir localização na loja, intervalo e máximo por dia.
+- Só enxerga esta loja. Não envia mensagens nem altera nada.`;
+}
 
-COMO RESPONDER
-- Português do Brasil, tom simpático e direto, como um sócio que entende do negócio. Respostas curtas; o lojista está no balcão, no celular.
-- Pouca formatação: frases curtas, no máximo uma lista simples quando ajudar. Sem títulos grandes.
-- NUNCA invente números, nomes ou datas. Dados da loja só vêm das ferramentas. Se a ferramenta não trouxer, diga que não tem essa informação.
-- Antes de responder qualquer pergunta sobre dados, chame a ferramenta adequada. Pode chamar mais de uma.
-- Se houver mais de um cliente com o nome citado, pergunte qual deles (mostre nome e última visita) antes de afirmar algo.
-- "Visita" = um dia em que o cliente bateu carimbo (vários carimbos no mesmo dia contam uma visita).
-- Datas e horas já vêm em horário de Brasília. Fale "terça-feira", "entre 8h e 12h", "12/10".
-- Quando a loja tem poucos dados, diga isso com honestidade em vez de tirar conclusões fortes.
-- Você só enxerga ESTA loja. Se pedirem dados de outras lojas ou de qualquer coisa fora do Carimbô, explique gentilmente que não é seu papel.
-- Você não envia mensagens nem altera nada no sistema. Escreve textos e orienta; o lojista é quem envia e configura.
-
-O QUE VOCÊ FAZ
-1. Responde sobre o negócio: frequência, dia e horário mais cheio, quem são os clientes, quem mais volta, quem tem mais prêmios, resumo do mês, prêmios dados.
-2. Escreve mensagens de campanha de WhatsApp (ex.: clientes sumidos há X dias). Use os dados reais (nome, carimbos que faltam, prêmio da loja). Ofereça 2 versões curtas com tons diferentes. Nunca inclua o número de WhatsApp na resposta, o lojista usa o botão de WhatsApp na ficha do cliente. Se pedir a lista de quem contatar, use tum_customers com p_inactive_days.
-3. Recomenda prêmio e meta de carimbos, olhando a configuração atual e a frequência real (tum_overview e tum_customers).
-4. Orienta a configurar o Carimbô: regras, tags, NFC Tools, onde encostar o celular, testes. Sempre que falar de segurança ou fraude, recomende ativar "exigir que o cliente esteja na loja" (localização), intervalo entre carimbos e máximo por dia.
-Se a pergunta for de configuração, responda com o manual abaixo, em passos curtos. Se não souber, diga e sugira o botão "Preciso de ajuda" do painel.
-
-MANUAL E FAQ DO CARIMBÔ
-${KNOWLEDGE}`;
+// Enxuga o resultado das ferramentas antes de mandar ao modelo (menos tokens por pergunta).
+function slim(name: string, d: any): any {
+  if (!d || typeof d !== "object") return d;
+  if (name === "tum_customers" && Array.isArray(d.customers)) {
+    const goal = d.customers[0]?.stamps_goal;
+    return {
+      stamps_goal: goal, total_matching: d.total_matching, visit_window_days: d.period_days_for_visits_in_period,
+      customers: d.customers.map((c: any) => {
+        const { stamps_goal: _g, customer_since: _s, rewards_delivered: _r, ...rest } = c;
+        return Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null && v !== undefined));
+      }),
+    };
+  }
+  if (name === "tum_overview") {
+    const o: any = { ...d };
+    if (Array.isArray(o.by_day)) o.by_day = o.by_day.filter((x: any) => x.stamps > 0).map((x: any) => [x.date, String(x.weekday).slice(0, 3), x.stamps]);
+    if (Array.isArray(o.by_hour)) o.by_hour = o.by_hour.map((x: any) => [x.hour, x.stamps]);
+    if (o.store) {
+      for (const k of ["bonus_instagram", "bonus_facebook", "bonus_site", "plan_renews_at", "is_trial", "tags_active", "has_attendant_pin"]) delete o.store[k];
+    }
+    for (const k of Object.keys(o)) if (o[k] === null) delete o[k];
+    return o;
+  }
+  if (name === "tum_customer" && Array.isArray(d.matches)) {
+    return { matches: d.matches.map((m: any) => ({ ...m, recent_events: (m.recent_events ?? []).slice(0, 10) })) };
+  }
+  return d;
 }
 
 function clean(msgs: unknown): { role: "user" | "assistant"; content: string }[] {
@@ -125,7 +135,7 @@ async function anthropic(key: string, system: string, messages: unknown[]) {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 1200, system, tools: TOOLS, messages }),
+    body: JSON.stringify({ model: MODEL, max_tokens: 700, system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }], tools: TOOLS, messages }),
   });
   const t = await r.text();
   if (!r.ok) throw new Error(`anthropic ${r.status}: ${t.slice(0, 300)}`);
@@ -157,12 +167,14 @@ Deno.serve(async (req) => {
 
     const system = systemPrompt(storeName);
     const msgs: any[] = history.map((m) => ({ role: m.role, content: m.content }));
-    let inTok = 0, outTok = 0, calls = 0, reply = "";
+    let inTok = 0, outTok = 0, cRead = 0, cWrite = 0, calls = 0, reply = "";
 
     for (let i = 0; i < MAX_LOOPS; i++) {
       const resp = await anthropic(KEY, system, msgs);
       inTok += resp.usage?.input_tokens ?? 0;
       outTok += resp.usage?.output_tokens ?? 0;
+      cRead += resp.usage?.cache_read_input_tokens ?? 0;
+      cWrite += resp.usage?.cache_creation_input_tokens ?? 0;
       const content: any[] = resp.content ?? [];
       const uses = content.filter((c) => c.type === "tool_use");
       if (resp.stop_reason !== "tool_use" || !uses.length) {
@@ -174,13 +186,17 @@ Deno.serve(async (req) => {
       for (const tu of uses) {
         calls++;
         let out: unknown;
-        if (!TOOLS.some((t) => t.name === tu.name)) {
+        if (tu.name === "tum_manual") {
+          out = MANUAL[tu.input?.topic as string] ?? { error: "topico_desconhecido" };
+        } else if (!TOOLS.some((t) => t.name === tu.name)) {
           out = { error: "ferramenta_desconhecida" };
         } else {
-          const { data, error } = await userClient.rpc(tu.name, tu.input ?? {});
-          out = error ? { error: error.message } : data;
+          const args = { ...(tu.input ?? {}) };
+          if (tu.name === "tum_customers" && args.p_limit == null) args.p_limit = 8;
+          const { data, error } = await userClient.rpc(tu.name, args);
+          out = error ? { error: error.message } : slim(tu.name, data);
         }
-        results.push({ type: "tool_result", tool_use_id: tu.id, content: JSON.stringify(out).slice(0, 24000) });
+        results.push({ type: "tool_result", tool_use_id: tu.id, content: (typeof out === "string" ? out : JSON.stringify(out)).slice(0, 12000) });
       }
       msgs.push({ role: "user", content: results });
     }
@@ -191,7 +207,7 @@ Deno.serve(async (req) => {
       const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       await admin.from("fid_tum_usage").insert({
         store_id: storeId, question: history[history.length - 1].content.slice(0, 500),
-        input_tokens: inTok, output_tokens: outTok, tool_calls: calls,
+        input_tokens: inTok, output_tokens: outTok, cache_read_tokens: cRead, cache_write_tokens: cWrite, tool_calls: calls,
       });
     } catch (e) { console.error("usage", e); }
 

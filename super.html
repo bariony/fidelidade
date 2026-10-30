@@ -238,6 +238,60 @@
   .auth{box-shadow:none;border:1px solid var(--line)}
   .bars i{border-radius:3px 3px 0 0}.bars i.z{background:var(--line)}
   h1,h2,h3,.brand{font-family:'Nunito',system-ui,sans-serif}
+
+  /* ===== painel denso, em tabelas ===== */
+  body{font-size:14px;line-height:1.4}
+  .hero,.hero.slim{padding:10px 0 0}
+  .nav{gap:8px}
+  .brand{font-size:1rem}
+  .tabs{margin-top:6px}
+  .tab{padding:8px 2px;margin-right:18px;font-size:.92rem}
+  .ph{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
+  .ph h1{font-size:1.2rem;font-weight:800;font-family:'Nunito',sans-serif}
+  .ph span{color:var(--muted)}
+  .wrap.pad{padding-top:12px;padding-bottom:50px}
+  .tiles{display:flex;flex-wrap:wrap;margin:0 0 14px;gap:0;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+  .tile{flex:1 1 120px;min-width:110px;border:0;border-right:1px solid var(--line);border-radius:0;padding:9px 14px}
+  .tile:last-child{border-right:0}
+  .tile .k{font-size:.74rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .tile b{font-size:1.25rem;margin-top:2px;display:block}
+  .tile.warn b{color:var(--warn)}.tile.bad b{color:var(--bad)}
+  .tile small{display:none}
+  .tw{border-radius:8px;overflow-x:auto}
+  table{min-width:0;font-size:.88rem}
+  th,td{padding:7px 12px}
+  th{font-size:.7rem;white-space:nowrap}
+  td{vertical-align:middle}
+  td .dl,.dl{font-size:.78rem}
+  tr.r{cursor:pointer}
+  tr.r.on td{background:var(--paper);border-bottom-color:transparent}
+  tr.x td{background:var(--paper);padding:12px 16px 16px}
+  tr.x .tw{background:#fff}
+  td.clip{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+  td.neg,.neg{color:var(--bad)}
+  .btn.small{min-height:28px;padding:2px 10px;font-size:.82rem;border-radius:7px}
+  .pill{padding:2px 8px;font-size:.72rem}.pill::before{width:6px;height:6px}
+  .bar{margin:0 0 12px;gap:6px}
+  .chip{padding:4px 11px;font-size:.82rem}
+  .search input{min-height:34px;padding:6px 12px 6px 36px;border-radius:8px}
+  input,select,textarea{border-radius:8px}
+  input[type=text],input[type=number],input[type=date],input[type=email],input[type=password],select,textarea{min-height:34px;padding:6px 10px}
+  .seg button{padding:4px 12px}
+  .th{font-size:.95rem;font-weight:800;margin:0 0 8px}
+  .grid2{gap:16px;margin-top:0}
+  .rcard,.panel{padding:14px 16px;border-radius:8px;margin-bottom:10px}
+  .kv{margin-top:8px}.kv div{padding:6px 10px}.kv b{font-size:.98rem;font-family:'Nunito',sans-serif}
+  .sub{margin:6px 0 0;font-size:.85rem}
+  .acts{margin-top:10px}
+  .bars{height:90px;margin-top:6px;gap:3px}
+  .dh{margin-top:12px;gap:14px}.dh h1{font-size:1.3rem}
+  .sect{margin-top:14px;padding-top:12px}
+  .panel h2{font-size:1rem}
+  .av,.av.lg{width:40px;height:40px;font-size:1rem}
+  .ring{width:84px;height:84px}.ring b{font-size:1.2rem}.ring small{font-size:.58rem;max-width:62px}
+  .cols{gap:0 12px}
+  label{margin:10px 0 4px}
+  .seg{margin-left:0}
 </style>
 </head>
 <body>
@@ -265,7 +319,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30, open:{}};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -344,26 +398,25 @@ function card(s){
 function viewList(){
   const L = S.stores, c = k => L.filter(s => s.status === k).length, sum = k => L.reduce((a, s) => a + (+s[k] || 0), 0);
   const rows = filtered(), attn = c('tolerancia') + c('vencida') + c('bloqueada');
-  const affs = new Set(L.map(s => s.rep_id).filter(Boolean)).size;
   const chips = [['todas', 'Todas', L.length], ['ativa', 'Ativas', c('ativa')], ['trial', 'Em teste', c('trial')], ['vencem7', 'Vencem em 7 dias', L.filter(soon).length],
     ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')], ['cancelou', 'Cancelaram', L.filter(x => x.cancelled_at).length]]
     .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
-  const hoje = new Date().toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long'});
-  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}
-      <div class="title"><h1>Visão geral</h1><p>${hoje.charAt(0).toUpperCase() + hoje.slice(1)} · ${L.length} ${pl(L.length, 'loja', 'lojas')} na plataforma</p></div></div></div>
+  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>
     <div class="wrap pad">
       <div class="tiles">
-        <div class="tile good"><div class="k"><i>✅</i>Lojas ativas</div><b>${c('ativa')}</b><small>${c('trial')} em teste</small></div>
-        <div class="tile warn"><div class="k"><i>⏳</i>Vencem em até 7 dias</div><b>${L.filter(soon).length}</b><small>renovações para acompanhar</small></div>
-        <div class="tile bad"><div class="k"><i>⚠️</i>Pedem atenção</div><b>${attn}</b><small>tolerância, vencidas ou bloqueadas</small></div>
-        <div class="tile big"><div class="k"><i>👆</i>Carimbos hoje</div><b>${sum('stamps_today')}</b>${spark(S.spark, '#14296B', 46)}</div>
+        <div class="tile"><div class="k">Lojas</div><b>${L.length}</b></div>
+        <div class="tile"><div class="k">Ativas</div><b>${c('ativa')}</b></div>
+        <div class="tile"><div class="k">Em teste</div><b>${c('trial')}</b></div>
+        <div class="tile warn"><div class="k">Vencem em 7 dias</div><b>${L.filter(soon).length}</b></div>
+        <div class="tile bad"><div class="k">Atenção</div><b>${attn}</b></div>
+        <div class="tile"><div class="k">Carimbos hoje</div><b>${sum('stamps_today')}</b></div>
+        <div class="tile"><div class="k">Carimbos 30 dias</div><b>${sum('stamps_30d')}</b></div>
+        <div class="tile"><div class="k">Clientes finais</div><b>${sum('customers')}</b></div>
       </div>
-      <div class="mini"><div><span>Carimbos em 30 dias</span><b>${sum('stamps_30d')}</b></div><div><span>Clientes finais</span><b>${sum('customers')}</b></div><div><span>Lojas no total</span><b>${L.length}</b></div><div><span>Representantes</span><b>${affs}</b></div></div>
-      <div class="bar"><label class="search" style="margin:0">${I.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou representante" value="${esc(S.q)}"></label>${chips}
-        <div class="seg" role="group" aria-label="Visualização"><button data-v="cards" aria-pressed="${S.view === 'cards'}">Cartões</button><button data-v="table" aria-pressed="${S.view === 'table'}">Tabela</button></div></div>
-      ${!rows.length ? '<p class="sub" style="text-align:center;padding:40px">Nenhuma loja neste filtro.</p>' : S.view === 'cards' ? `<div class="cards">${rows.map(card).join('')}</div>` :
+      <div class="bar"><label class="search" style="margin:0">${I.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou representante" value="${esc(S.q)}"></label>${chips}</div>
+      ${!rows.length ? '<p class="sub" style="text-align:center;padding:40px">Nenhuma loja neste filtro.</p>' :
       `<div class="tw"><table><thead><tr><th>Loja</th><th>Status</th><th>Aquisição</th><th>Renovação</th><th>Representante</th><th class="n">Hoje</th><th class="n">7 dias</th><th class="n">30 dias</th><th class="n">Total</th><th class="n">Clientes</th></tr></thead><tbody>
-      ${rows.map(s => `<tr data-id="${s.id}"><td><div class="cell"><div class="av" style="background:${grad(s.name)}">${esc(ini(s.name))}</div><div><b>${esc(s.name)}</b><br><span class="dl">${esc(s.email || '')}</span></div></div></td>
+      ${rows.map(s => `<tr class="r" data-id="${s.id}"><td><b>${esc(s.name)}</b><br><span class="dl">${esc(s.email || '')}</span></td>
         <td><span class="pill st-${s.status}">${STATUS[s.status]}</span>${s.cancelled_at ? ' <span class="pill st-vencida">Cancelou</span>' : ''}</td><td>${fmtDate(s.acquired_at)}</td><td>${fmtDate(s.renews_at)}<br>${dueText(s)}</td><td>${esc(s.rep_name || s.referred_by || '—')}</td>
         <td class="n">${s.stamps_today}</td><td class="n">${s.stamps_7d}</td><td class="n">${s.stamps_30d}</td><td class="n">${s.stamps_total}</td><td class="n">${s.customers}</td></tr>`).join('')}</tbody></table></div>`}
     </div>`;
@@ -371,8 +424,7 @@ function viewList(){
   bindTabs();
   $('#q').oninput = e => { S.q = e.target.value; const p = e.target.selectionStart; render(); const q = $('#q'); q.focus(); q.setSelectionRange(p, p); };
   root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
-  root.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { S.view = b.dataset.v; render(); });
-  root.querySelectorAll('[data-id]').forEach(r => { r.onclick = () => openStore(r.dataset.id); r.onkeydown = e => { if(e.key === 'Enter') openStore(r.dataset.id); }; });
+  root.querySelectorAll('[data-id]').forEach(r => { r.onclick = () => openStore(r.dataset.id); });
 }
 
 /* ---------- detalhe ---------- */
@@ -514,43 +566,50 @@ const PIX = {cpf:'CPF', cnpj:'CNPJ', email:'E-mail', telefone:'Telefone', aleato
 const pixTxt = (t, k) => k ? `${PIX[t] || 'Pix'}: ${k}` : 'Pix não cadastrado';
 const repLink = code => baseUrl() + 'comprar.html?r=' + code;
 const KIND2 = {aquisicao:'Venda do kit', recorrencia:'Mensalidade', estorno:'Estorno'};
+const xrow = (key, cells, detail, n) => `<tr class="r${S.open[key] ? ' on' : ''}" data-row="${key}">${cells}</tr>${S.open[key] ? `<tr class="x"><td colspan="${n}">${detail}</td></tr>` : ''}`;
+function bindRows(){
+  root.querySelectorAll('[data-row]').forEach(tr => tr.onclick = e => { if(e.target.closest('button:not([data-toggle]),a,input,select,textarea,label')) return; const k = tr.dataset.row; S.open[k] = !S.open[k]; render(false); });
+  root.querySelectorAll('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.toggle; S.open[k] = !S.open[k]; render(false); });
+}
 function heroTab(title, sub){
-  return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Painel da minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}
-    <div class="title"><h1>${title}</h1><p>${sub}</p></div></div></div>`;
+  return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
 }
 function viewTab(){
   const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
-  bindTabs(); if(v.bind) v.bind();
+  bindTabs(); if(v.bind) v.bind(); bindRows();
 }
 
 
 /* uso do Tum (IA) */
-const TUM_PRICE = {in:0.10, out:0.50}; // US$ por milhão de tokens (Haiku 5.5, prompts até 100 mil tokens)
-const usd = (i, o) => (i * TUM_PRICE.in + o * TUM_PRICE.out) / 1e6;
+const TUM_PRICE = {in:0.10, out:0.50, cw:0.125, cr:0.01}; // US$ por milhão de tokens (Haiku 5.5, prompts até 100 mil tokens)
+const usd = r => ((+r.input_tokens || 0) * TUM_PRICE.in + (+r.output_tokens || 0) * TUM_PRICE.out + (+r.cache_write_tokens || 0) * TUM_PRICE.cw + (+r.cache_read_tokens || 0) * TUM_PRICE.cr) / 1e6;
+const allTok = r => (+r.input_tokens || 0) + (+r.output_tokens || 0) + (+r.cache_write_tokens || 0) + (+r.cache_read_tokens || 0);
 const fmtUsd = v => 'US$ ' + v.toFixed(v < 1 ? 3 : 2).replace('.', ',');
 const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
 function viewTum(){
   const T = S.tum;
-  if(!T) return {html: heroTab('Tum', 'Carregando…') + '<div class="wrap pad after"></div>', bind(){}};
-  const t = T.totals, q = +t.questions, cost = usd(+t.input_tokens, +t.output_tokens), td = T.today;
+  if(!T) return {html: heroTab('Carregando…') + '<div class="wrap pad"></div>', bind(){}};
+  const t = T.totals, q = +t.questions, cost = usd(t), td = T.today, tokq = q ? Math.round(allTok(t) / q) : 0;
   const mx = Math.max(1, ...T.by_day.map(x => x.questions));
-  const bars = T.by_day.map(x => `<i style="height:${Math.max(2, x.questions / mx * 100)}%" class="${x.questions ? '' : 'z'}" title="${fmtDate(x.date)}: ${x.questions}"></i>`).join('');
-  const rows = T.by_store.map(r => `<tr><td><b>${esc(r.store)}</b></td><td class="n">${fmtN(r.questions)}</td><td class="n">${fmtN(+r.input_tokens + +r.output_tokens)}</td><td class="n">${fmtUsd(usd(+r.input_tokens, +r.output_tokens))}</td><td>${fmtDT(r.last_at)}</td></tr>`).join('');
-  const rec = T.recent.map(r => `<div class="ln2"><div><b>${esc(r.question || '')}</b><br><small>${esc(r.store || '')} · ${fmtDT(r.at)}</small></div><div class="a">${fmtN(r.tokens)} tokens</div></div>`).join('');
-  return {html: heroTab('Tum', `Assistente de IA das lojas · últimos ${T.days} dias`) + `<div class="wrap pad after">
-    <div class="bar" style="margin-top:0"><div class="seg" role="group" aria-label="Período" style="margin-left:0">${[7, 30, 90].map(d => `<button data-d="${d}" aria-pressed="${S.tumDays === d}">${d} dias</button>`).join('')}</div></div>
-    <div class="tiles" style="margin-top:0">
-      <div class="tile"><div class="k">Perguntas</div><b>${fmtN(q)}</b><small>${fmtN(td.questions)} hoje</small></div>
-      <div class="tile"><div class="k">Lojas usando</div><b>${fmtN(t.stores)}</b><small>${q ? (q / Math.max(1, t.stores)).toFixed(1).replace('.', ',') : 0} perguntas por loja</small></div>
-      <div class="tile"><div class="k">Tokens</div><b>${fmtN(+t.input_tokens + +t.output_tokens)}</b><small>${fmtN(t.input_tokens)} entrada · ${fmtN(t.output_tokens)} saída</small></div>
-      <div class="tile"><div class="k">Custo estimado</div><b>${fmtUsd(cost)}</b><small>${q ? fmtUsd(cost / q) + ' por pergunta' : 'sem uso ainda'}</small></div>
+  const bars = T.by_day.map(x => `<i style="height:${Math.max(3, x.questions / mx * 100)}%" class="${x.questions ? '' : 'z'}" title="${fmtDate(x.date)}: ${x.questions}"></i>`).join('');
+  const rows = T.by_store.map(r => `<tr><td><b>${esc(r.store)}</b></td><td class="n">${fmtN(r.questions)}</td><td class="n">${fmtN(allTok(r))}</td><td class="n">${fmtUsd(usd(r))}</td><td>${fmtDT(r.last_at)}</td></tr>`).join('');
+  const rec = T.recent.map(r => `<tr><td>${fmtDT(r.at)}</td><td>${esc(r.store || '')}</td><td>${esc(r.question || '')}</td><td class="n">${fmtN(r.tokens)}</td></tr>`).join('');
+  return {html: heroTab('') + `<div class="wrap pad">
+    <div class="bar" style="margin-top:0"><div class="seg" role="group" aria-label="Período">${[7, 30, 90].map(d => `<button data-d="${d}" aria-pressed="${S.tumDays === d}">${d} dias</button>`).join('')}</div>
+      <span class="dl" style="margin-left:8px">Custo estimado com o preço do Haiku 5.5 (US$ 0,10 entrada · US$ 0,50 saída por milhão). O valor real está no console da Anthropic.</span></div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Perguntas</div><b>${fmtN(q)}</b></div><div class="tile"><div class="k">Hoje</div><b>${fmtN(td.questions)}</b></div>
+      <div class="tile"><div class="k">Lojas usando</div><b>${fmtN(t.stores)}</b></div><div class="tile"><div class="k">Tokens</div><b>${fmtN(allTok(t))}</b></div>
+      <div class="tile"><div class="k">Tokens por pergunta</div><b>${fmtN(tokq)}</b></div><div class="tile"><div class="k">Cache lido</div><b>${fmtN(t.cache_read_tokens)}</b></div>
+      <div class="tile"><div class="k">Custo estimado</div><b>${fmtUsd(cost)}</b></div><div class="tile"><div class="k">Por pergunta</div><b>${q ? fmtUsd(cost / q) : '—'}</b></div>
     </div>
-    <p class="sub">Estimativa com o preço do Haiku 5.5: US$ 0,10 por milhão de tokens de entrada e US$ 0,50 de saída. O valor real está no console da Anthropic.</p>
-    <section class="panel" style="margin-top:18px"><h2>Perguntas por dia</h2><div class="bars">${bars}</div><div class="hlab"><span>${fmtDate(T.by_day[0] && T.by_day[0].date)}</span><span>hoje</span></div></section>
-    <section class="panel" style="margin-top:18px"><h2>Por loja</h2>${rows ? `<div class="tw" style="margin-top:12px"><table style="min-width:560px"><thead><tr><th>Loja</th><th class="n">Perguntas</th><th class="n">Tokens</th><th class="n">Custo</th><th>Último uso</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="sub">Nenhuma pergunta neste período.</p>'}</section>
-    <section class="panel" style="margin-top:18px"><h2>Últimas perguntas</h2><p class="sub">Úteis para descobrir o que os lojistas mais querem saber e melhorar o manual do Tum.</p>${rec || '<p class="sub">Nada por aqui ainda.</p>'}</section></div>`,
+    <div class="grid2" style="margin-top:14px">
+      <section><h2 class="th">Perguntas por dia</h2><div class="bars">${bars}</div></section>
+      <section><h2 class="th">Por loja</h2>${rows ? `<div class="tw"><table><thead><tr><th>Loja</th><th class="n">Perguntas</th><th class="n">Tokens</th><th class="n">Custo</th><th>Último uso</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="sub">Nenhuma pergunta neste período.</p>'}</section>
+    </div>
+    <h2 class="th" style="margin-top:18px">Últimas perguntas</h2>${rec ? `<div class="tw"><table><thead><tr><th>Quando</th><th>Loja</th><th>Pergunta</th><th class="n">Tokens</th></tr></thead><tbody>${rec}</tbody></table></div>` : '<p class="sub">Nada por aqui ainda.</p>'}</div>`,
     bind(){ root.querySelectorAll('[data-d]').forEach(b => b.onclick = async () => { S.tumDays = +b.dataset.d; await loadTab(); render(false); }); }};
 }
 
@@ -558,21 +617,20 @@ function viewTum(){
 const TKL = {duvida:'Dúvida', problema:'Problema', reembolso:'Reembolso', cancelamento:'Cancelamento'};
 function viewTickets(){
   const L = S.tickets, open = L.filter(t => t.status !== 'resolvido');
-  const card = t => {
+  const row = t => {
     const w = waLink(t.whatsapp), b = t.billing, done = t.status === 'resolvido';
     const bl = b ? `<p class="sub"><b>Cobrança:</b> ${b.kind === 'sale' ? 'Kit' : 'Mensalidade'} ${money(b.amount)} em ${fmtDT(b.created_at)} · ${b.in_window ? '<span class="pill st-ativa">Dentro dos 7 dias</span>' : '<span class="pill st-tolerancia">Fora do prazo de 7 dias</span>'} · ${b.asaas ? 'paga pelo Asaas' : 'lançada à mão (sem Asaas)'}${b.refunded ? ' · <b>já reembolsada</b>' : ''}</p>` : '';
     const cx = t.kind === 'cancelamento' ? `<p class="sub">Plano segue ativo até <b>${fmtDate(t.renews_at)}</b>. A assinatura já foi cancelada no Asaas.</p>` : '';
     const refundBtn = t.kind === 'reembolso' && b && !b.refunded && !done ? `<button class="btn small" data-aprov="${t.id}" data-asaas="${b.asaas ? 1 : 0}" data-bid="${b.id}">Aprovar reembolso${b.asaas ? ' no Asaas' : ' (manual)'}</button>` : '';
-    return `<article class="rcard"><div class="top"><div><h3>${esc(t.store_name)}</h3><p class="sub" style="margin:2px 0 0">${esc(t.buyer_name || '')} · ${fmtDT(t.created_at)}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill st-${t.kind === 'cancelamento' || t.kind === 'reembolso' ? 'vencida' : 'trial'}">${TKL[t.kind]}</span><span class="pill st-${done ? 'ativa' : t.needs_admin ? 'tolerancia' : 'trial'}">${done ? 'Resolvido' : t.needs_admin ? 'Aguardando você' : 'Respondido'}</span></div></div>
-      <div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(t.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b style="font-size:.95rem">${esc(t.email || '—')}</b><small>e-mail</small></div><div><b>${STATUS[t.store_status] || t.store_status}</b><small>plano até ${fmtDate(t.renews_at)}</small></div></div>
-      ${bl}${cx}
-      <div style="display:grid;gap:6px;margin:10px 0">${t.msgs.map(m => `<div style="padding:8px 12px;border-radius:12px;background:${m.from_admin ? '#E0ECFF' : '#F6F1E6'};${m.from_admin ? 'margin-left:24px' : 'margin-right:24px'};white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.body)}<br><small style="color:#6b7280">${m.from_admin ? 'Você' : 'Lojista'} · ${fmtDT(m.created_at)}</small></div>`).join('')}</div>
+    const det = `<div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(t.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b>${esc(t.email || '—')}</b><small>e-mail</small></div><div><b>${STATUS[t.store_status] || t.store_status}</b><small>plano até ${fmtDate(t.renews_at)}</small></div></div>${bl}${cx}
+      <div style="display:grid;gap:6px;margin:10px 0">${t.msgs.map(m => `<div style="padding:8px 12px;border-radius:10px;background:${m.from_admin ? '#E0ECFF' : '#F6F1E6'};${m.from_admin ? 'margin-left:24px' : 'margin-right:24px'};white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.body)}<br><small style="color:#6b7280">${m.from_admin ? 'Você' : 'Lojista'} · ${fmtDT(m.created_at)}</small></div>`).join('')}</div>
       ${done ? '' : `<textarea data-txt="${t.id}" rows="2" maxlength="2000" placeholder="Escreva a resposta (opcional ao resolver)" style="width:100%"></textarea>
       <div class="acts">${refundBtn}${t.kind === 'cancelamento' ? '' : `<button class="btn line small" data-send="${t.id}">Responder</button>`}<button class="btn line small" data-resolve="${t.id}">Responder e resolver</button><button class="btn line small" data-open="${t.store_id}">Abrir loja</button></div>`}
-      ${done ? `<div class="acts"><button class="btn line small" data-open="${t.store_id}">Abrir loja</button></div>` : ''}</article>`;
+      ${done ? `<div class="acts"><button class="btn line small" data-open="${t.store_id}">Abrir loja</button></div>` : ''}`;
+    const last = t.msgs[t.msgs.length - 1], st = done ? ['ativa', 'Resolvido'] : t.needs_admin ? ['tolerancia', 'Aguardando você'] : ['trial', 'Respondido'];
+    return xrow('t' + t.id, `<td>${fmtDT(t.updated_at || t.created_at)}</td><td><b>${esc(t.store_name)}</b><br><span class="dl">${esc(t.buyer_name || '')}</span></td><td><span class="pill st-${t.kind === 'cancelamento' || t.kind === 'reembolso' ? 'vencida' : 'trial'}">${TKL[t.kind]}</span></td><td><span class="pill st-${st[0]}">${st[1]}</span></td><td class="clip">${last ? esc(last.body) : ''}</td><td class="n"><button class="btn ${done ? 'line ' : ''}small" data-toggle="t${t.id}">${S.open['t' + t.id] ? 'Fechar' : done ? 'Ver' : 'Responder'}</button></td>`, det, 6);
   };
-  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'pedido aberto', 'pedidos abertos')} · cancelamentos, reembolsos e ajuda dos lojistas`) + `<div class="wrap pad after">${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
+  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'aberto', 'abertos')} · ajuda, cancelamentos e reembolsos`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Atualizado</th><th>Loja</th><th>Tipo</th><th>Status</th><th>Última mensagem</th><th class="n"></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
   bind(){
     const txt = id => root.querySelector(`[data-txt="${id}"]`).value.trim();
     root.querySelectorAll('[data-send]').forEach(b => b.onclick = () => { const v = txt(b.dataset.send); if(!v) return toast('Escreva a resposta', true); act(b, 'fid_super_ticket_reply', {p_ticket:b.dataset.send, p_body:v, p_resolve:false}, 'Resposta enviada ✓'); });
@@ -599,21 +657,19 @@ const TST = {aguardando:['tolerancia', 'Aguardando uso'], usado:['ativa', 'Ativa
 const testLink = c => baseUrl() + 'teste.html?c=' + c;
 function viewTrials(){
   const T = S.trials, L = T.items, reps = (T.reps || []).filter(r => r.active);
-  const card = i => {
+  const row = i => {
     const [cls, lab0] = TST[i.status] || ['trial', i.status], lab = i.status === 'usado' && i.converted ? 'Assinou' : lab0, w = waLink(i.whatsapp);
-    return `<article class="rcard"><div class="top"><div><h3>${esc(i.store_name || i.label || 'Convite sem uso')}</h3><p class="sub" style="margin:2px 0 0">${i.days} dias · criado em ${fmtDT(i.created_at)} · ${i.rep_name ? 'Rep: ' + esc(i.rep_name) : 'Admin'}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill st-${i.status === 'usado' && i.converted ? 'ativa' : cls}">${lab}</span>${i.store_status ? `<span class="pill st-${i.store_status}">${esc(STATUS[i.store_status] || i.store_status)}</span>` : ''}</div></div>
-      ${i.status === 'usado' ? `<p class="sub">${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(i.whatsapp)}</a> · ` : ''}teste até ${fmtDate(i.renews_at)}</p>` : i.status === 'aguardando' ? `<p class="sub">Vale até ${fmtDate(i.expires_at)} · <code>${esc(testLink(i.code))}</code></p>` : ''}
-      <div class="acts">${i.status === 'aguardando' ? `<button class="btn small" data-tcopy="${esc(i.code)}">Copiar link</button><button class="btn line small" data-tcancel="${i.id}">Cancelar convite</button>` : ''}${i.store_id ? `<button class="btn line small" data-open="${i.store_id}">Abrir loja</button>` : ''}</div></article>`;
+    return `<tr><td>${fmtDT(i.created_at)}</td><td><b>${esc(i.store_name || i.label || 'Convite sem uso')}</b>${i.status === 'usado' && w ? `<br><a class="dl" href="${w}" target="_blank" rel="noopener">${esc(i.whatsapp)}</a>` : ''}</td><td class="n">${i.days}</td><td>${i.rep_name ? esc(i.rep_name) : 'Admin'}</td>
+      <td><span class="pill st-${i.status === 'usado' && i.converted ? 'ativa' : cls}">${lab}</span>${i.store_status ? ` <span class="pill st-${i.store_status}">${esc(STATUS[i.store_status] || i.store_status)}</span>` : ''}</td>
+      <td>${i.status === 'usado' ? 'até ' + fmtDate(i.renews_at) : i.status === 'aguardando' ? 'vale até ' + fmtDate(i.expires_at) : ''}</td>
+      <td class="n">${i.status === 'aguardando' ? `<button class="btn small" data-tcopy="${esc(i.code)}">Copiar link</button> <button class="btn line small" data-tcancel="${i.id}">Cancelar</button>` : ''}${i.store_id ? ` <button class="btn line small" data-open="${i.store_id}">Abrir loja</button>` : ''}</td></tr>`;
   };
-  const lim = (T.reps || []).map(r => `<div class="ln2"><div><b>${esc(r.name)}</b> <small>· usou ${r.used} de ${r.quota} neste mês</small></div>
-    <div class="acts" style="margin:0"><input type="number" min="0" max="50" value="${r.quota}" data-q="${r.id}" style="width:70px" aria-label="Testes por mês"><input type="number" min="1" max="120" value="${r.max_days}" data-md="${r.id}" style="width:70px" aria-label="Máximo de dias"><button class="btn line small" data-lim="${r.id}">Salvar</button></div></div>`).join('');
+  const lim = (T.reps || []).map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="n">${r.used} de ${r.quota}</td><td class="n"><input type="number" min="0" max="50" value="${r.quota}" data-q="${r.id}" style="width:70px" aria-label="Testes por mês"></td><td class="n"><input type="number" min="1" max="120" value="${r.max_days}" data-md="${r.id}" style="width:70px" aria-label="Máximo de dias"></td><td class="n"><button class="btn line small" data-lim="${r.id}">Salvar</button></td></tr>`).join('');
   const used = L.filter(i => i.status === 'usado').length, conv = L.filter(i => i.converted).length;
-  return {html: heroTab('Testes', `${L.length} ${pl(L.length, 'convite', 'convites')} · ${used} ativados · ${conv} assinaram`) + `<div class="wrap pad after">
-    <div class="rcard"><h3>Gerar link de teste</h3><p class="sub">Você não tem limite de cota nem de dias. O lojista cria o painel sozinho e só paga a mensalidade (R$ 49,97) depois do teste, se assinar.</p>
-      <div class="acts"><input id="tdays" type="number" min="1" max="120" value="30" style="width:90px" aria-label="Dias de teste"><input id="tlabel" maxlength="80" placeholder="Nome do comércio (opcional)" style="flex:1;min-width:180px"><select id="trep"><option value="">Sem representante (próprio Carimbô)</option>${reps.map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn" id="tgen">Gerar link</button></div></div>
-    ${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:30px">Nenhum teste gerado ainda.</p>'}
-    ${lim ? `<div class="rcard"><h3>Limites por representante</h3><p class="sub">Testes por mês · máximo de dias de cada teste.</p>${lim}</div>` : ''}</div>`,
+  return {html: heroTab('Testes', `${L.length} ${pl(L.length, 'convite', 'convites')} · ${used} ativados · ${conv} assinaram`) + `<div class="wrap pad">
+    <div class="bar" style="margin-top:0"><b>Novo link de teste</b><input id="tdays" type="number" min="1" max="120" value="30" style="width:80px" aria-label="Dias de teste"><input id="tlabel" maxlength="80" placeholder="Nome do comércio (opcional)" style="width:240px"><select id="trep" style="width:auto"><option value="">Sem representante</option>${reps.map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn small" id="tgen">Gerar link</button></div>
+    ${L.length ? `<div class="tw"><table><thead><tr><th>Criado</th><th>Loja / convite</th><th class="n">Dias</th><th>Origem</th><th>Status</th><th>Prazo</th><th class="n">Ações</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:30px">Nenhum teste gerado ainda.</p>'}
+    ${lim ? `<h2 class="th" style="margin-top:20px">Limites por representante</h2><div class="tw"><table><thead><tr><th>Representante</th><th class="n">Uso no mês</th><th class="n">Testes por mês</th><th class="n">Máx. de dias</th><th></th></tr></thead><tbody>${lim}</tbody></table></div>` : ''}</div>`,
   bind(){
     $('#tgen').onclick = async e => {
       e.target.disabled = true; const r = await rpc('fid_super_trial_create', {p_rep:$('#trep').value || null, p_days:+$('#tdays').value, p_label:$('#tlabel').value}); e.target.disabled = false;
@@ -630,19 +686,18 @@ function viewTrials(){
 const OST = {aguardando_pagamento:['tolerancia', 'Aguardando pagamento'], pago:['ativa', 'Pago · enviar kit'], enviado:['trial', 'Enviado'], cancelado:['bloqueada', 'Cancelado'], reembolsado:['vencida', 'Reembolsado']};
 function viewOrders(){
   const L = S.orders, todo = L.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago').length, norep = L.filter(o => !o.rep_id && o.status !== 'cancelado').length;
-  const card = o => {
+  const row = o => {
     const [cls, lab0] = OST[o.status] || ['trial', o.status], w = waLink(o.whatsapp), pick = o.delivery === 'retirada', lab = pick && o.status === 'enviado' ? 'Entregue em mãos' : lab0, tot = Number(o.amount) + Number(o.shipping || 0);
+    const main = o.status === 'aguardando_pagamento' ? `<button class="btn ${o.invoice_url ? 'line ' : ''}small" data-pay="${o.id}" data-amt="${o.amount}">Confirmar pagamento</button>`
+      : o.status === 'pago' ? `<button class="btn small" data-ship="${o.id}" data-pick="${pick ? 1 : 0}">${pick ? 'Entregue em mãos' : 'Marcar enviado'}</button>` : '';
     const upg = o.upgrade ? `<p class="sub"><span class="pill st-trial">Compra após teste</span> ${o.loaner === 'pendente' ? '<span class="pill st-tolerancia">Bastão de teste a recolher</span>' : o.loaner === 'recolhido' ? '<span class="pill st-ativa">Bastão recolhido</span>' : ''}</p>` : '';
     const assign = !o.rep_id && o.store_id && o.status !== 'cancelado' ? `<div class="acts"><select data-rsel="${o.id}"><option value="">Escolher representante…</option>${S.reps.filter(r => r.active).map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" data-assign="${o.id}" data-store="${o.store_id}">Vincular</button></div>` : '';
-    const btns = o.status === 'aguardando_pagamento' ? `<button class="btn ${o.invoice_url ? 'line ' : ''}small" data-pay="${o.id}" data-amt="${o.amount}">${o.invoice_url ? 'Confirmar à mão (pagou fora do Asaas)' : 'Confirmar pagamento'}</button><button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>`
-      : o.status === 'pago' ? `<button class="btn small" data-ship="${o.id}" data-pick="${pick ? 1 : 0}">${pick ? 'Marcar como entregue em mãos' : 'Marcar como enviado'}</button>` : '';
-    return `<article class="rcard"><div class="top"><div><h3>${esc(o.store_name || '(loja removida)')}</h3><p class="sub" style="margin:2px 0 0">${esc(o.buyer_name)} · ${fmtDT(o.created_at)}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill st-${cls}">${lab}</span>${o.rep_id ? `<span class="aff">Rep: ${esc(o.rep_name)}</span>` : '<span class="pill st-vencida">Sem representante</span>'}</div></div>
-      <div class="kv"><div><b>${money(tot)}</b><small>a receber · kit ${money(o.amount)}${o.shipping > 0 ? ' + frete ' + money(o.shipping) : ' · sem frete'}</small></div><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(o.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b style="font-size:.95rem">${esc(o.email || '—')}</b><small>e-mail</small></div></div>
-      ${o.status === 'aguardando_pagamento' && o.invoice_url ? `<p class="sub"><b>Cobrança Asaas:</b> <a href="${esc(o.invoice_url)}" target="_blank" rel="noopener">abrir link de pagamento</a> · o pedido é confirmado sozinho quando o cliente pagar</p>` : ''}${o.asaas && o.paid_at ? '<p class="sub"><span class="pill st-ativa">Pago pelo Asaas</span></p>' : ''}<p class="sub"><b>${pick ? 'Entrega:' : 'Endereço:'}</b> ${pick ? '<span class="pill st-trial">Retirada em mãos</span>' : esc(o.address)}</p>${o.tracking ? `<p class="sub"><b>Rastreio:</b> ${esc(o.tracking)}</p>` : ''}${o.paid_at ? `<p class="sub">Pago em ${fmtDT(o.paid_at)}${o.shipped_at ? ' · enviado em ' + fmtDT(o.shipped_at) : ''}</p>` : ''}
-      ${upg}${assign}<div class="acts">${btns}${o.upgrade && o.loaner === 'pendente' ? `<button class="btn line small" data-loaner="${o.id}">Marcar bastão como recolhido</button>` : ''}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div></article>`;
+    const det = `<div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(o.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b>${esc(o.email || '—')}</b><small>e-mail</small></div><div><b>${money(tot)}</b><small>kit ${money(o.amount)}${o.shipping > 0 ? ' + frete ' + money(o.shipping) : ' · sem frete'}</small></div></div>
+      ${o.status === 'aguardando_pagamento' && o.invoice_url ? `<p class="sub"><b>Cobrança Asaas:</b> <a href="${esc(o.invoice_url)}" target="_blank" rel="noopener">abrir link de pagamento</a> · confirma sozinho quando o cliente pagar. Pagou fora do Asaas? Use <b>Confirmar pagamento</b>.</p>` : ''}${o.asaas && o.paid_at ? '<p class="sub"><span class="pill st-ativa">Pago pelo Asaas</span></p>' : ''}<p class="sub"><b>${pick ? 'Entrega:' : 'Endereço:'}</b> ${pick ? 'Retirada em mãos' : esc(o.address)}</p>${o.tracking ? `<p class="sub"><b>Rastreio:</b> ${esc(o.tracking)}</p>` : ''}${o.paid_at ? `<p class="sub">Pago em ${fmtDT(o.paid_at)}${o.shipped_at ? ' · enviado em ' + fmtDT(o.shipped_at) : ''}</p>` : ''}
+      ${upg}${assign}<div class="acts">${o.status === 'aguardando_pagamento' ? `<button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>` : ''}${o.upgrade && o.loaner === 'pendente' ? `<button class="btn line small" data-loaner="${o.id}">Marcar bastão como recolhido</button>` : ''}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div>`;
+    return xrow('o' + o.id, `<td>${fmtDT(o.created_at)}</td><td><b>${esc(o.store_name || '(loja removida)')}</b><br><span class="dl">${esc(o.buyer_name)}</span></td><td class="n">${money(tot)}</td><td>${pick ? 'Em mãos' : 'Correios'}</td><td><span class="pill st-${cls}">${lab}</span></td><td>${o.rep_id ? esc(o.rep_name) : '<span class="pill st-vencida">Sem rep</span>'}</td><td class="n">${main}</td>`, det, 7);
   };
-  return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar${norep ? ` · ${norep} sem representante` : ''}`) + `<div class="wrap pad after">${L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
+  return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar${norep ? ` · ${norep} sem representante` : ''}`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th class="n">Valor</th><th>Entrega</th><th>Status</th><th>Representante</th><th class="n">Ação</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div><p class="dl" style="margin-top:8px">Clique na linha para ver contato, endereço e outras ações.</p>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
   bind(){
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const v = prompt('Valor do kit, sem o frete (R$). É a base da comissão do representante:', b.dataset.amt); if(v === null) return; const n = parseFloat(String(v).replace(',', '.'));
@@ -674,17 +729,16 @@ function repFormHtml(r){
 }
 function viewReps(){
   const L = S.reps;
-  const card = r => `<article class="rcard"><div class="top"><div><h3>${esc(r.name)} <span class="dl">· ${esc(r.code)}</span></h3>
-      <p class="sub" style="margin:2px 0 0">${esc(r.email || '')} ${r.whatsapp ? '· ' + esc(r.whatsapp) : ''} · ${r.stores} ${pl(r.stores, 'loja', 'lojas')}</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span><span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : 'Aguardando 1º acesso'}</span></div></div>
-    <div class="kv"><div><b>${money(r.prevista)}</b><small>previstas</small></div><div class="${r.liberada < 0 ? 'neg' : ''}"><b>${money(r.liberada)}</b><small>liberadas</small></div><div><b>${money(r.em_repasse)}</b><small>repasse fechado</small></div><div><b>${money(r.paga)}</b><small>já pagas</small></div></div>
-    <p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
-    ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · mande para ele, que cria o acesso em <code>${esc(baseUrl())}rep.html</code></p>`}
-    <div class="acts"><button class="btn small" data-view="${r.id}">Ver como o representante vê</button><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button><button class="btn line small" data-edit="${r.id}">Editar</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}</div></article>`;
+  const row = r => {
+    const det = `<p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
+      ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · ele cria o acesso em <code>${esc(baseUrl())}rep.html</code></p>`}
+      <div class="acts"><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}<button class="btn line small" data-edit="${r.id}">Editar</button></div>`;
+    return xrow('r' + r.id, `<td><b>${esc(r.name)}</b><br><span class="dl">${esc(r.code)} · ${esc(r.email || '')}</span></td><td><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span> <span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : '1º acesso pendente'}</span></td><td class="n">${r.stores}</td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td><td class="n"><button class="btn line small" data-view="${r.id}">Ver painel dele</button></td>`, det, 8);
+  };
   const body = S.repForm !== null ? repFormHtml(S.repForm === 'new' ? null : L.find(x => x.id === S.repForm))
-    : (L.length ? L.map(card).join('') : '<p class="sub" style="text-align:center;padding:40px">Nenhum representante ainda.</p>');
+    : (L.length ? `<div class="tw"><table><thead><tr><th>Representante</th><th>Situação</th><th class="n">Lojas</th><th class="n">Previstas</th><th class="n">Liberadas</th><th class="n">Em repasse</th><th class="n">Pagas</th><th></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum representante ainda.</p>');
   return {html: heroTab('Representantes', `${L.length} ${pl(L.length, 'representante', 'representantes')} · próximo repasse em ${fmtDate(S.next)}`) +
-    `<div class="wrap pad after">${S.repForm === null ? '<div class="acts" style="margin:0 0 16px"><button class="btn" id="rnew">+ Novo representante</button></div>' : ''}${body}</div>`,
+    `<div class="wrap pad">${S.repForm === null ? '<div class="bar" style="margin-top:0"><button class="btn small" id="rnew">+ Novo representante</button></div>' : ''}${body}</div>`,
   bind(){
     const nw = $('#rnew'); if(nw) nw.onclick = () => { S.repForm = 'new'; render(false); };
     root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { S.repForm = b.dataset.edit; render(false); });
@@ -710,6 +764,7 @@ function viewReps(){
     }
   }};
 }
+
 function viewRepOpen(){
   const o = S.repOpen, d = o.d, r = S.reps.find(x => x.id === o.id) || {name:'…', code:''};
   const head = heroTab(esc(r.name), 'Esta é exatamente a visão que o representante tem do próprio painel');
@@ -729,24 +784,17 @@ function viewRepOpen(){
 /* repasses */
 function viewPayouts(){
   const pv = (S.preview && S.preview.items) || [], today = S.today, isDay = today && today.slice(8, 10) === '15';
-  const ln = l => `<div class="ln2"><div><b>${esc(l.store_name || 'Loja')}</b><br><small>${KIND2[l.kind]} · ${fmtDate(l.event_date)} · liberada em ${fmtDate(l.release_date)}</small></div><div class="a ${l.amount < 0 ? 'neg' : ''}">${money(l.amount)}</div></div>`;
-  const pcard = i => `<article class="rcard"><div class="top"><div><h3>${esc(i.name)}</h3><p class="sub" style="margin:2px 0 0">${esc(pixTxt(i.pix_type, i.pix_key))}</p></div><div class="a" style="font-family:Fredoka,sans-serif;font-size:1.5rem;font-weight:700;${i.pay ? '' : 'color:var(--bad)'}">${money(i.total)}</div></div>
-    ${i.pay ? '' : '<p class="sub"><b>Saldo negativo:</b> estornos maiores que as comissões liberadas. Nada a pagar agora, o saldo passa para o próximo repasse.</p>'}
-    ${i.pix_key ? `<div class="acts"><button class="btn line small" data-copypix="${esc(i.pix_key)}">Copiar chave Pix</button></div>` : '<p class="sub" style="color:var(--bad)"><b>Este representante ainda não cadastrou o Pix.</b></p>'}
-    <details class="lines"><summary>${i.lines.length} ${pl(i.lines.length, 'linha', 'linhas')}</summary>${i.lines.map(ln).join('')}</details></article>`;
-  const done = S.payouts.map(p => `<article class="rcard"><div class="top"><div><h3>${esc(p.rep_name)} <span class="dl">· repasse de ${fmtDate(p.cycle)}</span></h3><p class="sub" style="margin:2px 0 0">${esc(pixTxt(p.pix_type, p.pix_key))}</p></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="pill ${p.paid_at ? 'st-ativa' : 'st-tolerancia'}">${p.paid_at ? 'Pago em ' + fmtDate(p.paid_at) : 'A pagar'}</span><b style="font-family:Fredoka,sans-serif;font-size:1.4rem">${money(p.total)}</b></div></div>
-    ${p.paid_note ? `<p class="sub">${esc(p.paid_note)}</p>` : ''}
-    <div class="acts">${p.paid_at ? '' : `<button class="btn small" data-paid="${p.id}" data-name="${esc(p.rep_name)}" data-total="${p.total}">Marcar como pago</button>`}${p.pix_key ? `<button class="btn line small" data-copypix="${esc(p.pix_key)}">Copiar chave Pix</button>` : ''}</div>
-    <details class="lines"><summary>${p.lines.length} ${pl(p.lines.length, 'linha', 'linhas')}</summary>${p.lines.map(ln).join('')}</details></article>`).join('');
+  const lines = ls => `<div class="tw"><table><thead><tr><th>Loja</th><th>Tipo</th><th>Evento</th><th>Liberada em</th><th class="n">Valor</th></tr></thead><tbody>${ls.map(l => `<tr><td>${esc(l.store_name || 'Loja')}</td><td>${KIND2[l.kind]}</td><td>${fmtDate(l.event_date)}</td><td>${fmtDate(l.release_date)}</td><td class="n ${l.amount < 0 ? 'neg' : ''}">${money(l.amount)}</td></tr>`).join('')}</tbody></table></div>`;
+  const prow = (i, k) => xrow('pv' + k, `<td><b>${esc(i.name)}</b></td><td>${esc(pixTxt(i.pix_type, i.pix_key))}</td><td class="n">${i.lines.length}</td><td class="n ${i.pay ? '' : 'neg'}">${money(i.total)}</td><td class="n">${i.pix_key ? `<button class="btn line small" data-copypix="${esc(i.pix_key)}">Copiar Pix</button>` : '<span class="pill st-vencida">Sem Pix</span>'}</td>`,
+    (i.pay ? '' : '<p class="sub"><b>Saldo negativo:</b> estornos maiores que as comissões liberadas. Nada a pagar agora, o saldo passa para o próximo repasse.</p>') + lines(i.lines), 5);
+  const drow = p => xrow('pd' + p.id, `<td>${fmtDate(p.cycle)}</td><td><b>${esc(p.rep_name)}</b></td><td>${esc(pixTxt(p.pix_type, p.pix_key))}</td><td class="n">${money(p.total)}</td><td><span class="pill ${p.paid_at ? 'st-ativa' : 'st-tolerancia'}">${p.paid_at ? 'Pago em ' + fmtDate(p.paid_at) : 'A pagar'}</span></td><td class="n">${p.paid_at ? '' : `<button class="btn small" data-paid="${p.id}" data-name="${esc(p.rep_name)}" data-total="${p.total}">Marcar pago</button> `}${p.pix_key ? `<button class="btn line small" data-copypix="${esc(p.pix_key)}">Copiar Pix</button>` : ''}</td>`,
+    (p.paid_note ? `<p class="sub">${esc(p.paid_note)}</p>` : '') + lines(p.lines), 6);
   const toPay = S.payouts.filter(p => !p.paid_at);
-  return {html: heroTab('Repasses', `Próximo dia de repasse: ${fmtDate(S.next)}`) + `<div class="wrap pad after">
-    <section class="panel"><h2><i>🧾</i>Fechamento</h2>
-      <p class="sub">${isDay ? '<b>Hoje é dia de repasse.</b> ' : ''}O fechamento junta tudo que já foi liberado até hoje e ainda não entrou em repasse. O que ainda está no prazo fica para o próximo. Depois de fechado, a lista não muda.</p>
-      ${pv.length ? pv.map(pcard).join('') : '<p class="sub" style="padding:14px 0"><b>Nada liberado para repassar agora.</b></p>'}
-      <div class="acts"><button class="btn" id="close" ${pv.some(i => i.pay) ? '' : 'disabled'}>Fechar repasses de hoje</button></div></section>
-    <section class="panel" style="margin-top:18px"><h2><i>💸</i>Repasses gerados ${toPay.length ? `<span class="pill st-tolerancia">${toPay.length} a pagar</span>` : ''}</h2>
-      <div style="margin-top:12px">${S.payouts.length ? done : '<p class="sub">Nenhum repasse fechado ainda.</p>'}</div></section></div>`,
+  return {html: heroTab('Repasses', `Próximo dia de repasse: ${fmtDate(S.next)}`) + `<div class="wrap pad">
+    <div class="bar" style="margin-top:0"><h2 class="th" style="margin:0">Para fechar agora</h2><button class="btn small" id="close" ${pv.some(i => i.pay) ? '' : 'disabled'}>Fechar repasses de hoje</button><span class="dl">${isDay ? '<b>Hoje é dia de repasse.</b> ' : ''}Junta o que já foi liberado e ainda não entrou em repasse. Depois de fechado, a lista não muda.</span></div>
+    ${pv.length ? `<div class="tw"><table><thead><tr><th>Representante</th><th>Pix</th><th class="n">Linhas</th><th class="n">Total</th><th></th></tr></thead><tbody>${pv.map(prow).join('')}</tbody></table></div>` : '<p class="sub">Nada liberado para repassar agora.</p>'}
+    <h2 class="th" style="margin-top:22px">Repasses gerados ${toPay.length ? `<span class="pill st-tolerancia">${toPay.length} a pagar</span>` : ''}</h2>
+    ${S.payouts.length ? `<div class="tw"><table><thead><tr><th>Ciclo</th><th>Representante</th><th>Pix</th><th class="n">Total</th><th>Status</th><th class="n">Ações</th></tr></thead><tbody>${S.payouts.map(drow).join('')}</tbody></table></div>` : '<p class="sub">Nenhum repasse fechado ainda.</p>'}</div>`,
   bind(){
     root.querySelectorAll('[data-copypix]').forEach(b => b.onclick = () => copyTxt(b.dataset.copypix));
     const c = $('#close'); if(c) c.onclick = () => { if(confirm('Fechar os repasses de hoje? Cada representante com saldo positivo ganha um repasse a pagar.')) act(c, 'fid_super_close_cycle', {}, 'Repasses fechados ✓ Agora é só pagar por Pix e marcar como pago.'); };
