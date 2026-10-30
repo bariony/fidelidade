@@ -50,3 +50,4 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 - Admin (`super.html#/tum`): aba **Tum** com perguntas, tokens, custo estimado, uso por loja e últimas perguntas (RPC `fid_super_tum_usage`, só super). Visual do admin simplificado (sem cabeçalho escuro, sem sombras duras e sem ícones decorativos).
 - Tum mais barato: o manual virou a ferramenta `tum_manual` (só é consultado em dúvida de configuração), resultados das RPCs vão enxutos, `p_limit` padrão 8 e prompt caching ligado. O uso registra tokens de cache em `fid_tum_usage`.
 - Admin em tabelas compactas: linha clicável abre os detalhes (pedidos, atendimentos, representantes, repasses).
+- Admin → **Financeiro** (`#/financeiro`, RPC `fid_super_finance`): receita bruta/líquida, reembolsos, comissões dos reps (previstas, liberadas, em repasse, pagas), MRR, renovações em 30 dias, resumo por mês e últimas transações. Não inclui custo dos kits nem taxas do Asaas.

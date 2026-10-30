@@ -292,6 +292,8 @@
   .cols{gap:0 12px}
   label{margin:10px 0 4px}
   .seg{margin-left:0}
+  td.n,th.n{white-space:nowrap}
+  .grid2.fin{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
 </style>
 </head>
 <body>
@@ -319,7 +321,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30, open:{}};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -536,7 +538,7 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
+const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
 const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
@@ -546,7 +548,7 @@ function bindTabs(){
 }
 async function loadTab(all){
   const jobs = [];
-  if(all || S.tab === 'pedidos' || S.tab === 'reps' || S.tab === 'lojas') jobs.push(rpc('fid_super_reps').then(r => { if(r && r.items){ S.reps = r.items; S.next = r.next_payday; } }));
+  if(all || S.tab === 'pedidos' || S.tab === 'reps' || S.tab === 'lojas' || S.tab === 'fin') jobs.push(rpc('fid_super_reps').then(r => { if(r && r.items){ S.reps = r.items; S.next = r.next_payday; } }));
   if(all || S.tab === 'atend') jobs.push(rpc('fid_super_tickets').then(r => { if(r && r.items) S.tickets = r.items; }));
   if(all || S.tab === 'testes') jobs.push(rpc('fid_super_trials').then(r => { if(r && r.items) S.trials = r; }));
   if(all || S.tab === 'pedidos') jobs.push(rpc('fid_super_orders').then(r => { if(r && r.items) S.orders = r.items; }));
@@ -554,6 +556,7 @@ async function loadTab(all){
     jobs.push(rpc('fid_super_cycle_preview').then(r => { if(r && r.items) S.preview = r; }));
     jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
   }
+  if(all || S.tab === 'fin') jobs.push(rpc('fid_super_finance', {p_months:S.finMonths}).then(r => { if(r && r.totals) S.fin = r; }));
   if(all || S.tab === 'tum') jobs.push(rpc('fid_super_tum_usage', {p_days:S.tumDays}).then(r => { if(r && r.totals) S.tum = r; }));
   if(S.tab === 'reps' && S.repOpen) jobs.push(rpc('fid_super_rep', {p_rep:S.repOpen.id}).then(r => { if(r && !r.error) S.repOpen.d = r; }));
   await Promise.all(jobs);
@@ -575,12 +578,54 @@ function heroTab(title, sub){
   return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind(); bindRows();
 }
 
+
+/* financeiro */
+const SUB_PRICE = 49.97;
+const KIND_FIN = {sale:['trial', 'Kit'], renewal:['ativa', 'Mensalidade'], refund:['vencida', 'Reembolso']};
+const mLabel = m => { const [y, mo] = m.split('-'); return MES[+mo - 1] + '/' + y; };
+function viewFin(){
+  const F = S.fin;
+  if(!F) return {html: heroTab('Financeiro', 'Carregando…') + '<div class="wrap pad"></div>', bind(){}};
+  const t = F.totals, c = F.commissions, b = F.base, gross = +t.sales + +t.renewals, net = gross + +t.refunds, res = net - +c.period;
+  const mrr = b.active_paying * SUB_PRICE, topay = +c.liberada + +c.em_repasse;
+  const months = F.by_month.map(x => { const n = +x.sales + +x.renewals + +x.refunds; return `<tr><td><b>${mLabel(x.month)}</b></td><td class="n">${money(x.sales)}</td><td class="n">${money(x.renewals)}</td><td class="n ${x.refunds < 0 ? 'neg' : ''}">${money(x.refunds)}</td><td class="n"><b>${money(n)}</b></td><td class="n">${money(x.commissions)}</td><td class="n ${n - x.commissions < 0 ? 'neg' : ''}"><b>${money(n - x.commissions)}</b></td></tr>`; }).join('');
+  const repRows = S.reps.map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td></tr>`).join('');
+  const tx = F.recent.map(x => { const k = KIND_FIN[x.kind] || ['trial', x.kind]; return `<tr><td>${fmtDT(x.at)}</td><td><b>${esc(x.store || '—')}</b></td><td><span class="pill st-${k[0]}">${k[1]}</span></td><td class="n ${x.amount < 0 ? 'neg' : ''}">${money(x.amount)}</td><td>${x.asaas ? 'Asaas' : 'Manual'}</td><td>${esc(x.rep || '—')}</td><td class="clip">${esc(x.note || '')}</td></tr>`; }).join('');
+  return {html: heroTab('Financeiro', 'Receita, comissões dos representantes e caixa') + `<div class="wrap pad">
+    <div class="bar" style="margin-top:0"><div class="seg" role="group" aria-label="Período">${[3, 6, 12].map(d => `<button data-m="${d}" aria-pressed="${S.finMonths === d}">${d} meses</button>`).join('')}</div>
+      <span class="dl" style="margin-left:8px">Valores cobrados dos lojistas. Não inclui custo dos kits nem taxas do Asaas.</span></div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Receita bruta</div><b>${money(gross)}</b></div>
+      <div class="tile"><div class="k">Reembolsos</div><b class="${t.refunds < 0 ? 'neg' : ''}">${money(t.refunds)}</b></div>
+      <div class="tile"><div class="k">Receita líquida</div><b>${money(net)}</b></div>
+      <div class="tile"><div class="k">Comissões (reps)</div><b>${money(c.period)}</b></div>
+      <div class="tile"><div class="k">Resultado após comissões</div><b class="${res < 0 ? 'neg' : ''}">${money(res)}</b></div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Mensalidade recorrente</div><b>${money(mrr)}</b></div>
+      <div class="tile"><div class="k">Lojas pagantes</div><b>${b.active_paying}</b></div>
+      <div class="tile"><div class="k">Em teste</div><b>${b.trial}</b></div>
+      <div class="tile bad"><div class="k">Vencidas / tolerância</div><b>${b.at_risk}</b></div>
+      <div class="tile"><div class="k">Renovam em 30 dias</div><b>${b.renew_30d_n}</b></div>
+      <div class="tile warn"><div class="k">A pagar aos reps</div><b>${money(topay)}</b></div>
+    </div>
+    <div class="grid2 fin">
+      <section><h2 class="th">Por mês</h2><div class="tw"><table><thead><tr><th>Mês</th><th class="n">Kits</th><th class="n">Mensalidades</th><th class="n">Reembolsos</th><th class="n">Líquido</th><th class="n">Comissões</th><th class="n">Resultado</th></tr></thead><tbody>${months}</tbody></table></div></section>
+      <section><h2 class="th">Comissões por representante <button class="btn line small" id="gopay" style="margin-left:8px">Ver repasses</button></h2>${repRows ? `<div class="tw"><table><thead><tr><th>Representante</th><th class="n">Previstas</th><th class="n">Liberadas</th><th class="n">Em repasse</th><th class="n">Pagas</th></tr></thead><tbody>${repRows}<tr><td><b>Total</b></td><td class="n"><b>${money(c.prevista)}</b></td><td class="n"><b>${money(c.liberada)}</b></td><td class="n"><b>${money(c.em_repasse)}</b></td><td class="n"><b>${money(c.paga)}</b></td></tr></tbody></table></div>` : '<p class="sub">Nenhum representante ainda.</p>'}
+        <p class="dl" style="margin-top:6px">Previstas: ainda no prazo de liberação. Liberadas: entram no próximo fechamento. Em repasse: fechadas, falta pagar o Pix.</p></section>
+    </div>
+    <h2 class="th" style="margin-top:18px">Últimas transações</h2>${tx ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th>Tipo</th><th class="n">Valor</th><th>Origem</th><th>Representante</th><th>Observação</th></tr></thead><tbody>${tx}</tbody></table></div>` : '<p class="sub">Nenhuma transação ainda.</p>'}</div>`,
+    bind(){
+      root.querySelectorAll('[data-m]').forEach(b => b.onclick = async () => { S.finMonths = +b.dataset.m; await loadTab(); render(false); });
+      const g = $('#gopay'); if(g) g.onclick = async () => { S.tab = 'repasses'; render(); await loadTab(); render(false); };
+    }};
+}
 
 /* uso do Tum (IA) */
 const TUM_PRICE = {in:0.10, out:0.50, cw:0.125, cr:0.01}; // US$ por milhão de tokens (Haiku 5.5, prompts até 100 mil tokens)
@@ -806,7 +851,7 @@ function viewPayouts(){
 }
 
 /* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
-const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum'};
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
 function parseRoute(){

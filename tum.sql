@@ -210,3 +210,5 @@ grant execute on function public.fid_super_tum_usage(int) to authenticated;
 
 -- Cache de prompt: colunas de uso (migration tum_usage_cache_columns). fid_super_tum_usage passa a somar cache_read/cache_write.
 alter table public.fid_tum_usage add column if not exists cache_read_tokens int not null default 0, add column if not exists cache_write_tokens int not null default 0;
+
+-- Financeiro do admin (migration admin_finance_overview_fix): fid_super_finance(p_months) devolve receita (kits, mensalidades, reembolsos), comissões, base de lojas, resumo por mês e últimas transações. Só super.
