@@ -89,7 +89,7 @@ const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
 const QS = new URLSearchParams(location.search);
-const BUILD = '2026-10-29.5';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
+const BUILD = '2026-10-31.1';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
 const VIEW_URL = QS.get('v') === '1';                              // endereço só de visualização: nunca carimba
 const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
 const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
@@ -171,20 +171,34 @@ function bindLinks(s){
   document.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => {
     const k = b.dataset.lk, L = (s.links||{})[k];
     try { window.open(b.dataset.url, '_blank', 'noopener'); } catch(e){}
-    if(L && L.bonus && !L.done) save(CKEY(), JSON.stringify({k, ts:Date.now()}));
+    if(L && L.bonus && !L.done){ save(CKEY(), JSON.stringify({k, ts:Date.now()})); watchClaim(); }
   });
+}
+// No app instalado, abrir o Instagram nem sempre dispara "voltei para a página".
+// Por isso, depois do toque, confere sozinho a cada segundo (só com a tela à vista) até o bônus cair.
+let claimTimer = null;
+function watchClaim(){
+  if(claimTimer) return;
+  claimTimer = setInterval(() => {
+    if(!store(CKEY())){ clearInterval(claimTimer); claimTimer = null; return; }
+    if(!document.hidden) checkClaim();
+  }, 1000);
 }
 async function checkClaim(){
   let p = null; try { p = JSON.parse(store(CKEY()) || 'null'); } catch(e){}
-  if(!p) return;
+  if(!p || checkingClaim) return;
   const wait = 5000 - (Date.now() - p.ts);
-  if(wait > 0) return setTimeout(checkClaim, wait + 50);
+  if(wait > 0) return;
+  checkingClaim = true;
   try { localStorage.removeItem(CKEY()); } catch(e){}
-  const tk = store(KEY); if(!tk) return;
+  const tk = store(KEY); if(!tk){ checkingClaim = false; return; }
   const r = await rpc('fid_claim',{p_tag:tag,p_token:tk,p_kind:p.k});
+  checkingClaim = false;
   if(r && r.claimed){ render(r,{viewOnly:true,bonus:true}); boom(!!r.earned); }
 }
-document.addEventListener('visibilitychange', () => { if(!document.hidden){ checkClaim(); if(FROM_ICON && !location.hash){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(n => { if(!n.error) render(n,{viewOnly:true}); }); } } });
+let checkingClaim = false;
+document.addEventListener('visibilitychange', () => { if(!document.hidden){ const pend = !!store(CKEY()); checkClaim(); if(pend) watchClaim(); if(!pend && FROM_ICON && !location.hash){ const t = store(KEY); if(t) rpc('fid_state',{p_tag:tag,p_token:t}).then(n => { if(!n.error) render(n,{viewOnly:true}); }); } } });
+if(store(CKEY())) watchClaim();   // bônus pendente de uma abertura anterior
 
 function setColor(c){
   c = c || '#14296B';
