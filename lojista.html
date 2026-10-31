@@ -228,7 +228,16 @@
   #tum .dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--ink);animation:tumd 1s infinite}
   #tum .dots span:nth-child(2){animation-delay:.15s}#tum .dots span:nth-child(3){animation-delay:.3s}
   @keyframes tumd{0%,80%,100%{opacity:.25}40%{opacity:1}}
-  @media (max-width:520px){#tum{right:12px;bottom:14px}#tum .tpanel{position:fixed;right:8px;left:8px;width:auto;bottom:8px;height:calc(100vh - 16px)}}
+  @media (max-width:520px){
+    #tum{right:12px;bottom:14px}
+    #tum .tpanel{position:fixed;right:8px;left:8px;width:auto;top:var(--tvt,8px);bottom:auto;height:var(--tvh,calc(100dvh - 16px));max-height:calc(100dvh - 16px);border-radius:16px}
+    #tum .m{max-width:94%;overflow-wrap:anywhere;font-size:1rem}
+    #tum .tmsgs{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+    #tum .thead{padding:8px 8px 8px 12px}
+    #tum form{padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+    #tum textarea{font-size:16px}
+    body.tum-lock{overflow:hidden}
+  }
   .ovl{position:fixed;inset:0;background:rgba(20,41,107,.45);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
   .modal{background:#fff;border:3px solid var(--ink);border-radius:20px;box-shadow:var(--hard);padding:20px;max-width:480px;width:100%;max-height:90vh;overflow:auto}
   .modal h2{margin-bottom:6px}
@@ -715,8 +724,21 @@ function tumBuild(){
 }
 function tumToggle(o){
   TUM.open = o; $('#tum').classList.toggle('open', o);
-  if(o){ tumDraw(); setTimeout(() => { const i = $('#tumin'); if(i) i.focus(); }, 40); }
+  const small = window.matchMedia('(max-width:520px)').matches;
+  document.body.classList.toggle('tum-lock', o && small);
+  tumFit();
+  if(o){ tumDraw(); if(!small) setTimeout(() => { const i = $('#tumin'); if(i) i.focus(); }, 40); }
 }
+// No celular o painel acompanha a área realmente visível (barra do navegador e teclado).
+function tumFit(){
+  const el = $('#tum'), vv = window.visualViewport;
+  if(!el) return;
+  if(!TUM.open || !vv || !window.matchMedia('(max-width:520px)').matches){ el.style.removeProperty('--tvh'); el.style.removeProperty('--tvt'); return; }
+  el.style.setProperty('--tvh', Math.max(240, vv.height - 16) + 'px');
+  el.style.setProperty('--tvt', (vv.offsetTop + 8) + 'px');
+  const box = $('#tummsgs'); if(box) box.scrollTop = box.scrollHeight;
+}
+if(window.visualViewport){ visualViewport.addEventListener('resize', () => tumFit()); visualViewport.addEventListener('scroll', () => tumFit()); }
 function tumDraw(){
   const box = $('#tummsgs'); if(!box) return;
   const nome = S.store && S.store.name ? S.store.name : 'sua loja';
