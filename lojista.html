@@ -324,6 +324,10 @@
   .kp{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 16px;box-shadow:3px 3px 0 var(--ink)}
   .kp b{display:block;font-family:'Fredoka',sans-serif;font-size:1.9rem;line-height:1.1}
   .kp span{color:var(--muted);font-size:.86rem}
+  button.kpb{font:inherit;text-align:left;cursor:pointer;width:100%}
+  button.kpb:hover{background:var(--lilac)}
+  button.kpb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  button.kpb:focus-visible{outline:3px solid var(--red);outline-offset:2px}
   .ctools{display:flex;gap:12px;flex-wrap:wrap}
   .ctools .grow{flex:1 1 280px;max-width:560px}
   .ctools select{min-width:210px;font-weight:600}
@@ -1031,9 +1035,9 @@ function viewClientes(){
   const empty = !S.customers.length
     ? '<p class="note" style="margin-top:18px">Ainda não há clientes. Grave o link de uma tag no bastão e peça para o primeiro cliente encostar o celular.</p>'
     : '<p class="note" style="margin-top:18px">Nenhum cliente neste filtro.</p>';
-  const kp = (b, l, c) => `<div class="kp"><b${c ? ` style="color:${c}"` : ''}>${b}</b><span>${l}</span></div>`;
+  const kp = (b, l, c, f) => f ? `<button type="button" class="kp kpb" data-kf="${f}" aria-label="Ver: ${l}"><b${c ? ` style="color:${c}"` : ''}>${b}</b><span>${l} ›</span></button>` : `<div class="kp"><b${c ? ` style="color:${c}"` : ''}>${b}</b><span>${l}</span></div>`;
   const html = head('Clientes', S.customers.length + ' ' + pl(S.customers.length, 'cliente', 'clientes') + ' no seu cartão fidelidade') + `
-    <div class="kpis">${kp(S.customers.length, 'no total')}${kp(novos, pl(novos, 'novo', 'novos') + ' em 30 dias')}${kp(sg.premio.length, 'com prêmio esperando', '#0E7A47')}${kp(sg.risco.length, 'em risco de sumir', '#E03A2F')}</div>
+    <div class="kpis">${kp(S.customers.length, 'no total')}${kp(novos, pl(novos, 'novo', 'novos') + ' em 30 dias')}${kp(sg.premio.length, 'com prêmio esperando', '#0E7A47', 'premio')}${kp(sg.risco.length, 'em risco de sumir', '#E03A2F', 'risco')}</div>
     <div class="ctools"><div class="grow"><label for="q" class="sr">Buscar por nome ou WhatsApp</label><input id="q" type="search" placeholder="Buscar por nome ou WhatsApp" value="${esc(S.q)}" autocomplete="off"></div>
       <div><label for="so" class="sr">Ordenar por</label><select id="so">${Object.entries(SORTS).map(([k, v]) => `<option value="${k}" ${S.sort === k ? 'selected' : ''}>Ordenar: ${v[0]}</option>`).join('')}</select></div></div>
     <div class="chips" role="group" aria-label="Filtro">${chips}</div>
@@ -1041,6 +1045,7 @@ function viewClientes(){
     ${list.length ? `<div class="clist"><div class="chead"><span>Cliente</span><span>Cartão</span><span class="c-since">Cliente desde</span><span class="c-last">Último carimbo</span><span></span></div>${rows}</div>${more}` : empty}`;
   return {html, bind(){
     root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; S.shown = 25; render(); });
+    root.querySelectorAll('[data-kf]').forEach(b => b.onclick = () => { S.filter = b.dataset.kf; S.shown = 25; render(); window.scrollTo(0, 0); });
     root.querySelectorAll('.crow').forEach(el => { el.onclick = () => openCustomer(el.dataset.c); el.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openCustomer(el.dataset.c); } }; });
     const mb = $('#more'); if(mb) mb.onclick = () => { S.shown = (S.shown || 25) + 25; render(); };
     $('#so').onchange = e => { S.sort = e.target.value; S.shown = 25; render(); };
@@ -1197,9 +1202,15 @@ function viewRetiradas(){
   const list = P.length ? P.map(r => `<div class="panel pend"><div><b>${esc(r.name)}</b><br><small class="note">${esc(s.reward)} · pediu ${rel(r.created_at)} · expira em ${leftTxt(r.expires_at)}</small></div>
       <button class="btn small" data-ent="${r.id}">Entregue</button></div>`).join('')
     : '<p class="note">Nenhum resgate pendente. Quando um cliente tocar em "Resgatar prêmio", ele aparece aqui até ser entregue ou expirar.</p>';
+  const won = (S.customers || []).filter(c => c.rewards_available > 0 && !P.some(r => r.name === c.name));
+  const wonHtml = won.length ? `<h2 style="margin:26px 0 4px;font-size:1.15rem">Ganharam o prêmio e ainda não resgataram (${won.length})</h2>
+    <p class="note" style="margin:0 0 10px">Eles já completaram o cartão, mas ainda não tocaram em "Resgatar prêmio". Só depois do toque o pedido aparece acima.</p>`
+    + won.map(c => `<div class="panel pend"><div><b>${esc(c.name)}</b><br><small class="note">${c.rewards_available} ${pl(c.rewards_available, 'prêmio disponível', 'prêmios disponíveis')} · ${esc(c.whatsapp)}</small></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn small line" href="${waLink(c, 'Oi, ' + c.name.split(' ')[0] + '! Seu prêmio (' + s.reward + ') está esperando. É só tocar em Resgatar prêmio no seu cartão e retirar aqui na loja.')}" target="_blank" rel="noopener" style="text-decoration:none">Avisar</a><button class="btn small" data-oc="${c.id}">Abrir</button></div></div>`).join('') : '';
   const html = head('Retiradas', 'Prêmios resgatados pelos clientes, esperando a retirada na loja') + list
-    + '<p class="note" style="margin-top:14px">Confira o nome do cliente, entregue o prêmio e toque em Entregue. O cartão dele atualiza sozinho.</p>';
+    + '<p class="note" style="margin-top:14px">Confira o nome do cliente, entregue o prêmio e toque em Entregue. O cartão dele atualiza sozinho.</p>' + wonHtml;
   return {html, bind(){
+    root.querySelectorAll('[data-oc]').forEach(b => b.onclick = () => openCustomer(b.dataset.oc));
     root.querySelectorAll('[data-ent]').forEach(b => b.onclick = async () => {
       b.disabled = true;
       const {data, error} = await sb.rpc('fid_admin_redeem', {p_redemption:b.dataset.ent});
