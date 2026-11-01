@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       } else {
         const { data: r } = await admin.from("fid_reps").select("name, code").eq("user_id", user.id).maybeSingle();
         if (!r) return json({ error: "nao_e_representante" }, 403);
-        mail = welcomeRep({ name: r.name, email: to, saleLink: r.code ? `${SITE}/comprar.html?r=${r.code}` : "" });
+        mail = welcomeRep({ name: r.name, email: to, saleLink: r.code ? `${SITE}/comprar?r=${r.code}` : "" });
       }
     } else return json({ error: "tipo_invalido" }, 400);
 

@@ -70,7 +70,7 @@ export function orderPending({ name, orderId, total, payUrl }) {
 }
 
 /* ---------- 2. Pedido confirmado ---------- */
-export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, email, loginUrl = SITE + "/lojista.html" }) {
+export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, email, loginUrl = SITE + "/lojista" }) {
   const code = orderCode(orderId), hand = delivery === "retirada", total = Number(kit) + Number(shipping || 0);
   const body = h1(`Pedido confirmado! 🎉`) +
     p(`Oi, ${esc((name || "").split(" ")[0] || "tudo bem")}! Recebemos o seu pagamento e o seu <b>Kit Carimbô</b> já está sendo preparado.`) +
@@ -103,7 +103,7 @@ export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, emai
 }
 
 /* ---------- 3. Acesso criado: lojista ---------- */
-export function welcomeShop({ name, email, loginUrl = SITE + "/lojista.html" }) {
+export function welcomeShop({ name, email, loginUrl = SITE + "/lojista" }) {
   const body = h1("Seu acesso está pronto") +
     p(`Oi${name ? ", " + esc(name.split(" ")[0]) : ""}! Sua conta no <b>Carimbô</b> foi criada. Agora é só entrar no painel e montar o cartão fidelidade da sua loja.`) +
     kraftBox([["Seu acesso", esc(email)]]) +
@@ -119,7 +119,7 @@ export function welcomeShop({ name, email, loginUrl = SITE + "/lojista.html" }) 
 }
 
 /* ---------- 4. Acesso criado: representante ---------- */
-export function welcomeRep({ name, email, saleLink, loginUrl = SITE + "/rep.html" }) {
+export function welcomeRep({ name, email, saleLink, loginUrl = SITE + "/rep" }) {
   const body = h1("Bem-vindo ao time Carimbô") +
     p(`Oi${name ? ", " + esc(name.split(" ")[0]) : ""}! Seu acesso de <b>representante</b> foi criado. No seu painel você acompanha as lojas que indicou, as comissões e os repasses.`) +
     kraftBox([["Seu acesso", esc(email)], ...(saleLink ? [["Seu link de venda", `<a href="${esc(saleLink)}" style="color:${C.ink}">${esc(saleLink.replace(/^https?:\/\//, ""))}</a>`]] : [])]) +

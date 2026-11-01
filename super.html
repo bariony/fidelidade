@@ -403,7 +403,7 @@ function viewList(){
   const chips = [['todas', 'Todas', L.length], ['ativa', 'Ativas', c('ativa')], ['trial', 'Em teste', c('trial')], ['vencem7', 'Vencem em 7 dias', L.filter(soon).length],
     ['tolerancia', 'Tolerância', c('tolerancia')], ['vencida', 'Vencidas', c('vencida')], ['bloqueada', 'Bloqueadas', c('bloqueada')], ['cancelou', 'Cancelaram', L.filter(x => x.cancelled_at).length]]
     .map(([k, l, n]) => `<button class="chip" data-f="${k}" aria-pressed="${S.filter === k}">${l}<small>${n}</small></button>`).join('');
-  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>
+  root.innerHTML = `<div class="hero"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>
     <div class="wrap pad">
       <div class="tiles">
         <div class="tile"><div class="k">Lojas</div><b>${L.length}</b></div>
@@ -567,7 +567,7 @@ const copyTxt = async t => { try { await navigator.clipboard.writeText(t); toast
 const waLink = n => { const d = String(n || '').replace(/\D/g, ''); return d ? 'https://wa.me/' + (d.length <= 11 ? '55' + d : d) : null; };
 const PIX = {cpf:'CPF', cnpj:'CNPJ', email:'E-mail', telefone:'Telefone', aleatoria:'Chave aleatória'};
 const pixTxt = (t, k) => k ? `${PIX[t] || 'Pix'}: ${k}` : 'Pix não cadastrado';
-const repLink = code => baseUrl() + 'comprar.html?r=' + code;
+const repLink = code => baseUrl() + 'comprar?r=' + code;
 const KIND2 = {aquisicao:'Venda do kit', recorrencia:'Mensalidade', estorno:'Estorno'};
 const xrow = (key, cells, detail, n) => `<tr class="r${S.open[key] ? ' on' : ''}" data-row="${key}">${cells}</tr>${S.open[key] ? `<tr class="x"><td colspan="${n}">${detail}</td></tr>` : ''}`;
 function bindRows(){
@@ -575,7 +575,7 @@ function bindRows(){
   root.querySelectorAll('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.toggle; S.open[k] = !S.open[k]; render(false); });
 }
 function heroTab(title, sub){
-  return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista.html">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
+  return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
 }
 function viewTab(){
   const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : viewPayouts();
@@ -699,7 +699,7 @@ function viewTickets(){
 
 /* testes */
 const TST = {aguardando:['tolerancia', 'Aguardando uso'], usado:['ativa', 'Ativado'], expirado:['bloqueada', 'Expirado'], cancelado:['bloqueada', 'Cancelado']};
-const testLink = c => baseUrl() + 'teste.html?c=' + c;
+const testLink = c => baseUrl() + 'teste?c=' + c;
 function viewTrials(){
   const T = S.trials, L = T.items, reps = (T.reps || []).filter(r => r.active);
   const row = i => {
@@ -776,7 +776,7 @@ function viewReps(){
   const L = S.reps;
   const row = r => {
     const det = `<p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
-      ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · ele cria o acesso em <code>${esc(baseUrl())}rep.html</code></p>`}
+      ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · ele cria o acesso em <code>${esc(baseUrl())}rep</code></p>`}
       <div class="acts"><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}<button class="btn line small" data-edit="${r.id}">Editar</button></div>`;
     return xrow('r' + r.id, `<td><b>${esc(r.name)}</b><br><span class="dl">${esc(r.code)} · ${esc(r.email || '')}</span></td><td><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span> <span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : '1º acesso pendente'}</span></td><td class="n">${r.stores}</td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td><td class="n"><button class="btn line small" data-view="${r.id}">Ver painel dele</button></td>`, det, 8);
   };
@@ -788,7 +788,7 @@ function viewReps(){
     const nw = $('#rnew'); if(nw) nw.onclick = () => { S.repForm = 'new'; render(false); };
     root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { S.repForm = b.dataset.edit; render(false); });
     root.querySelectorAll('[data-copylink]').forEach(b => b.onclick = () => copyTxt(repLink(b.dataset.copylink)));
-    root.querySelectorAll('[data-copyinv]').forEach(b => b.onclick = () => copyTxt(`Seu convite do Carimbô: ${b.dataset.copyinv}\nCrie seu acesso em ${baseUrl()}rep.html`));
+    root.querySelectorAll('[data-copyinv]').forEach(b => b.onclick = () => copyTxt(`Seu convite do Carimbô: ${b.dataset.copyinv}\nCrie seu acesso em ${baseUrl()}rep`));
     root.querySelectorAll('[data-view]').forEach(b => b.onclick = async () => { const r = L.find(x => x.id === b.dataset.view); S.repOpen = {id:r.id, d:null}; render(); await loadTab(); render(false); });
     const f = $('#rf');
     if(f){

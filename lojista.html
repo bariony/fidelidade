@@ -647,7 +647,7 @@ function viewAssinatura(){
     <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
       <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
       <p class="sub2">Mensalidade de ${brl(b.price)}.${st.is_trial ? '' : ' O 1º mês já vem com o kit.'} ${st.is_trial && !st.subscription ? 'No fim do teste os carimbos e as tags pausam, a menos que você assine.' : 'Depois do vencimento você tem ' + b.grace_days + ' dias de carência antes de pausar os carimbos e as tags.'}</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canSubscribe ? '<a class="btn" href="comprar.html?upgrade=1" style="text-decoration:none;display:inline-block">Comprar o kit e continuar</a><button class="btn line" id="subn">Só assinar a mensalidade</button>' : ''}${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">${canSubscribe ? '<a class="btn" href="comprar?upgrade=1" style="text-decoration:none;display:inline-block">Comprar o kit e continuar</a><button class="btn line" id="subn">Só assinar a mensalidade</button>' : ''}${canPay ? '<button class="btn" id="payn">Pagar agora</button>' : ''}${canCancel ? '<button class="btn line" id="cancelsub">Cancelar assinatura</button>' : ''}</div></section>
     <section class="panel"><h2>Histórico de cobranças</h2>${rows}</section>
     <section class="panel"><h2>Seus pedidos de ajuda</h2>${tks}</section></div>`;
   return {html, bind(){
@@ -683,7 +683,7 @@ function planBanner(){
   else if(s.blocked) { tone = 'bad'; msg = 'Acesso bloqueado. Os cartões dos clientes não estão carimbando. Fale com o suporte para reativar.'; }
   else if(d < -((s.cancelled_at || (s.is_trial && !s.asaas_subscription_id)) ? 0 : 10)) { tone = 'bad'; msg = 'Seu plano venceu e os carimbos estão pausados. Renove para voltar a carimbar.'; }
   else if(d < 0) { tone = 'warn'; msg = 'Seu plano venceu. Pague em até ' + (10 + d) + ' ' + pl(10 + d, 'dia', 'dias') + ' para não pausar os carimbos.'; }
-  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').' + (s.asaas_subscription_id ? ' Assinatura criada: 1ª cobrança nessa data.' : ' <a class="btn small" href="comprar.html?upgrade=1" style="margin-left:8px;text-decoration:none;display:inline-block">Comprar o kit</a>'); }
+  else if(s.is_trial) { tone = 'info'; msg = 'Período de teste: termina em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').' + (s.asaas_subscription_id ? ' Assinatura criada: 1ª cobrança nessa data.' : ' <a class="btn small" href="comprar?upgrade=1" style="margin-left:8px;text-decoration:none;display:inline-block">Comprar o kit</a>'); }
   else if(d <= 7) { tone = 'info'; msg = 'Seu plano renova em ' + d + ' ' + pl(d, 'dia', 'dias') + ' (' + new Date(s.renews_at + 'T12:00:00').toLocaleDateString('pt-BR') + ').'; }
   return msg ? `<div class="pbanner ${tone}">${msg}</div>` : '';
 }
@@ -789,7 +789,7 @@ function renderMain(){
   if(!S.store) return viewCreate();
   const col = mq.matches || S.collapsed;
   const item = (id, label, ic, cur) => `<button class="navbtn" data-go="${id}" data-tip="${label}" aria-label="${label}" ${cur ? 'aria-current="page"' : ''}>${ICON[ic]}<span class="lb">${label}</span>${id === 'retiradas' && S.pending.length ? `<span class="bdg">${S.pending.length}</span>` : ''}${id === 'assinatura' && billUnread() ? `<span class="bdg">${billUnread()}</span>` : ''}</button>`;
-  const sup = S.isSuper ? `<a class="navbtn" href="super.html" data-tip="Admin" aria-label="Admin">${ICON.users}<span class="lb">Admin</span></a>` : '';
+  const sup = S.isSuper ? `<a class="navbtn" href="super" data-tip="Admin" aria-label="Admin">${ICON.users}<span class="lb">Admin</span></a>` : '';
   const nav = NAV.map(([id, label, ic]) => item(id, label, ic, S.view === id || (S.view === 'cliente' && id === 'clientes'))).join('');
   const v = ({hoje:viewHoje, clientes:viewClientes, cliente:viewCliente, retiradas:viewRetiradas, campanhas:viewCampanhas, tags:viewTags, loja:viewLoja, regras:viewRegras, assinatura:viewAssinatura})[S.view]();
   root.innerHTML = `<div class="shell ${col ? 'collapsed' : ''}"><aside class="rail"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
@@ -874,7 +874,7 @@ function viewCreate(){
   root.innerHTML = `<div class="auth"><div class="brand">${LOGO}<span>carimb<em>ô</em></span></div>
     <h1>Você ainda não tem uma loja</h1>
     <p class="sub">A loja é criada quando você pede o kit Carimbô. Depois que o pagamento é confirmado, o painel é liberado.</p>
-    <div class="actions"><a class="btn" href="comprar.html" style="text-decoration:none;text-align:center">Pedir meu kit</a><button class="btn line" type="button" id="out">Sair</button></div></div>`;
+    <div class="actions"><a class="btn" href="comprar" style="text-decoration:none;text-align:center">Pedir meu kit</a><button class="btn line" type="button" id="out">Sair</button></div></div>`;
   $('#out').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 }
 

@@ -264,7 +264,7 @@
       <a href="#preco">Preço</a>
       <a href="#perguntas">Perguntas</a>
     </nav>
-    <div class="hact"><a class="enter" href="lojista.html">Entrar</a><button class="btn small" type="button" data-cta="header">Quero o kit</button></div>
+    <div class="hact"><a class="enter" href="lojista">Entrar</a><button class="btn small" type="button" data-cta="header">Quero o kit</button></div>
   </div>
 </header>
 
@@ -484,7 +484,7 @@
   <div class="wrap">
     <span class="logo"><span>carimb<i>ô</i></span></span>
     <span>Bateu o carimbo, ganhou.</span>
-    <a href="lojista.html">Já sou lojista: entrar no painel</a>
+    <a href="lojista">Já sou lojista: entrar no painel</a>
     <a href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener">Instagram @carimbo.io</a>
   </div>
 </footer>
@@ -493,7 +493,7 @@
 <script>
 (function(){
   /* CTAs: levam à compra, sem representante (clientes próprios do Carimbô) */
-  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'comprar.html'; }); });
+  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'comprar'; }); });
 
   /* simulação */
   var $ = function(id){ return document.getElementById(id); };
