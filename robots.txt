@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /lojista
+Disallow: /rep
+Disallow: /super
+Disallow: /admin
+Disallow: /teste
+Disallow: /c.html
+
+Sitemap: https://carimbo.io/sitemap.xml
