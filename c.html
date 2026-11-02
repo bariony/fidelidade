@@ -213,6 +213,7 @@ async function showRegister(info){
   const regForm = `<form id="f"><label>Seu nome</label><input name="n" autocomplete="name" required>
     <label>Seu WhatsApp (com DDD)</label><input name="w" inputmode="tel" autocomplete="tel" placeholder="11 99999-9999" required>
     <button>Começar meu cartão</button><p class="err hide" id="e"></p></form>
+    <p style="margin:12px 0 0;font-size:.78rem;opacity:.7;text-align:center">Seu nome e WhatsApp ficam com a loja. <a href="privacidade" style="color:inherit">Privacidade</a></p>
     <button type="button" class="ghost" id="rec">Já tenho cartão</button>`;
   const recForm = `<form id="rf"><label>Entrar no meu cartão: WhatsApp cadastrado (com DDD)</label><input name="w" inputmode="tel" autocomplete="tel" placeholder="11 99999-9999" required>
     <button>Entrar</button><p class="err hide" id="re"></p></form>

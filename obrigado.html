@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carimbô · Obrigado</title>
+<meta name="description" content="Pedido do kit Carimbô confirmado.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#14296B">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14296B;--red:#E03A2F;--kraft:#EAD9B6;--paper:#FBF7EE;--mut:#4a5a8c;--line:#E4D9C0;--bad:#C0392B;--good:#0E7A47}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--navy);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%}
+  h1,h2,h3,.btn,.brand{font-family:'Fredoka',system-ui,sans-serif}
+  h1,h2,h3{margin:0;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+  button,input,textarea,select{font:inherit;color:inherit}
+  .top{background:var(--navy);padding:14px 0;border-bottom:4px solid var(--red)}
+  .wrap{width:min(1040px,100% - 32px);margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:1.25rem;text-decoration:none}
+  .logo{width:38px;height:38px;border-radius:11px;background:var(--paper);display:grid;place-items:center;box-shadow:3px 3px 0 var(--red)}
+  .logo svg{width:24px;height:24px}
+  .brand em{font-style:normal;color:#FF7B6E}
+  main{padding:30px 0 80px}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:28px;align-items:start}
+  h1{font-size:clamp(1.9rem,4.4vw,2.7rem)}
+  .lead{color:var(--mut);margin:10px 0 0;font-size:1.08rem}
+  .card{background:#fff;border:3px solid var(--navy);border-radius:22px;padding:24px;box-shadow:5px 5px 0 var(--navy)}
+  label.l{display:block;font-size:.88rem;color:var(--mut);margin:15px 0 6px;font-weight:700}
+  input,textarea,select{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;min-height:50px}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%2314296B' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy);box-shadow:3px 3px 0 var(--red)}
+  [aria-invalid=true]{border-color:var(--bad)!important;background:#FFF6F5}
+  .fe{color:var(--bad);font-size:.84rem;font-weight:700;margin:5px 0 0;min-height:0}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  .row3{display:grid;grid-template-columns:140px 1fr;gap:0 14px}
+  .rowN{display:grid;grid-template-columns:130px 1fr;gap:0 14px}
+  .rowC{display:grid;grid-template-columns:1fr 120px;gap:0 14px}
+  .sec{margin:26px 0 0;padding-top:20px;border-top:2px dashed var(--line)}
+  .sec:first-of-type{border-top:0;margin-top:0;padding-top:0}
+  .sec h3{font-size:1.15rem;display:flex;align-items:center;gap:10px}
+  .sec h3 b{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:.9rem;flex:none}
+  .sec > small{display:block;color:var(--mut);margin:4px 0 0}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .opt{position:relative;display:block;cursor:pointer}
+  .opt input{position:absolute;opacity:0;inset:0;min-height:0;width:100%;height:100%;cursor:pointer}
+  .opt span{display:block;height:100%;border:2.5px solid var(--line);border-radius:16px;padding:14px 16px;background:#fff;transition:border-color .12s,box-shadow .12s,background .12s}
+  .opt b{font-family:'Fredoka',sans-serif;font-size:1.08rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .opt em{font-style:normal;font-weight:700;font-size:.92rem;color:var(--good)}
+  .opt em.pay{color:var(--navy)}
+  .opt small{display:block;color:var(--mut);margin-top:4px;line-height:1.35;font-size:.86rem}
+  .opt input:checked + span{border-color:var(--navy);background:#F4F7FF;box-shadow:3px 3px 0 var(--navy)}
+  .opt input:focus-visible + span{outline:3px solid var(--red);outline-offset:2px}
+  .cepbox{position:relative}
+  .cepst{font-size:.84rem;margin:6px 0 0;color:var(--mut);min-height:1.2em;font-weight:700}
+  .cepst.ok{color:var(--good)}.cepst.warn{color:#B45309}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .pw{position:relative}
+  .pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--navy);font-weight:800;font-size:.85rem;padding:10px;cursor:pointer}
+  .pw input{padding-right:72px}
+  .btn{appearance:none;width:100%;margin-top:22px;border:3px solid var(--navy);background:var(--red);color:#fff;font-weight:600;font-size:1.2rem;padding:16px 24px;border-radius:16px;box-shadow:4px 4px 0 var(--navy);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;transition:transform .08s,box-shadow .08s}
+  .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--navy)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.line{background:#fff;color:var(--navy)}
+  .err{color:var(--bad);font-weight:700;margin:14px 0 0;min-height:1.3em}
+  .sum{position:sticky;top:16px}
+  .sum h2{font-size:1.35rem}
+  .price{display:flex;align-items:baseline;gap:10px;margin:14px 0 4px}
+  .price b{font-family:'Fredoka',sans-serif;font-size:2.6rem;line-height:1}
+  .price s{color:var(--mut)}
+  ul.in{list-style:none;padding:0;margin:14px 0 0}
+  ul.in li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  ul.in li:first-child{border-top:0}
+  ul.in i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-style:normal;font-size:.8rem;font-weight:800;margin-top:2px}
+  .tot{margin-top:16px;border-top:2px dashed var(--line);padding-top:12px}
+  .tot div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+  .tot .t{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.35rem;margin-top:6px}
+  .tot .g{color:var(--good);font-weight:800}
+  .after{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-size:.93rem;color:var(--mut)}
+  .after b{color:var(--navy)}
+  .ok{max-width:560px;margin:0 auto;text-align:center}
+  .ok .seal{width:84px;height:84px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-size:2.6rem;margin:0 auto 18px;border:3px solid var(--navy);box-shadow:4px 4px 0 var(--navy)}
+  .ok ol{text-align:left;margin:20px 0 0;padding-left:22px}
+  .ok li{margin:8px 0}
+  .fine{font-size:.82rem;color:var(--mut);margin-top:14px}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
+  @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
+</style>
+<style>.ok{max-width:600px}.ok .code{display:inline-block;margin:6px 0 0;padding:8px 16px;border:2.5px dashed var(--navy);border-radius:12px;background:var(--kraft);font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:.03em}.ok .btn{display:block;text-align:center}.ok .help{margin-top:22px;color:var(--mut);font-size:.95rem}</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
+<main><div class="wrap"><div class="ok card">
+  <div class="seal">✓</div>
+  <h1>Pagamento recebido!</h1>
+  <p class="lead">Obrigado por escolher o Carimbô. O seu kit já entrou na fila de preparo.</p>
+  <div id="cd" style="display:none"><span class="code" id="code"></span></div>
+  <ol>
+    <li><b>Olhe o seu e-mail.</b> Em instantes chega a confirmação com o número do pedido e o link de acesso à loja. Se não aparecer, olhe a caixa de spam.</li>
+    <li><b>Entre no painel.</b> Use o e-mail da compra e a senha que você criou. Monte o cartão da loja (nome, símbolo e cores) e defina o prêmio em <b>Regras</b>.</li>
+    <li><b>Receba o kit em até 7 dias.</b> Quando ele chegar, é só gravar o link no bastão e colocar no balcão.</li>
+  </ol>
+  <a class="btn" href="lojista">Entrar no painel da loja</a>
+  <p class="help" id="help">Dúvida? Escreva para a gente pelo Instagram <a href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener">@carimbo.io</a>.</p>
+</div></div></main>
+<script src="config.js"></script>
+<script>
+(function(){
+  var o = new URLSearchParams(location.search).get('o') || '';
+  if(/^[0-9a-f-]{36}$/i.test(o)){ document.getElementById('code').textContent = 'Pedido CAR-' + o.replace(/-/g,'').slice(0,8).toUpperCase(); document.getElementById('cd').style.display = 'block'; }
+  var wa = (window.FID && FID.SALES_WHATSAPP || '').replace(/\D/g,'');
+  if(wa) document.getElementById('help').innerHTML = 'Dúvida? Fale com a gente no <a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>.';
+})();
+</script>
+</body>
+</html>

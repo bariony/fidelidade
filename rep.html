@@ -139,6 +139,7 @@ function viewSignup(msg){
     <form id="f"><label for="c">Código de convite</label><input id="c" required autocomplete="off" autocapitalize="off" spellcheck="false">
     <label for="e">Seu e-mail</label><input id="e" type="email" required autocomplete="email">
     <label for="p">Crie uma senha (mínimo 6 caracteres)</label><input id="p" type="password" required minlength="6" autocomplete="new-password">
+    <p style="margin:12px 0 0;font-size:.82rem;opacity:.75">Ao criar o acesso, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
     <p class="err" role="alert">${esc(msg || '')}</p>
     <div class="actions"><button class="btn">Criar acesso</button><button class="btn line" type="button" id="back">Voltar</button></div></form></div>`;
   $('#back').onclick = () => viewLogin();

@@ -125,6 +125,7 @@ async function start(){
       <label class="l" for="pw">Crie uma senha</label><div class="pw"><input id="pw" type="password" minlength="6" autocomplete="new-password" required><button type="button" id="eye">mostrar</button></div>
       <p class="err" id="err" role="alert"></p>
       <button class="btn" id="go">Ativar meu teste</button>
+      <p class="fine">Ao ativar, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
     </form>
     <p class="fine">Já tem conta no Carimbô? Entre pelo <a href="lojista">painel</a> e peça um novo link a quem enviou este.</p></div>`;
   $('#eye').onclick = () => { const i = $('#pw'); i.type = i.type === 'password' ? 'text' : 'password'; $('#eye').textContent = i.type === 'password' ? 'mostrar' : 'ocultar'; };

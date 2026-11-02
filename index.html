@@ -113,6 +113,17 @@
   .tum{position:absolute;left:2cqw;top:-24cqw;font-family:'Fredoka',sans-serif;font-weight:700;font-size:11.5cqw;color:var(--paper);-webkit-text-stroke:0;text-shadow:1cqw 1cqw 0 var(--red);transform:rotate(-9deg) scale(0);opacity:0;white-space:nowrap}
   .contact.go .tum{animation:tum 1.5s cubic-bezier(.2,1.6,.4,1) forwards}
   @keyframes tum{0%{transform:rotate(-9deg) scale(0);opacity:0}18%{transform:rotate(-9deg) scale(1.1);opacity:1}75%{transform:rotate(-9deg) scale(1);opacity:1}100%{transform:rotate(-9deg) scale(.9) translateY(-3cqw);opacity:0}}
+  /* botão fixo no celular */
+  #sticky{display:none}
+  @media(max-width:760px){
+    #sticky{display:block;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--paper);border-top:3px solid var(--navy);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(20,41,107,.15);transform:translateY(115%);transition:transform .25s ease}
+    #sticky.show{transform:none}
+    #sticky .in{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:560px;margin:0 auto}
+    #sticky b{display:block;font-family:'Fredoka',sans-serif;font-size:1.08rem;line-height:1.1}
+    #sticky small{display:block;color:var(--mut);font-weight:700;font-size:.8rem;margin-top:2px}
+    #sticky .btn{padding:12px 18px;font-size:1rem;white-space:nowrap;flex:none}
+    footer{padding-bottom:92px}
+  }
   @media(max-width:520px){.stage{box-shadow:7px 7px 0 var(--red);border-radius:26px}}
 
   /* DADOS */
@@ -485,15 +496,29 @@
     <span class="logo"><span>carimb<i>ô</i></span></span>
     <span>Bateu o carimbo, ganhou.</span>
     <a href="lojista">Já sou lojista: entrar no painel</a>
+    <a href="privacidade">Privacidade e termos</a>
     <a href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener">Instagram @carimbo.io</a>
   </div>
 </footer>
+
+<div id="sticky" role="region" aria-label="Comprar o kit"><div class="in"><div><b>Kit Carimbô · R$ 149</b><small>30 dias de painel incluídos</small></div><button class="btn" type="button" data-cta="sticky">Quero o kit</button></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 <script>
 (function(){
   /* CTAs: levam à compra, sem representante (clientes próprios do Carimbô) */
   document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'comprar'; }); });
+
+  /* barra fixa no celular: aparece depois do 1º botão e some quando algum botão de compra da página está na tela */
+  (function(){
+    var bar = document.getElementById('sticky'); if (!bar || !('IntersectionObserver' in window)) return;
+    var vis = {}, y = 0;
+    function upd(){ var any = Object.keys(vis).some(function(k){ return vis[k]; }); bar.classList.toggle('show', !any && (window.scrollY || 0) > 300); }
+    document.querySelectorAll('[data-cta="hero"],[data-cta="preco"],[data-cta="final"]').forEach(function(el, i){
+      new IntersectionObserver(function(es){ vis[i] = es[0].isIntersecting; upd(); }).observe(el);
+    });
+    window.addEventListener('scroll', upd, {passive:true}); upd();
+  })();
 
   /* simulação */
   var $ = function(id){ return document.getElementById(id); };

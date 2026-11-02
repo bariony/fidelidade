@@ -825,6 +825,7 @@ function viewLogin(msg, info){
     <label for="p">Senha (mínimo 6 caracteres)</label><input id="p" name="p" type="password" required minlength="6" autocomplete="current-password">
     <div class="actions"><button class="btn" value="in">Entrar</button><button class="btn line" value="up" formnovalidate>Criar conta</button></div>
     <p style="margin-top:14px"><a href="#" id="forgot">Esqueci minha senha</a></p>
+    <p style="margin-top:12px;font-size:.82rem;color:var(--muted)">Ao criar a conta, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
     <p class="err" role="alert">${esc(msg || '')}</p>${info ? `<p style="color:var(--good);font-weight:700;margin-top:12px">${esc(info)}</p>` : ''}</form></div>`;
   $('#forgot').onclick = ev => { ev.preventDefault(); viewForgot($('#e').value); };
   $('#f').onsubmit = async ev => {

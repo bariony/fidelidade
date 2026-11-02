@@ -83,14 +83,23 @@ Deno.serve(async (req) => {
 
     const due = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10);
     const value = Number(o.amount) + Number(o.shipping ?? 0);
-    const pay = await asaas("/payments", {
+    const payBody: Record<string, unknown> = {
       customer: customer.id,
       billingType: "UNDEFINED",
       value,
       dueDate: due,
       description: `Carimbô — kit de fidelidade${o.delivery === "correios" ? " + envio" : ""}`,
       externalReference: o.id,
-    });
+    };
+    // Depois de pagar, o Asaas leva o cliente para a página de obrigado.
+    // Se a conta do Asaas ainda não aceitar esse endereço, cria a cobrança sem o redirecionamento (a compra não quebra).
+    let pay: any;
+    try {
+      pay = await asaas("/payments", { ...payBody, callback: { successUrl: `https://carimbo.io/obrigado?o=${o.id}`, autoRedirect: true } });
+    } catch (e) {
+      console.error("callback recusado, criando sem redirecionamento:", String(e));
+      pay = await asaas("/payments", payBody);
+    }
 
     await admin.from("fid_orders").update({
       cpf_cnpj: doc, asaas_customer_id: customer.id, asaas_payment_id: pay.id, asaas_invoice_url: pay.invoiceUrl,
