@@ -735,3 +735,7 @@ end $$;
 -- v12b: pedidos com forma de entrega (retirada em mãos grátis ou Correios + R$ 15,99) e endereço por CEP.
 -- fid_orders ganha delivery, shipping, ship_cep; fid_order_create passa a receber p_delivery e o endereço separado; o frete NÃO entra na base da comissão.
 -- (aplicado via migration orders_delivery_cep)
+
+-- ===== v6: origem do carimbo (NFC x QR) =====
+-- fid_events.source ('nfc' | 'qr'; null = antigo, conta como NFC). fid_stamp ganha p_src; fid_origin_stats(p_store, p_days) devolve carimbos por tag e origem (só o dono).
+-- (definições completas aplicadas via migration "stamp_origin_nfc_qr" no projeto).
