@@ -10,3 +10,4 @@ Disallow: /c.html
 
 Sitemap: https://carimbo.io/sitemap.xml
 Disallow: /cartaz
+Disallow: /ig/
