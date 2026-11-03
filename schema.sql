@@ -739,3 +739,9 @@ end $$;
 -- ===== v6: origem do carimbo (NFC x QR) =====
 -- fid_events.source ('nfc' | 'qr'; null = antigo, conta como NFC). fid_stamp ganha p_src; fid_origin_stats(p_store, p_days) devolve carimbos por tag e origem (só o dono).
 -- (definições completas aplicadas via migration "stamp_origin_nfc_qr" no projeto).
+
+-- ===== v7: tags padrão e cupons =====
+-- Trigger fid_default_tags: toda loja nasce com 'Bastão 1', 'Bastão 2' e 'QR Code'. fid_super_orders devolve as tags.
+-- fid_coupons (code minúsculo, percent, max_uses, expires_at); fid_coupon_check(p_code) público devolve {percent};
+-- fid_order_create e fid_trial_kit_order ganham p_coupon e gravam coupon_code/discount_pct em fid_orders (amount já com desconto).
+-- (definições completas aplicadas via migrations "default_tags_per_store" e "coupons_for_kit_orders" no projeto).
