@@ -9,3 +9,4 @@ Disallow: /teste
 Disallow: /c.html
 
 Sitemap: https://carimbo.io/sitemap.xml
+Disallow: /cartaz

@@ -1167,8 +1167,9 @@ async function copyText(t){
 function viewTags(){
   const items = S.tags.map(t => `<div class="item"><div class="t"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' (desativada)'}</b><code>${esc(base)}c.html?t=${esc(t.id)}</code></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn line small" data-copy="${esc(t.id)}">Copiar link</button>
+    <a class="btn line small" href="cartaz.html?t=${esc(t.id)}" target="_blank" rel="noopener" style="text-decoration:none">Cartaz QR</a>
     <button class="btn line small" data-toggle="${esc(t.id)}">${t.active ? 'Desativar' : 'Ativar'}</button></div></div>`).join('');
-  const html = head('Tags', 'Cada tag é um bastão ou plaquinha com NFC. Grave o link nela.') + `
+  const html = head('Tags', 'Cada tag é um bastão ou plaquinha com NFC. Grave o link nela. Para quem não tem NFC, imprima o Cartaz QR.') + `
     <div class="split">
       <section class="panel"><div class="list">${items || '<p class="note">Nenhuma tag ainda. Crie a primeira ao lado.</p>'}</div></section>
       <section class="panel"><h2>Nova tag</h2>

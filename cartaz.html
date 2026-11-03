@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Cartaz QR · Carimbô</title>
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#FBF7EE;--ink:#14296B;--red:#E03A2F;--kraft:#EAD9B6;--line:#E4D9C0}
+  *{box-sizing:border-box}
+  body{margin:0;background:#ECE4D0;color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+  .bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:12px 16px;background:var(--paper);border-bottom:2.5px solid var(--ink)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border:2.5px solid var(--ink);border-radius:12px;background:var(--red);color:#fff;font:600 1rem 'Fredoka',system-ui,sans-serif;cursor:pointer;min-height:44px;text-decoration:none;box-shadow:3px 3px 0 var(--ink)}
+  .btn.line{background:#fff;color:var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .seg{display:inline-flex;border:2.5px solid var(--ink);border-radius:12px;overflow:hidden;background:#fff}
+  .seg button{border:0;background:#fff;color:var(--ink);font:600 .95rem 'Fredoka',system-ui,sans-serif;padding:9px 14px;cursor:pointer;min-height:44px}
+  .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+  .hint{max-width:640px;margin:14px auto 0;padding:0 16px;text-align:center;font-size:.92rem;color:#3D4C80}
+  .stage{display:flex;justify-content:center;padding:18px 12px 40px}
+  .msg{padding:60px 20px;text-align:center;font-weight:700}
+
+  /* o cartaz: tudo em "em", então muda de tamanho só trocando o font-size (A5 ou A6) */
+  .poster{--fs:4mm;font-size:var(--fs);width:37em;height:52.5em;background:var(--paper);border:.35em solid var(--ink);border-radius:1.6em;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;padding:2.4em 2.4em 1.8em;text-align:center;box-shadow:0 .5em 2em rgba(20,41,107,.18)}
+  .poster.a6{--fs:2.8mm}
+  .top{display:flex;align-items:center;gap:.6em;font:600 1.1em 'Fredoka',sans-serif;letter-spacing:.02em;opacity:.9}
+  .top svg{width:2em;height:2em}
+  .kicker{margin:1.6em 0 0;font:700 .95em 'Nunito',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+  .store{margin:.3em 0 0;font:700 2.5em/1.05 'Fredoka',sans-serif;overflow-wrap:anywhere;max-width:100%}
+  .qrbox{margin:1.3em 0 0;background:#fff;border:.28em solid var(--ink);border-radius:1.2em;padding:1.1em;box-shadow:.45em .45em 0 var(--ink)}
+  .qrbox svg{display:block;width:17em;height:17em}
+  .how{margin:1.7em 0 0;font:600 1.55em/1.15 'Fredoka',sans-serif}
+  .how b{color:var(--red);font-weight:700}
+  .sub{margin:.5em 0 0;font-size:1.05em;font-weight:700;color:#3D4C80}
+  .goal{margin-top:auto;width:100%;background:var(--kraft);border:.22em solid var(--ink);border-radius:.9em;padding:.8em 1em;font:600 1.15em/1.2 'Fredoka',sans-serif}
+  .goal small{display:block;font:700 .72em 'Nunito',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#3D4C80;margin-bottom:.15em}
+  .foot{margin-top:1em;font:700 .8em 'Nunito',sans-serif;color:#3D4C80;letter-spacing:.04em}
+  .foot b{color:var(--ink)}
+
+  @media print{
+    body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .bar,.hint{display:none}
+    .stage{padding:0;display:block}
+    .poster{box-shadow:none;margin:0 auto;border-radius:0;border-width:.35em;break-after:avoid}
+  }
+</style>
+</head>
+<body class="fmt-a5">
+<div class="bar" id="bar" hidden>
+  <div class="seg" role="group" aria-label="Tamanho do cartaz"><button data-f="a5" aria-pressed="true">Cartaz A5</button><button data-f="a6" aria-pressed="false">Adesivo A6</button></div>
+  <button class="btn" id="print">Imprimir ou salvar PDF</button>
+  <button class="btn line" id="png">Baixar só o QR (PNG)</button>
+</div>
+<p class="hint" id="hint" hidden>Na janela de impressão, escolha o papel do mesmo tamanho (A5 ou A6) e desative "cabeçalhos e rodapés". Dica: para colar no balcão, imprima em papel adesivo ou plastifique.</p>
+<div class="stage"><div class="msg" id="msg">Carregando…</div></div>
+
+<script src="js/qrcode.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const tag = new URLSearchParams(location.search).get('t');
+  const stage = $('.stage');
+  const fail = t => { stage.innerHTML = '<div class="msg">' + t + '</div>'; };
+  if(!tag) return fail('Link inválido. Abra o cartaz pelo painel, na aba Tags.');
+
+  // endereço que o QR abre: exatamente o mesmo link gravado no chip NFC
+  const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  const url = base + 'c.html?t=' + encodeURIComponent(tag);
+
+  const qr = qrcode(0, 'Q'); qr.addData(url); qr.make();
+  const n = qr.getModuleCount();
+  function qrSvg(quiet){
+    let d = '';
+    for(let r = 0; r < n; r++) for(let c = 0; c < n; c++) if(qr.isDark(r, c)) d += 'M' + (c + quiet) + ' ' + (r + quiet) + 'h1v1h-1z';
+    const s = n + quiet * 2;
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + s + ' ' + s + '" shape-rendering="crispEdges" role="img" aria-label="QR code para carimbar"><rect width="' + s + '" height="' + s + '" fill="#fff"/><path d="' + d + '" fill="#14296B"/></svg>';
+  }
+
+  const MARK = '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#14296B"/><g transform="translate(50 50) scale(0.82) translate(-50 -50)"><circle cx="50" cy="22" r="13" fill="#FBF7EE"/><rect x="44" y="30" width="12" height="26" fill="#FBF7EE"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#FBF7EE"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></g></svg>';
+
+  fetch(FID.SUPABASE_URL + '/rest/v1/rpc/fid_get_store', {method:'POST', headers:{'apikey':FID.SUPABASE_KEY,'Authorization':'Bearer ' + FID.SUPABASE_KEY,'Content-Type':'application/json'}, body:JSON.stringify({p_tag:tag})})
+    .then(r => r.json()).then(info => {
+      if(!info || info.error || !info.store) return fail('Esta tag não está ativa. Ative a tag no painel e abra o cartaz de novo.');
+      const el = document.createElement('div'); el.className = 'poster';
+      el.innerHTML = '<div class="top">' + MARK + '<span>Carimbô</span></div>'
+        + '<p class="kicker">Cartão fidelidade digital</p><h1 class="store"></h1>'
+        + '<div class="qrbox">' + qrSvg(0) + '</div>'
+        + '<p class="how">Aponte a <b>câmera</b> do celular<br>e <b>carimbe</b> aqui</p>'
+        + '<p class="sub">Sem baixar app. Celular com NFC? É só encostar no bastão.</p>'
+        + '<div class="goal"><small>Seu prêmio</small><span class="g"></span></div>'
+        + '<div class="foot">Tecnologia <b>carimbo.io</b></div>';
+      el.querySelector('.store').textContent = info.store;
+      el.querySelector('.g').textContent = info.goal && info.reward ? 'Junte ' + info.goal + ' carimbos e ganhe ' + info.reward : (info.reward || 'Junte carimbos e ganhe prêmios');
+      stage.innerHTML = ''; stage.appendChild(el);
+      $('#bar').hidden = false; $('#hint').hidden = false;
+      document.title = 'Cartaz QR · ' + info.store;
+    }).catch(() => fail('Não foi possível carregar. Verifique a conexão e tente de novo.'));
+
+  // tamanho do papel (o @page precisa ser único, então é reescrito a cada troca)
+  function setPage(f){ let st = $('#pg'); if(!st){ st = document.createElement('style'); st.id = 'pg'; document.head.appendChild(st); } st.textContent = '@page{size:' + (f === 'a6' ? '105mm 148mm' : '148mm 210mm') + ';margin:0}'; }
+  setPage('a5');
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const a6 = b.dataset.f === 'a6', p = $('.poster'); if(p) p.classList.toggle('a6', a6);
+    document.body.className = 'fmt-' + b.dataset.f;
+    setPage(b.dataset.f);
+  });
+  $('#print').onclick = () => window.print();
+
+  // PNG só do QR (para usar em outros layouts, na gráfica, etc.)
+  $('#png').onclick = () => {
+    const quiet = 4, size = 1200, px = Math.floor(size / (n + quiet * 2)), W = px * (n + quiet * 2);
+    const cv = document.createElement('canvas'); cv.width = cv.height = W;
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, W); g.fillStyle = '#14296B';
+    for(let r = 0; r < n; r++) for(let c = 0; c < n; c++) if(qr.isDark(r, c)) g.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
+    cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'qr-carimbo-' + tag + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+  };
+})();
+</script>
+</body>
+</html>
