@@ -71,7 +71,7 @@
 
   // endereço que o QR abre: exatamente o mesmo link gravado no chip NFC
   const base = location.origin + location.pathname.replace(/[^/]*$/, '');
-  const url = base + 'c.html?t=' + encodeURIComponent(tag);
+  const url = base + 'c.html?t=' + encodeURIComponent(tag) + '&o=qr';   // o=qr marca a origem do carimbo nas métricas
 
   const qr = qrcode(0, 'Q'); qr.addData(url); qr.make();
   const n = qr.getModuleCount();

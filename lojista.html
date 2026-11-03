@@ -287,6 +287,15 @@
   .dash{align-items:stretch}
   .panel.last{margin-top:24px;padding:16px 20px 10px}
   .panel.last .phead{margin-bottom:8px}
+  .panel.orig{margin-top:24px}
+  .orig .osum{color:var(--muted);margin:2px 0 12px}.orig .osum b{color:var(--ink);font-size:1.5rem;margin-right:4px}
+  .orow{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(0,2fr) 92px;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .orow:last-child{border-bottom:0}
+  .orow .on{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .orow .on small{display:block;font-weight:600;color:var(--muted);font-size:.8rem}
+  .orow .ob{height:16px;border-radius:8px;background:var(--track);overflow:hidden}.orow .ob i{display:block;height:100%;border-radius:8px}
+  .orow .oc{text-align:right;font-weight:700}.orow .oc small{color:var(--muted);font-weight:600;margin-left:4px}
+  @media(max-width:640px){.orow{grid-template-columns:1fr 70px}.orow .ob{grid-column:1 / -1;order:3}}
   .llist{display:flex;flex-direction:column}
   .lr{display:grid;grid-template-columns:36px minmax(0,1.2fr) minmax(0,1fr) 110px;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:8px 8px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px}
   .lr:last-child{border-bottom:0}
@@ -421,7 +430,7 @@ const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return nu
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
 
 const S = { isSuper:false, user:null, store:null, tags:[], customers:[], stats:null, pending:[], view:'hoje', detail:null,
-  chart:{kind:'stamps', range:'dias'}, filter:'todos', q:'', camp:{seg:'risco', msg:null}, firstPaint:true,
+  chart:{kind:'stamps', range:'dias'}, origin:{days:30, src:'todos', rows:[]}, filter:'todos', q:'', camp:{seg:'risco', msg:null}, firstPaint:true,
   collapsed: lsGet('fid_rail') === '1' };
 
 /* ---------- avisos e erros ---------- */
@@ -504,13 +513,15 @@ async function load(){
   if(e0){ toast('Não foi possível carregar: ' + e0.message, true); return; }
   if(!stores || !stores.length){ S.store = null; render(); return; }
   S.store = stores[0]; loadBill(true);
-  const [t, c, st, pe, rc] = await Promise.all([
+  const [t, c, st, pe, rc, og] = await Promise.all([
     sb.from('fid_tags').select('*').eq('store_id', S.store.id).order('created_at'),
     sb.from('fid_customers').select('*').eq('store_id', S.store.id).order('last_stamp_at', {ascending:false, nullsFirst:false}).range(0, 4999),
     sb.rpc('fid_stats', {p_store: S.store.id}),
     sb.rpc('fid_admin_pending', {p_store: S.store.id}),
-    sb.from('fid_events').select('id,customer_id,kind,created_at,tag_id').eq('store_id', S.store.id).in('kind', ['stamp', 'bonus']).order('created_at', {ascending:false}).limit(8)
+    sb.from('fid_events').select('id,customer_id,kind,created_at,tag_id').eq('store_id', S.store.id).in('kind', ['stamp', 'bonus']).order('created_at', {ascending:false}).limit(8),
+    sb.rpc('fid_origin_stats', {p_store: S.store.id, p_days: S.origin.days})
   ]);
+  S.origin.rows = (og.data && !og.data.error && og.data.rows) || [];
   S.recent = (rc.data) || [];
   S.pending = (pe.data && pe.data.items) || [];
   if(S.superFor !== (S.user && S.user.id)){ S.superFor = S.user && S.user.id; S.isSuper = false; const r = await sb.rpc('fid_is_super'); S.isSuper = r.data === true; }
@@ -880,6 +891,19 @@ function viewCreate(){
 }
 
 /* ---------- Hoje ---------- */
+const ORIG = {nfc:['Carimbo', '#14296B'], qr:['QR Code', '#E03A2F']};
+function originPanel(){
+  const O = S.origin, all = O.rows || [], tot = all.reduce((a, r) => a + +r.n, 0), qr = all.filter(r => r.source === 'qr').reduce((a, r) => a + +r.n, 0);
+  const rows = all.filter(r => O.src === 'todos' || r.source === O.src).sort((a, b) => b.n - a.n), max = Math.max(1, ...rows.map(r => +r.n));
+  const sum = tot ? `<b>${Math.round(qr / tot * 100)}%</b> pelo QR Code e <b>${100 - Math.round(qr / tot * 100)}%</b> pelo bastão <span>(${tot} ${pl(tot, 'carimbo', 'carimbos')} em ${O.days} dias)</span>` : `Nenhum carimbo nos últimos ${O.days} dias.`;
+  const list = rows.length ? rows.map(r => { const [nm, col] = ORIG[r.source] || ORIG.nfc;
+      return `<div class="orow"><div class="on">${esc(r.label || 'Tag')} · ${nm}</div><div class="ob" aria-hidden="true"><i style="width:${Math.max(3, r.n / max * 100)}%;background:${col}"></i></div><div class="oc">${r.n}<small>${Math.round(r.n / tot * 100)}%</small></div></div>`; }).join('')
+    : (tot ? '<p class="note">Nenhum carimbo com esse filtro.</p>' : '<p class="note">Quando os clientes carimbarem, você vê aqui quantos vieram pelo bastão e quantos pelo QR Code, tag por tag.</p>');
+  return `<section class="panel orig" aria-label="Origem dos carimbos"><div class="phead"><h2>De onde vêm os carimbos</h2><div class="tools">
+      <div class="seg" role="group" aria-label="Origem">${[['todos','Todos'],['nfc','Carimbo (NFC)'],['qr','QR Code']].map(([k, l]) => `<button data-osrc="${k}" aria-pressed="${O.src === k}">${l}</button>`).join('')}</div>
+      <div class="seg" role="group" aria-label="Período">${[7, 30, 90].map(d => `<button data-odays="${d}" aria-pressed="${O.days === d}">${d} dias</button>`).join('')}</div></div></div>
+    <div class="osum">${sum}</div>${list}</section>`;
+}
 function viewHoje(){
   const st = S.stats, s = S.store;
   if(!st) return {html: head(s.name, 'Como está a loja agora') + '<p class="note">Não foi possível carregar os números agora. Recarregue a página.</p>'};
@@ -926,8 +950,15 @@ function viewHoje(){
         ${n ? `<h2 style="margin-top:16px">Quem vale um contato</h2>${attn.map(k => row(k, sg[k].length ? `<button class="btn small" data-camp="${k}">Campanha</button>` : '<span></span>')).join('')}` : ''}
       </aside>
     </div>
+    ${originPanel()}
     ${recentHtml}`;
   return {html, bind(){
+    root.querySelectorAll('[data-osrc]').forEach(b => b.onclick = () => { S.origin.src = b.dataset.osrc; render(); });
+    root.querySelectorAll('[data-odays]').forEach(b => b.onclick = async () => {
+      const d = +b.dataset.odays, r = await sb.rpc('fid_origin_stats', {p_store: S.store.id, p_days: d});
+      if(r.error || (r.data && r.data.error)) return toast('Não foi possível carregar a origem dos carimbos.', true);
+      S.origin.days = d; S.origin.rows = r.data.rows || []; render();
+    });
     root.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { S.chart.kind = b.dataset.kind; render(); });
     root.querySelectorAll('[data-range]').forEach(b => b.onclick = () => { S.chart.range = b.dataset.range; render(); });
     root.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { S.filter = b.dataset.filter; go('clientes'); });
@@ -1076,7 +1107,7 @@ function viewCliente(){
   const bs = badgesFor(c, tier, sg);
   const stat = (b, l) => `<div class="st"><b>${b}</b><span>${l}</span></div>`;
   const groups = []; ev.forEach(e => { const k0 = new Date(e.created_at).toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'}), k = k0.charAt(0).toUpperCase() + k0.slice(1); let g = groups[groups.length - 1]; if(!g || g.k !== k){ g = {k, items:[]}; groups.push(g); } g.items.push(e); });
-  const tl = groups.map(g => `<div class="tg"><h3>${esc(g.k)}</h3>${g.items.map(e => { const [lb, tone, ic] = EVK[e.kind] || [e.kind, 'mute', 'check']; return `<div class="te"><i class="tdot ${tone}">${EVI[ic]}</i><div class="tt"><b>${esc(lb)}</b>${e.detail ? `<span class="sub">${esc(e.detail)}</span>` : ''}</div><div class="tw">${new Date(e.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}${e.kind !== 'adjust' && e.tag_id ? `<span class="sub">${esc(tagName(e.tag_id))}</span>` : ''}</div></div>`; }).join('')}</div>`).join('');
+  const tl = groups.map(g => `<div class="tg"><h3>${esc(g.k)}</h3>${g.items.map(e => { const [lb, tone, ic] = EVK[e.kind] || [e.kind, 'mute', 'check']; return `<div class="te"><i class="tdot ${tone}">${EVI[ic]}</i><div class="tt"><b>${esc(lb)}</b>${e.detail ? `<span class="sub">${esc(e.detail)}</span>` : ''}</div><div class="tw">${new Date(e.created_at).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}${e.kind !== 'adjust' && e.tag_id ? `<span class="sub">${esc(tagName(e.tag_id))}${e.kind === 'stamp' ? ' · ' + (e.source === 'qr' ? 'QR Code' : 'Carimbo') : ''}</span>` : ''}</div></div>`; }).join('')}</div>`).join('');
   const html = `<button class="btn line small back" id="back">← Clientes</button>
     <section class="hero"><div class="hl">${avatar(c, 84)}<div><h1>${esc(c.name)}</h1><p class="sub" style="font-size:.95rem">WhatsApp ${esc(c.whatsapp)} · cliente há ${since} ${pl(since, 'dia', 'dias')} (desde ${new Date(c.created_at).toLocaleDateString('pt-BR')})</p>${bs.length ? `<div class="pills" style="margin-top:8px">${bs.map(badge).join('')}</div>` : ''}</div></div>
       <div class="ha"><a class="btn" target="_blank" rel="noopener" href="${waLink(c)}">Abrir WhatsApp</a></div></section>
@@ -1164,8 +1195,12 @@ async function copyText(t){
   try { await navigator.clipboard.writeText(t); toast('Link copiado ✓'); }
   catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast('Link copiado ✓'); } catch(_){ toast('Não foi possível copiar. Selecione o link e copie.', true); } a.remove(); }
 }
+function tagOrigin(id){
+  const r = (S.origin.rows || []).filter(x => x.tag_id === id), n = k => r.filter(x => x.source === k).reduce((a, x) => a + +x.n, 0);
+  return `<small class="note" style="display:block;margin-top:4px">${S.origin.days} dias: ${n('nfc')} por Carimbo (NFC) · ${n('qr')} por QR Code</small>`;
+}
 function viewTags(){
-  const items = S.tags.map(t => `<div class="item"><div class="t"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' (desativada)'}</b><code>${esc(base)}c.html?t=${esc(t.id)}</code></div>
+  const items = S.tags.map(t => `<div class="item"><div class="t"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' (desativada)'}</b><code>${esc(base)}c.html?t=${esc(t.id)}</code>${tagOrigin(t.id)}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn line small" data-copy="${esc(t.id)}">Copiar link</button>
     <a class="btn line small" href="cartaz.html?t=${esc(t.id)}" target="_blank" rel="noopener" style="text-decoration:none">Cartaz QR</a>
     <button class="btn line small" data-toggle="${esc(t.id)}">${t.active ? 'Desativar' : 'Ativar'}</button></div></div>`).join('');

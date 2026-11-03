@@ -89,7 +89,8 @@ const app = document.getElementById('app');
 const KEY = 'fid_token_' + tag;
 let INFO = null;
 const QS = new URLSearchParams(location.search);
-const BUILD = '2026-10-31.1';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
+const BUILD = '2026-11-03.1';   // mude a cada publicação: o app instalado compara e se recarrega sozinho
+const SRC = QS.get('o') === 'qr' ? 'qr' : 'nfc';                   // origem do carimbo: QR do cartaz (o=qr) ou toque no bastão
 const VIEW_URL = QS.get('v') === '1';                              // endereço só de visualização: nunca carimba
 const FROM_ICON = QS.get('app') === '1';                         // aberto pelo ícone da tela inicial: só mostra o cartão
 const IS_APP = FROM_ICON || (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
@@ -367,7 +368,7 @@ function present(s){
 
 function toViewUrl(){ try { history.replaceState(null, '', location.pathname + '?t=' + encodeURIComponent(tag) + '&v=1'); ORIG_URL = location.href; } catch(e){} }
 async function stampNow(token){
-  const args = {p_tag:tag,p_token:token};
+  const args = {p_tag:tag,p_token:token,p_src:SRC};
   if(INFO && INFO.geo_required){
     app.innerHTML = '<p class="sub" style="margin-top:40vh">Confirmando que você está na loja…</p>';
     const p = await getPos();
