@@ -266,6 +266,14 @@
   footer a{opacity:.85}
   .noscript{padding:10px;text-align:center;background:var(--kraft)}
 </style>
+<!-- Google Analytics (GA4): só nas páginas públicas de venda -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GGNR9VMH55');
+</script>
 </head>
 <body>
 
@@ -516,7 +524,7 @@
 <script>
 (function(){
   /* CTAs: levam à compra, sem representante (clientes próprios do Carimbô) */
-  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); window.location.href = 'comprar'; }); });
+  document.querySelectorAll('[data-cta]').forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault(); try { gtag('event', 'cta_click', {cta_text: (b.textContent || '').trim().slice(0, 40), cta_id: b.id || b.getAttribute('data-cta') || ''}); } catch(_){} setTimeout(function(){ window.location.href = 'comprar'; }, 120); }); });
 
   /* barra fixa no celular: aparece depois do 1º botão e some quando algum botão de compra da página está na tela */
   (function(){

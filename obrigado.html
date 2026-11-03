@@ -91,6 +91,14 @@
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style>
 <style>.ok{max-width:600px}.ok .code{display:inline-block;margin:6px 0 0;padding:8px 16px;border:2.5px dashed var(--navy);border-radius:12px;background:var(--kraft);font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:.03em}.ok .btn{display:block;text-align:center}.ok .help{margin-top:22px;color:var(--mut);font-size:.95rem}</style>
+<!-- Google Analytics (GA4): só nas páginas públicas de venda -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GGNR9VMH55');
+</script>
 </head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
@@ -111,7 +119,7 @@
 <script>
 (function(){
   var o = new URLSearchParams(location.search).get('o') || '';
-  if(/^[0-9a-f-]{36}$/i.test(o)){ document.getElementById('code').textContent = 'Pedido CAR-' + o.replace(/-/g,'').slice(0,8).toUpperCase(); document.getElementById('cd').style.display = 'block'; }
+  if(/^[0-9a-f-]{36}$/i.test(o)){ try { gtag('event', 'purchase', {transaction_id:o, currency:'BRL'}); } catch(_){} document.getElementById('code').textContent = 'Pedido CAR-' + o.replace(/-/g,'').slice(0,8).toUpperCase(); document.getElementById('cd').style.display = 'block'; }
   var wa = (window.FID && FID.SALES_WHATSAPP || '').replace(/\D/g,'');
   if(wa) document.getElementById('help').innerHTML = 'Dúvida? Fale com a gente no <a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>.';
 })();

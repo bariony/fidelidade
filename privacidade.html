@@ -90,6 +90,14 @@
   @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style><style>.doc{max-width:760px;margin:0 auto}.doc h1{font-size:clamp(1.8rem,4.4vw,2.4rem)}.doc h2{font-size:1.3rem;margin:30px 0 8px}.doc p,.doc li{color:#2b3b78;line-height:1.6}.doc ul{padding-left:22px;margin:8px 0}.doc li{margin:6px 0}.doc .upd{color:var(--mut);font-size:.92rem;margin:6px 0 16px}.doc a{color:var(--navy);font-weight:700}.doc .btn{display:block;text-align:center;color:var(--navy)}.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}.toc a{border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.9rem;text-decoration:none;background:var(--paper)}.doc h2{scroll-margin-top:16px}</style>
+<!-- Google Analytics (GA4): só nas páginas públicas de venda -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GGNR9VMH55');
+</script>
 </head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
@@ -111,6 +119,7 @@
 <p><b>Do lojista e do representante:</b> nome, e-mail, WhatsApp, nome da loja, CPF ou CNPJ (para a cobrança), endereço de entrega do kit, chave Pix (representantes), senha (guardada de forma protegida, nunca em texto aberto) e o histórico de pedidos e pagamentos.</p>
 <p><b>Do cliente do lojista:</b> nome, WhatsApp, carimbos recebidos, prêmios ganhos e retirados, e as datas desses eventos. O cadastro é feito pelo próprio cliente, ao abrir o cartão pela primeira vez.</p>
 <p><b>Técnicos:</b> data e hora de acesso, tipo de aparelho e navegador. O cartão guarda no próprio navegador do cliente um código que identifica o cartão dele (armazenamento local), para que o carimbo caia no cartão certo. Não usamos cookies de publicidade.</p>
+<p><b>Medição de visitas:</b> nas páginas públicas do site de vendas (página inicial, compra, artigos e esta política) usamos o Google Analytics para saber quantas pessoas visitam, de onde vieram e quais páginas viram. Ele usa cookies e identificadores do navegador e não recebe nome, e-mail ou WhatsApp. Não usamos o Google Analytics na página do cartão de carimbos nem nos painéis. Você pode bloquear esses cookies nas configurações do navegador ou instalar o complemento de desativação do Google Analytics.</p>
 
 <h2 id="uso">3. Para que usamos e por qual motivo legal</h2>
 <ul>
@@ -128,6 +137,7 @@
 <li><b>Supabase:</b> banco de dados e autenticação.</li>
 <li><b>Asaas:</b> cobrança e pagamento (Pix, boleto e cartão). O Carimbô não guarda número de cartão.</li>
 <li><b>Resend:</b> envio dos e-mails do sistema.</li>
+<li><b>Google Analytics:</b> estatísticas de visitas das páginas públicas do site de vendas, sem dados pessoais de cadastro.</li>
 <li><b>Correios ou transportadora:</b> entrega do kit, com nome e endereço.</li>
 <li><b>GitHub Pages e redes de distribuição de conteúdo:</b> hospedagem do site e de arquivos como fontes e scripts. Esses serviços podem ver o endereço de IP de quem acessa.</li>
 <li><b>Assistente Tum (inteligência artificial):</b> no painel do lojista, o Tum usa um serviço de IA de terceiros (Anthropic) para responder perguntas sobre a própria loja. Para isso, dados da loja e dos seus clientes podem ser enviados a esse serviço apenas para gerar a resposta.</li>

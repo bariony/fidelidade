@@ -94,6 +94,14 @@
   @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style>
+<!-- Google Analytics (GA4): só nas páginas públicas de venda -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GGNR9VMH55');
+</script>
 </head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
@@ -279,6 +287,7 @@ async function submit(ev){
   if(bad.length){ const el = $('#' + bad[0]); el.scrollIntoView({behavior:'smooth', block:'center'}); el.focus({preventScroll:true}); return err('Falta preencher ' + (bad.length === 1 ? 'um campo' : bad.length + ' campos') + ' acima.'); }
   const v = id => $('#' + id).value.trim(), em = v('em'), pw = $('#pw').value, c = S.delivery === 'correios';
   const btn = $('#go'); btn.disabled = true; btn.textContent = 'Enviando…';
+  try { gtag('event', 'begin_checkout', {currency:'BRL'}); } catch(_){}
   try {
     let {data:{session}} = await sb.auth.getSession();
     if(UPG && !session){ location.href = 'lojista'; return; }
