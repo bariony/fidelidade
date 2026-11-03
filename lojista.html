@@ -1202,9 +1202,10 @@ function tagOrigin(id){
 function viewTags(){
   const items = S.tags.map(t => `<div class="item"><div class="t"><b>${esc(t.label || 'Tag')}${t.active ? '' : ' (desativada)'}</b><code>${esc(base)}c.html?t=${esc(t.id)}</code>${tagOrigin(t.id)}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn line small" data-copy="${esc(t.id)}">Copiar link</button>
+    <button class="btn line small" data-ren="${esc(t.id)}">Renomear</button>
     <a class="btn line small" href="cartaz.html?t=${esc(t.id)}" target="_blank" rel="noopener" style="text-decoration:none">Cartaz QR</a>
     <button class="btn line small" data-toggle="${esc(t.id)}">${t.active ? 'Desativar' : 'Ativar'}</button></div></div>`).join('');
-  const html = head('Tags', 'Cada tag é um bastão ou plaquinha com NFC. Grave o link nela. Para quem não tem NFC, imprima o Cartaz QR.') + `
+  const html = head('Tags', 'Cada tag é um bastão ou plaquinha com NFC. Grave o link nela. Para quem não tem NFC, imprima o Cartaz QR. Você pode renomear cada uma.') + `
     <div class="split">
       <section class="panel"><div class="list">${items || '<p class="note">Nenhuma tag ainda. Crie a primeira ao lado.</p>'}</div></section>
       <section class="panel"><h2>Nova tag</h2>
@@ -1214,6 +1215,13 @@ function viewTags(){
     </div>`;
   return {html, bind(){
     root.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copyText(base + 'c.html?t=' + b.dataset.copy));
+    root.querySelectorAll('[data-ren]').forEach(b => b.onclick = async () => {
+      const t = S.tags.find(x => x.id === b.dataset.ren), nm = prompt('Novo nome para esta tag (ex.: Balcão, Caixa 2):', t.label || '');
+      if(nm === null) return; const v = nm.trim().slice(0, 40); if(!v) return toast('Digite um nome', true);
+      const {error} = await sb.from('fid_tags').update({label: v}).eq('id', t.id);
+      if(error) return toast('Erro: ' + error.message, true);
+      await load(); toast('Nome atualizado ✓');
+    });
     root.querySelectorAll('[data-toggle]').forEach(b => b.onclick = async () => {
       const t = S.tags.find(x => x.id === b.dataset.toggle);
       const {error} = await sb.from('fid_tags').update({active: !t.active}).eq('id', t.id);

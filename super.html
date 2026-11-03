@@ -729,6 +729,15 @@ function viewTrials(){
 
 /* pedidos */
 const OST = {aguardando_pagamento:['tolerancia', 'Aguardando pagamento'], pago:['ativa', 'Pago · enviar kit'], enviado:['trial', 'Enviado'], cancelado:['bloqueada', 'Cancelado'], reembolsado:['vencida', 'Reembolsado']};
+const NFC_NAMES = ['Bastão 1', 'Bastão 2'];
+function kitBlock(o){
+  const T = o.tags || []; if(!o.store_id || !T.length) return '<p class="sub"><b>Kit:</b> a loja ainda não tem tags.</p>';
+  const b = baseUrl(), nfc = T.slice(0, 2), qr = T[2];
+  const row = (lab, url, extra) => `<div class="trow"><div class="l"><b>${esc(lab)}</b><br><code>${esc(url)}</code></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn line small" data-ocopy="${esc(url)}">Copiar link</button>${extra || ''}</div></div>`;
+  return `<div class="sub" style="margin-top:12px"><b>Kit para preparar</b> · grave cada link num bastão (NFC Tools) e imprima o cartaz QR${o.status === 'aguardando_pagamento' ? ' <span class="pill st-tolerancia">só depois do pagamento</span>' : ''}</div>`
+    + nfc.map((t, i) => row('Bastão NFC ' + (i + 1) + ' · ' + (t.label || NFC_NAMES[i]), b + 'c.html?t=' + t.id)).join('')
+    + (qr ? row('QR Code · ' + (qr.label || 'QR Code'), b + 'c.html?t=' + qr.id + '&o=qr', `<a class="btn small" target="_blank" rel="noopener" href="cartaz.html?t=${esc(qr.id)}">Cartaz QR</a>`) : '');
+}
 function viewOrders(){
   const L = S.orders, todo = L.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago').length, norep = L.filter(o => !o.rep_id && o.status !== 'cancelado').length;
   const row = o => {
@@ -739,11 +748,12 @@ function viewOrders(){
     const assign = !o.rep_id && o.store_id && o.status !== 'cancelado' ? `<div class="acts"><select data-rsel="${o.id}"><option value="">Escolher representante…</option>${S.reps.filter(r => r.active).map(r => `<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" data-assign="${o.id}" data-store="${o.store_id}">Vincular</button></div>` : '';
     const det = `<div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(o.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b>${esc(o.email || '—')}</b><small>e-mail</small></div><div><b>${money(tot)}</b><small>kit ${money(o.amount)}${o.shipping > 0 ? ' + frete ' + money(o.shipping) : ' · sem frete'}</small></div></div>
       ${o.status === 'aguardando_pagamento' && o.invoice_url ? `<p class="sub"><b>Cobrança Asaas:</b> <a href="${esc(o.invoice_url)}" target="_blank" rel="noopener">abrir link de pagamento</a> · confirma sozinho quando o cliente pagar. Pagou fora do Asaas? Use <b>Confirmar pagamento</b>.</p>` : ''}${o.asaas && o.paid_at ? '<p class="sub"><span class="pill st-ativa">Pago pelo Asaas</span></p>' : ''}<p class="sub"><b>${pick ? 'Entrega:' : 'Endereço:'}</b> ${pick ? 'Retirada em mãos' : esc(o.address)}</p>${o.tracking ? `<p class="sub"><b>Rastreio:</b> ${esc(o.tracking)}</p>` : ''}${o.paid_at ? `<p class="sub">Pago em ${fmtDT(o.paid_at)}${o.shipped_at ? ' · enviado em ' + fmtDT(o.shipped_at) : ''}</p>` : ''}
-      ${upg}${assign}<div class="acts">${o.status === 'aguardando_pagamento' ? `<button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>` : ''}${o.upgrade && o.loaner === 'pendente' ? `<button class="btn line small" data-loaner="${o.id}">Marcar bastão como recolhido</button>` : ''}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div>`;
+      ${kitBlock(o)}${upg}${assign}<div class="acts">${o.status === 'aguardando_pagamento' ? `<button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>` : ''}${o.upgrade && o.loaner === 'pendente' ? `<button class="btn line small" data-loaner="${o.id}">Marcar bastão como recolhido</button>` : ''}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div>`;
     return xrow('o' + o.id, `<td>${fmtDT(o.created_at)}</td><td><b>${esc(o.store_name || '(loja removida)')}</b><br><span class="dl">${esc(o.buyer_name)}</span></td><td class="n">${money(tot)}</td><td>${pick ? 'Em mãos' : 'Correios'}</td><td><span class="pill st-${cls}">${lab}</span></td><td>${o.rep_id ? esc(o.rep_name) : '<span class="pill st-vencida">Sem rep</span>'}</td><td class="n">${main}</td>`, det, 7);
   };
   return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar${norep ? ` · ${norep} sem representante` : ''}`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th class="n">Valor</th><th>Entrega</th><th>Status</th><th>Representante</th><th class="n">Ação</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div><p class="dl" style="margin-top:8px">Clique na linha para ver contato, endereço e outras ações.</p>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
   bind(){
+    root.querySelectorAll('[data-ocopy]').forEach(b => b.onclick = () => copyTxt(b.dataset.ocopy));
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const v = prompt('Valor do kit, sem o frete (R$). É a base da comissão do representante:', b.dataset.amt); if(v === null) return; const n = parseFloat(String(v).replace(',', '.'));
       if(!(n > 0)) return toast('Informe um valor válido', true);
