@@ -91,6 +91,23 @@
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style>
 <style>.ok{max-width:600px}.ok .code{display:inline-block;margin:6px 0 0;padding:8px 16px;border:2.5px dashed var(--navy);border-radius:12px;background:var(--kraft);font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:.03em}.ok .btn{display:block;text-align:center}.ok .help{margin-top:22px;color:var(--mut);font-size:.95rem}</style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1763604958058018');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <!-- Google Analytics (GA4): só nas páginas públicas de venda -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
 <script>
@@ -119,7 +136,7 @@
 <script>
 (function(){
   var o = new URLSearchParams(location.search).get('o') || '';
-  if(/^[0-9a-f-]{36}$/i.test(o)){ try { gtag('event', 'purchase', {transaction_id:o, currency:'BRL'}); } catch(_){} document.getElementById('code').textContent = 'Pedido CAR-' + o.replace(/-/g,'').slice(0,8).toUpperCase(); document.getElementById('cd').style.display = 'block'; }
+  if(/^[0-9a-f-]{36}$/i.test(o)){ try { gtag('event', 'purchase', {transaction_id:o, currency:'BRL'}); } catch(_){} try { var pv = parseFloat(localStorage.getItem('carimbo_pv')) || 0; fbq('track', 'Purchase', {value:pv, currency:'BRL'}, {eventID:o}); localStorage.removeItem('carimbo_pv'); } catch(_){} document.getElementById('code').textContent = 'Pedido CAR-' + o.replace(/-/g,'').slice(0,8).toUpperCase(); document.getElementById('cd').style.display = 'block'; }
   var wa = (window.FID && FID.SALES_WHATSAPP || '').replace(/\D/g,'');
   if(wa) document.getElementById('help').innerHTML = 'Dúvida? Fale com a gente no <a href="https://wa.me/' + wa + '" target="_blank" rel="noopener">WhatsApp</a>.';
 })();

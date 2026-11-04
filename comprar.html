@@ -94,6 +94,23 @@
   @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1763604958058018');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <!-- Google Analytics (GA4): só nas páginas públicas de venda -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GGNR9VMH55"></script>
 <script>
@@ -314,6 +331,7 @@ async function submit(ev){
   const v = id => $('#' + id).value.trim(), em = v('em'), pw = $('#pw').value, c = S.delivery === 'correios';
   const btn = $('#go'); btn.disabled = true; btn.textContent = 'Enviando…';
   try { gtag('event', 'begin_checkout', {currency:'BRL'}); } catch(_){}
+  try { fbq('track', 'InitiateCheckout', {value:total(), currency:'BRL'}); localStorage.setItem('carimbo_pv', String(total())); } catch(_){}
   try {
     let {data:{session}} = await sb.auth.getSession();
     if(UPG && !session){ location.href = 'lojista'; return; }
@@ -368,6 +386,7 @@ function done(store, name){
   window.scrollTo(0, 0);
 }
 view();
+try { fbq('track', 'ViewContent', {content_name:'Kit Carimbô', content_type:'product', currency:'BRL'}); } catch(_){}
 </script>
 </body>
 </html>
