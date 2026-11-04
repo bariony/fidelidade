@@ -1,11 +1,11 @@
 // E-mails transacionais do Carimbô via Resend.
 // Auth: chamada interna (service role, ex.: asaas-webhook) ou usuário logado.
-//  - order_paid:   interna ou superadmin (e-mail ao comprador do pedido)
+//  - order_paid / order_prep / order_shipped: interna ou superadmin (e-mail ao comprador do pedido)
 //  - order_pending: interna ou dono do pedido
 //  - welcome_shop / welcome_rep: usuário logado, sempre para o próprio e-mail
 // Idempotência: fid_email_log (kind, ref) único; cada e-mail sai uma vez.
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { orderPaid, orderPending, welcomeShop, welcomeRep } from "./templates.ts";
+import { orderPaid, orderPending, orderPrep, orderShipped, welcomeShop, welcomeRep } from "./templates.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     const kind = String(body?.kind ?? "");
     let ref = "", to = "", mail: { subject: string; html: string; text: string } | null = null;
 
-    if (kind === "order_paid" || kind === "order_pending") {
+    if (kind === "order_paid" || kind === "order_pending" || kind === "order_prep" || kind === "order_shipped") {
       const oid = String(body?.order_id ?? "");
       if (!/^[0-9a-f-]{36}$/i.test(oid)) return json({ error: "pedido_invalido" }, 400);
       const { data: o } = await admin.from("fid_orders").select("*").eq("id", oid).maybeSingle();
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       if (!internal) {
         const isOwner = o.owner === user!.id;
         let isSuper = false;
-        if (kind === "order_paid") { const { data } = await userClient.rpc("fid_is_super"); isSuper = data === true; }
+        if (kind !== "order_pending") { const { data } = await userClient.rpc("fid_is_super"); isSuper = data === true; }
         if (!(kind === "order_pending" ? isOwner : isSuper)) return json({ error: "sem_permissao" }, 403);
       }
       if (!o.buyer_email) return json({ ok: true, skipped: "sem_email" });
@@ -64,6 +64,12 @@ Deno.serve(async (req) => {
       if (kind === "order_paid") {
         if (!o.paid_at) return json({ error: "pedido_nao_pago" }, 409);
         mail = orderPaid({ name: o.buyer_name, orderId: oid, kit: Number(o.amount), shipping: Number(o.shipping ?? 0), delivery: o.delivery, paidAt: o.paid_at, email: o.buyer_email });
+      } else if (kind === "order_prep") {
+        if (!o.prep_at) return json({ error: "pedido_nao_em_preparo" }, 409);
+        mail = orderPrep({ name: o.buyer_name, orderId: o.id });
+      } else if (kind === "order_shipped") {
+        if (!o.shipped_at) return json({ error: "pedido_nao_enviado" }, 409);
+        mail = orderShipped({ name: o.buyer_name, orderId: o.id, tracking: o.tracking, shippedAt: o.shipped_at });
       } else {
         if (!o.asaas_invoice_url || o.paid_at) return json({ ok: true, skipped: "nada_a_enviar" });
         mail = orderPending({ name: o.buyer_name, orderId: oid, total: Number(o.amount) + Number(o.shipping ?? 0), payUrl: o.asaas_invoice_url });

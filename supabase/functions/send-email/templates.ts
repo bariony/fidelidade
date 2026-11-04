@@ -102,6 +102,38 @@ export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, emai
   };
 }
 
+/* ---------- 2b. Kit em preparo e kit enviado ---------- */
+const trackUrl = (c) => "https://rastreamento.correios.com.br/app/index.php?objetos=" + encodeURIComponent(c);
+
+export function orderPrep({ name, orderId, loginUrl = SITE + "/lojista#/assinatura" }) {
+  const code = orderCode(orderId);
+  const body = h1("Seu kit está sendo preparado 📦") +
+    p(`Oi, ${esc((name || "").split(" ")[0] || "tudo bem")}! Estamos separando e montando o seu <b>Kit Carimbô</b> agora.`) +
+    kraftBox([["Pedido", code], ["Status", "Preparando"], ["Próximo passo", "Envio pelos Correios"]]) +
+    p("Assim que for postado, você recebe outro e-mail com o código de rastreio. Você também acompanha cada etapa no painel, na aba <b>Assinatura</b>.") +
+    button(esc(loginUrl), "Acompanhar meu pedido");
+  return {
+    subject: `Pedido ${code}: seu kit está sendo preparado`,
+    html: layout({ preheader: `Estamos preparando o seu kit. Pedido ${code}.`, body }),
+    text: plain([`Seu kit está sendo preparado! Pedido ${code}`, "Assim que for postado, avisamos o código de rastreio.", `Acompanhe: ${loginUrl}`, "", "Carimbô · carimbo.io"]),
+  };
+}
+
+export function orderShipped({ name, orderId, tracking, shippedAt, loginUrl = SITE + "/lojista#/assinatura" }) {
+  const code = orderCode(orderId), t = (tracking || "").trim();
+  const body = h1("Seu kit foi enviado! 🚚") +
+    p(`Oi, ${esc((name || "").split(" ")[0] || "tudo bem")}! O seu <b>Kit Carimbô</b> foi postado nos Correios e já está a caminho.`) +
+    kraftBox([["Pedido", code], ["Enviado em", fdate(shippedAt || new Date())], ["Rastreio", t ? esc(t) : "será informado no painel"], ["Prazo", "até 7 dias"]]) +
+    (t ? button(esc(trackUrl(t)), "Rastrear nos Correios") : button(esc(loginUrl), "Acompanhar meu pedido")) +
+    p("Quando o kit chegar, grave o link da sua tag no bastão com o app <b>NFC Tools</b> e dê o primeiro toque para testar. Isso confirma a entrega e conclui a sua configuração.", "margin-top:14px") +
+    small("O código pode levar algumas horas para aparecer no site dos Correios.");
+  return {
+    subject: `Pedido ${code}: seu kit foi enviado${t ? " (rastreio " + t + ")" : ""}`,
+    html: layout({ preheader: t ? `Código de rastreio: ${t}` : `Seu kit foi enviado. Pedido ${code}.`, body }),
+    text: plain([`Seu kit foi enviado! Pedido ${code}`, t ? `Rastreio: ${t}` : null, t ? trackUrl(t) : null, "", `Acompanhe: ${loginUrl}`, "", "Carimbô · carimbo.io"]),
+  };
+}
+
 /* ---------- 3. Acesso criado: lojista ---------- */
 export function welcomeShop({ name, email, loginUrl = SITE + "/lojista" }) {
   const body = h1("Seu acesso está pronto") +

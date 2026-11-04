@@ -243,6 +243,17 @@
   .modal h2{margin-bottom:6px}
   .sub2{color:var(--muted);font-size:.92rem}
   .subbox{display:grid;gap:12px}
+  .ktl{list-style:none;margin:14px 0 4px;padding:0}
+  .ktl li{position:relative;display:flex;gap:14px;padding:0 0 18px}
+  .ktl li:last-child{padding-bottom:0}
+  .ktl li:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:3px;background:var(--line);border-radius:2px}
+  .ktl li.kok:not(:last-child)::before{background:var(--good)}
+  .ktl .dotk{flex:none;width:32px;height:32px;border-radius:50%;border:2.5px solid var(--line);background:#fff;color:var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
+  .ktl li.kok .dotk{background:var(--good);border-color:var(--good);color:#fff}
+  .ktl li.now .dotk{background:var(--red);border-color:var(--ink);color:#fff;box-shadow:0 0 0 4px #E03A2F33}
+  .ktl .tt{font-weight:800;line-height:1.2;padding-top:4px}
+  .ktl li:not(.kok):not(.now) .tt{color:var(--muted);font-weight:700}
+  .ktl .ds{font-size:.92rem;color:var(--muted);margin-top:2px}
   .brow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1.5px solid var(--line);flex-wrap:wrap}
   .brow:first-child{border-top:0}
   .brow b{font-family:'Fredoka',sans-serif}
@@ -562,12 +573,33 @@ const fdt = d => new Date(d).toLocaleString('pt-BR', {day:'2-digit', month:'2-di
 const KIND_LBL = {sale:'Kit Carimbô', renewal:'Mensalidade', refund:'Reembolso'};
 const TK_LBL = {duvida:'Dúvida', problema:'Problema', reembolso:'Reembolso', cancelamento:'Cancelamento'};
 const TK_ST = {aberto:'Aguardando resposta', respondido:'Respondido', resolvido:'Resolvido'};
-S.bill = null; S.helpHidden = false; S.modal = null;
+S.bill = null; S.kit = null; S.helpHidden = false; S.modal = null;
 const billUnread = () => S.bill && S.bill.tickets ? S.bill.tickets.filter(t => t.needs_owner).length : 0;
 async function loadBill(quiet){
   const {data, error} = await sb.rpc('fid_my_billing');
   if(error || !data || data.error){ if(!quiet) toast('Não foi possível carregar a assinatura.', true); return; }
-  S.bill = data; if(S.user && S.store) render();
+  S.bill = data;
+  try{ const k = await sb.rpc('fid_my_kit'); S.kit = k && !k.error ? k.data : null; }catch(e){ S.kit = null; }
+  if(S.user && S.store) render();
+}
+function kitCard(){
+  const k = S.kit; if(!k) return '';
+  const ship = k.shipped_at, done = k.delivered_at, tr = (k.tracking || '').trim();
+  const steps = [
+    {t:'Pedido pago', at:k.paid_at, d:'Recebemos o seu pagamento.'},
+    {t:'Preparando', at:k.prep_at, d:'Estamos separando e montando o seu kit.'},
+    {t:'Enviado', at:ship, d: tr ? `Código de rastreio: <b>${esc(tr)}</b> · <a href="https://rastreamento.correios.com.br/app/index.php?objetos=${encodeURIComponent(tr)}" target="_blank" rel="noopener">rastrear nos Correios</a>` : 'Postado nos Correios. Chega em até ' + k.ship_days + ' dias.'},
+    {t:'Entregue', at:done, d:'Confirmamos quando você der o 1º toque no bastão.'},
+  ];
+  let cur = -1; steps.forEach((x, i) => { if(x.at) cur = i; });
+  const pending = {1:'Em breve: assim que começarmos a separar o seu kit, aparece aqui.', 2:'Assim que for postado, o código de rastreio aparece aqui e chega por e-mail.', 3:'Quando o kit chegar, grave o link da tag no bastão (app NFC Tools) e dê o 1º toque.'};
+  const li = steps.map((x, i) => {
+    const st = i < cur || (i === cur && i === 3) ? 'kok' : i === cur ? 'now' : '';
+    const desc = x.at ? x.d : (i === cur + 1 ? pending[i] : '');
+    return `<li class="${st}"><span class="dotk">${st === 'kok' ? '✓' : i + 1}</span><div><div class="tt">${x.t}${x.at ? ` <span class="sub2" style="font-weight:600">· ${fdt(x.at)}</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div></li>`;
+  }).join('');
+  return `<section class="panel"><div class="phead"><h2>Acompanhe seu pedido</h2><span class="pill"${done ? ' style="background:#DDF5EA"' : ''}>${done ? 'Entregue' : steps[Math.max(cur, 0)].t}</span></div>
+    ${done ? '<div class="pbanner info" style="margin:10px 0 0">Kit entregue e funcionando. Seu primeiro carimbo já foi registrado. 🎉</div>' : ''}<ol class="ktl">${li}</ol></section>`;
 }
 async function callConta(body){
   const r = await sb.functions.invoke('asaas-conta', {body});
@@ -655,6 +687,7 @@ function viewAssinatura(){
     ${!done && t.kind !== 'cancelamento' ? `<form data-reply="${t.id}" style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" maxlength="2000" placeholder="Responder" style="flex:1;min-width:180px" required><button class="btn small">Enviar</button></form>` : ''}</details>`;
   }).join('') : '<p class="sub2">Você ainda não abriu nenhum pedido. Use o botão <b>Preciso de ajuda</b>.</p>';
   const html = head('Assinatura', 'Plano, cobranças e atendimento') + `<div class="subbox">
+    ${kitCard()}
     <section class="panel"><div class="phead"><h2>Seu plano</h2><span class="pill">${pill}</span></div>
       <div class="pbanner ${tone}" style="margin:10px 0 14px">${line}</div>
       <p class="sub2">Mensalidade de ${brl(b.price)}.${st.is_trial ? '' : ' O 1º mês já vem com o kit.'} ${st.is_trial && !st.subscription ? 'No fim do teste os carimbos e as tags pausam, a menos que você assine.' : 'Depois do vencimento você tem ' + b.grace_days + ' dias de carência antes de pausar os carimbos e as tags.'}</p>

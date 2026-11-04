@@ -840,3 +840,7 @@ begin
     values (s.id, uid, s.rep_id, s.referred_by, bn, wa, mail, addr, amt, p_delivery, ship, cep, true, case when pct > 0 then lower(trim(p_coupon)) end, pct, is_promo) returning id into oid;
   return jsonb_build_object('ok', true, 'order', oid, 'store', s.id, 'shipping', ship, 'total', amt + ship, 'promo', is_promo);
 end $function$;
+
+-- v14 (04/11/2026): acompanhamento da entrega do kit. fid_orders.prep_at; fid_super_order_status aceita 'preparando';
+-- fid_super_orders devolve prep_at; fid_my_kit() (lojista) devolve paid/prep/shipped/tracking e delivered_at = 1º carimbo depois do envio.
+-- E-mails order_prep e order_shipped na Edge Function send-email (só superadmin). (aplicado via migrations kit_tracking_timeline e kit_delivered_after_shipping)
