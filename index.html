@@ -499,7 +499,7 @@
 <section class="navy final tear" style="--above:var(--paper)">
   <div class="wrap">
     <h2>Seu cliente já conhece a sua loja. Dê um motivo para ele voltar.</h2>
-    <p>Kit completo por R$ 149 e 30 dias de painel incluídos. Preço de lançamento por tempo limitado.</p>
+    <p id="promoP">Kit completo por R$ 149 e 30 dias de painel incluídos. Preço de lançamento por tempo limitado.</p>
     <button class="btn big onnavy" type="button" data-cta="final">Quero o kit por R$ 149</button>
   </div>
 </section>
@@ -520,6 +520,24 @@
 
 <div id="sticky" role="region" aria-label="Comprar o kit"><div class="in"><div><b>Kit Carimbô · R$ 149</b><small>30 dias de painel incluídos</small></div><button class="btn" type="button" data-cta="sticky">Quero o kit</button></div></div>
 
+<script src="config.js"></script>
+<script>
+/* Promoção de lançamento: se ainda houver vagas, mostra R$ 39,97 (kit + envio). Valor e vagas vêm do banco (fid_promo_state). */
+(function(){
+  try {
+    fetch(FID.SUPABASE_URL + '/rest/v1/rpc/fid_promo_state', {method:'POST', headers:{apikey:FID.SUPABASE_KEY, Authorization:'Bearer ' + FID.SUPABASE_KEY, 'Content-Type':'application/json'}, body:'{}'})
+      .then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+        if(!d || !(d.left > 0)) return;
+        var p = 'R$ ' + Number(d.price).toFixed(2).replace('.', ',');
+        document.querySelectorAll('[data-cta="hero"],[data-cta="final"]').forEach(function(b){ b.textContent = 'Quero o kit por ' + p; });
+        var sb = document.querySelector('#sticky b'); if(sb) sb.textContent = 'Kit Carimbô · ' + p;
+        var now = document.querySelector('.now'); if(now) now.textContent = p;
+        var once = document.querySelector('.once'); if(once) once.textContent = 'uma vez só, já com o envio · restam ' + d.left + ' de ' + d.limit + ' vagas de lançamento';
+        var pp = document.getElementById('promoP'); if(pp) pp.textContent = 'Kit completo por ' + p + ' (já com o envio) e 30 dias de painel incluídos. Só para as ' + d.limit + ' primeiras lojas.';
+      }).catch(function(){});
+  } catch(e){}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 <script>
 (function(){

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Comprar cartão fidelidade NFC: Kit Carimbô R$ 149</title>
-<meta name="description" content="Peça o kit Carimbô: 2 bastões de cartão fidelidade por toque NFC, placa NFC de avaliação do Google e 30 dias de painel do lojista. R$ 149, sem app para o cliente.">
+<title>Comprar cartão fidelidade NFC: Kit Carimbô</title>
+<meta name="description" content="Peça o kit Carimbô: 2 bastões de cartão fidelidade por toque NFC, placa NFC de avaliação do Google e 30 dias de painel do lojista, sem app para o cliente.">
 <meta property="og:title" content="Carimbô: peça o seu kit">
 <meta property="og:description" content="Cartão fidelidade por toque NFC. Sem app. Kit com 2 bastões, placa NFC de avaliação do Google e 30 dias de painel.">
 <meta property="og:type" content="website">
@@ -114,7 +114,7 @@ const app = document.getElementById('app');
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',');
-const KIT = 149, FRETE = 15.99;
+const KIT = 149, FRETE = 15.99, PROMO_PRICE = 39.97; /* promoção de lançamento: preço total (kit + envio) das primeiras lojas; limite e valor reais ficam no banco (fid_promo_state) */
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
 /* Representante: o código vem no link (?r=) e fica guardado no aparelho por 60 dias. Fica invisível para o cliente. */
@@ -137,14 +137,15 @@ const MSG = {
   entre_primeiro:'Entre com e-mail e senha para continuar.', loja_nao_esta_em_teste:'Sua loja não está em período de teste.', kit_ja_comprado:'O kit desta loja já foi comprado.', pedido_em_aberto:'Você já tem um pedido do kit em aberto. Pague pelo link recebido ou fale com a gente.'
 };
 const UPG = new URLSearchParams(location.search).has('upgrade');
-const S = {delivery:'correios', cepOk:false, orderId:null, coupon:null};
+const S = {delivery:'correios', cepOk:false, orderId:null, coupon:null, promo:null};
+const isPromo = () => !!(S.promo && S.promo.left > 0 && !S.coupon);
 const maskDoc = v => { const d = v.replace(/\D/g, '').slice(0, 14); if(d.length <= 11) return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); return d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2'); };
 function validDoc(v){ const n = v.replace(/\D/g, ''); if(/^(\d)\1+$/.test(n)) return false;
   if(n.length === 11){ for(const t of [9, 10]){ let s = 0; for(let i = 0; i < t; i++) s += +n[i] * (t + 1 - i); if(((s * 10) % 11) % 10 !== +n[t]) return false; } return true; }
   if(n.length === 14){ for(const t of [12, 13]){ const w = t === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; let s = 0; for(let i = 0; i < t; i++) s += +n[i] * w[i]; const dv = s % 11 < 2 ? 0 : 11 - (s % 11); if(dv !== +n[t]) return false; } return true; }
   return false; }
 const kitNet = () => Math.round(KIT * (100 - (S.coupon ? S.coupon.pct : 0))) / 100;
-const total = () => kitNet() + (S.delivery === 'correios' ? FRETE : 0);
+const total = () => isPromo() ? PROMO_PRICE : kitNet() + FRETE;
 
 function view(){
   app.innerHTML = `<div class="grid">
@@ -157,11 +158,7 @@ function view(){
           <div class="two"><div><label class="l" for="wa">WhatsApp</label><input id="wa" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(11) 99999-9999" maxlength="16" required><p class="fe" id="e-wa"></p></div>
             <div><label class="l" for="em">E-mail</label><input id="em" type="email" autocomplete="email" inputmode="email" required><p class="fe" id="e-em"></p></div></div>
           <label class="l" for="doc">CPF ou CNPJ <span style="font-weight:400">(para a cobrança)</span></label><input id="doc" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="18" required><p class="fe" id="e-doc"></p></div>
-        <div class="sec"><h3><b>2</b>Como você quer receber o kit?</h3>
-          <div class="opts" role="radiogroup" aria-label="Forma de entrega">
-            <label class="opt"><input type="radio" name="dl" value="retirada"><span><b>Retirar em mãos <em>Grátis</em></b><small>Sem frete. Combinamos a entrega com você pelo WhatsApp.</small></span></label>
-            <label class="opt"><input type="radio" name="dl" value="correios" checked><span><b>Pelos Correios <em class="pay">+ ${brl(FRETE)}</em></b><small>Enviamos para o seu endereço.</small></span></label></div></div>
-        <div class="sec" id="addr"><h3><b>3</b>Endereço de entrega</h3><small>Digite o CEP e a gente preenche o resto.</small>
+        <div class="sec" id="addr"><h3><b>2</b>Endereço de entrega</h3><small>O kit vai pelos Correios. Digite o CEP e a gente preenche o resto.</small>
           <div class="row3"><div><label class="l" for="cep">CEP</label><input id="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9"><p class="fe" id="e-cep"></p></div><div><p class="cepst" id="cepst" style="margin-top:42px" aria-live="polite"></p></div></div>
           <label class="l" for="rua">Rua</label><input id="rua" autocomplete="address-line1"><p class="fe" id="e-rua"></p>
           <div class="rowN"><div><label class="l" for="num">Número</label><input id="num" autocomplete="address-line2" inputmode="numeric" placeholder="123"><p class="fe" id="e-num"></p></div>
@@ -169,7 +166,7 @@ function view(){
           <label class="l" for="bai">Bairro</label><input id="bai">
           <div class="rowC"><div><label class="l" for="cid">Cidade</label><input id="cid" autocomplete="address-level2"><p class="fe" id="e-cid"></p></div>
             <div><label class="l" for="uf">Estado</label><select id="uf" autocomplete="address-level1"><option value="">UF</option>${UFS.map(u => `<option>${u}</option>`).join('')}</select><p class="fe" id="e-uf"></p></div></div></div>
-        <div class="sec"><h3><b>4</b>Acesso ao painel</h3><small>Com este e-mail e esta senha você entra no painel da sua loja.</small>
+        <div class="sec"><h3><b>3</b>Acesso ao painel</h3><small>Com este e-mail e esta senha você entra no painel da sua loja.</small>
           <label class="l" for="pw">Crie uma senha (mínimo 6 caracteres)</label><div class="pw"><input id="pw" type="password" minlength="6" autocomplete="new-password" required><button type="button" id="tg" aria-label="Mostrar senha">Mostrar</button></div><p class="fe" id="e-pw"></p></div>
         <div class="sec"><label class="l" for="cp">Cupom de desconto (opcional)</label>
           <div style="display:flex;gap:8px"><input id="cp" type="text" autocomplete="off" autocapitalize="characters" maxlength="30" placeholder="Digite o cupom" style="flex:1"><button type="button" class="btn line" id="cpb" style="width:auto;min-width:110px">Aplicar</button></div>
@@ -180,8 +177,7 @@ function view(){
         <p class="fine">Ao fazer o pedido, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
       </form></section>
     <aside class="card sum"><h2>Kit de boas-vindas</h2>
-      <div class="price"><b>R$ 149</b><s>R$ 249</s></div>
-      <small style="color:var(--mut)">pagamento único · preço de lançamento</small>
+      <div id="prbox"></div>
       <ul class="in">
         <li><i>✓</i><span><b>2 bastões Carimbô</b> para o balcão</span></li>
         <li><i>✓</i><span><b>Placa NFC de avaliação do Google</b></span></li>
@@ -189,7 +185,7 @@ function view(){
         <li><i>✓</i><span><b>Configuração</b> da sua loja</span></li></ul>
       <div class="tot" id="tot"></div>
       <div class="after"><b>Depois do 1º mês:</b> R$ 49,97 por mês para manter o painel.</div></aside></div>`;
-  bind(); refresh();
+  bind(); refresh(); loadPromo();
   if(UPG) setupUpgrade();
 }
 /* loja em teste que vira cliente: mesma loja, só escolhe a entrega e paga o kit */
@@ -210,10 +206,24 @@ const maskPhone = v => { const d = v.replace(/\D/g, '').slice(0, 11); if(d.lengt
 const maskCep = v => { const d = v.replace(/\D/g, '').slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; };
 
 function refresh(){
-  const c = S.delivery === 'correios';
-  $('#addr').style.display = c ? '' : 'none';
-  $('#tot').innerHTML = `<div><span>Kit</span><span>${S.coupon ? `<s style="opacity:.6">${brl(KIT)}</s> ${brl(kitNet())}` : brl(KIT)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete</span>${c ? `<span>${brl(FRETE)}</span>` : '<span class="g">Grátis · retirada em mãos</span>'}</div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
+  const p = isPromo();
+  $('#addr').style.display = '';
+  $('#prbox').innerHTML = p
+    ? `<div class="price"><b>${brl(PROMO_PRICE)}</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · já com o envio · condição de lançamento${S.promo.left <= 10 ? ` · restam <b>${S.promo.left}</b> de ${S.promo.limit}` : ''}</small>`
+    : `<div class="price"><b>R$ 149</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · mais o envio pelos Correios</small>`;
+  $('#tot').innerHTML = p
+    ? `<div><span>Kit + envio (lançamento)</span><span>${brl(PROMO_PRICE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`
+    : `<div><span>Kit</span><span>${S.coupon ? `<s style="opacity:.6">${brl(KIT)}</s> ${brl(kitNet())}` : brl(KIT)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete (Correios)</span><span>${brl(FRETE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
   $('#go').textContent = 'Ir para o pagamento · ' + brl(total());
+}
+async function loadPromo(){
+  try { const {data} = await sb.rpc('fid_promo_state'); if(data && typeof data.left === 'number'){ S.promo = data; refresh(); } } catch(_){}
+}
+function promoMismatch(d){
+  if(d && !d.dup && d.promo !== undefined && !!d.promo !== isPromo()){
+    S.promo = {left:d.promo ? 1 : 0, limit:10}; S.orderId = d.order; refresh();
+    throw new Error('O valor mudou: ' + (d.promo ? 'você conseguiu uma vaga da promoção' : 'as vagas da promoção acabaram') + '. O total agora é ' + brl(d.total) + '. Confira e clique de novo para continuar.');
+  }
 }
 function setErr(id, msg){
   const el = $('#' + id), fe = $('#e-' + id); if(!el) return;
@@ -271,7 +281,6 @@ function bind(){
   $('#doc').oninput = e => { e.target.value = maskDoc(e.target.value); setErr('doc', ''); };
   $('#cep').oninput = e => { e.target.value = maskCep(e.target.value); onCep(); };
   ['nm', 'lj', 'em', 'rua', 'num', 'cid', 'uf', 'pw'].forEach(id => $('#' + id).addEventListener('input', () => setErr(id, '')));
-  document.querySelectorAll('input[name=dl]').forEach(r => r.onchange = () => { S.delivery = r.value; refresh(); });
   $('#tg').onclick = () => { const p = $('#pw'), show = p.type === 'password'; p.type = show ? 'text' : 'password'; $('#tg').textContent = show ? 'Ocultar' : 'Mostrar'; };
   $('#f').addEventListener('input', () => { $('#err').textContent = ''; });
   $('#f').addEventListener('change', () => { $('#err').textContent = ''; });
@@ -322,14 +331,14 @@ async function submit(ev){
         p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null, p_coupon:S.coupon ? S.coupon.code : null});
       if(error) throw new Error(error.message);
       if(data && data.error) throw new Error(MSG[data.error] || data.error);
-      S.orderId = data.order;
+      S.orderId = data.order; promoMismatch(data);
     }
     if(!S.orderId){
     const {data, error} = await sb.rpc('fid_order_create', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa'), p_delivery:S.delivery,
       p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null, p_coupon:S.coupon ? S.coupon.code : null});
     if(error) throw new Error(error.message);
     if(data && data.error) throw new Error(MSG[data.error] || data.error);
-    S.orderId = data.order;
+    S.orderId = data.order; promoMismatch(data);
     }
     btn.textContent = 'Abrindo o pagamento…';
     const r = await sb.functions.invoke('asaas-checkout', {body:{order_id:S.orderId, cpf_cnpj:v('doc')}});

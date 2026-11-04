@@ -745,3 +745,98 @@ end $$;
 -- fid_coupons (code minúsculo, percent, max_uses, expires_at); fid_coupon_check(p_code) público devolve {percent};
 -- fid_order_create e fid_trial_kit_order ganham p_coupon e gravam coupon_code/discount_pct em fid_orders (amount já com desconto).
 -- (definições completas aplicadas via migrations "default_tags_per_store" e "coupons_for_kit_orders" no projeto).
+
+-- v13 (04/11/2026): promoção de lançamento R$ 39,97 (kit + envio) para as 10 primeiras lojas; depois R$ 149 + R$ 15,99. Só Correios.
+-- Promoção de lançamento: as 10 primeiras lojas pagam R$ 39,97 no total (kit + frete). Depois volta a R$ 149 + R$ 15,99.
+-- Retirada em mãos deixa de existir (só Correios). Limite e preço ficam aqui (v_limit / v_price).
+alter table public.fid_orders add column if not exists promo boolean not null default false;
+
+create or replace function public.fid_promo_left(p_exclude uuid default null) returns int
+language sql stable security definer set search_path to 'public' as $$
+  select greatest(0, 10 - (select count(*)::int from public.fid_orders o
+    where o.promo and (p_exclude is null or o.id <> p_exclude)
+      and (o.status in ('pago','enviado') or (o.status = 'aguardando_pagamento' and o.created_at > now() - interval '24 hours'))))
+$$;
+create or replace function public.fid_promo_state() returns jsonb
+language sql stable security definer set search_path to 'public' as $$
+  select jsonb_build_object('limit', 10, 'price', 39.97, 'left', public.fid_promo_left(null))
+$$;
+grant execute on function public.fid_promo_state() to anon, authenticated;
+revoke execute on function public.fid_promo_left(uuid) from anon, authenticated, public;
+
+create or replace function public.fid_order_create(p_code text, p_store_name text, p_buyer_name text, p_whatsapp text, p_delivery text, p_cep text DEFAULT NULL::text, p_street text DEFAULT NULL::text, p_number text DEFAULT NULL::text, p_complement text DEFAULT NULL::text, p_district text DEFAULT NULL::text, p_city text DEFAULT NULL::text, p_state text DEFAULT NULL::text, p_coupon text DEFAULT NULL::text)
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+declare uid uuid := auth.uid(); rp public.fid_reps; sid uuid; oid uuid; mail text; wa text; v_code text; cep text; addr text; ship numeric := 0; uf text; pct int := public.fid_coupon_pct(p_coupon); amt numeric; is_promo boolean := false;
+begin
+  if uid is null then return jsonb_build_object('error','entre_primeiro'); end if;
+  p_store_name := trim(coalesce(p_store_name, '')); p_buyer_name := trim(coalesce(p_buyer_name, ''));
+  wa := regexp_replace(coalesce(p_whatsapp, ''), '\D', '', 'g');
+  if char_length(p_store_name) < 2 or char_length(p_store_name) > 80 then return jsonb_build_object('error','nome_da_loja_invalido'); end if;
+  if char_length(p_buyer_name) < 2 or char_length(p_buyer_name) > 80 then return jsonb_build_object('error','nome_invalido'); end if;
+  if char_length(wa) < 10 or char_length(wa) > 13 then return jsonb_build_object('error','whatsapp_invalido'); end if;
+  if p_delivery <> 'correios' then return jsonb_build_object('error','forma_de_entrega_invalida'); end if;
+  if coalesce(trim(p_coupon), '') <> '' and pct = 0 then return jsonb_build_object('error','cupom_invalido'); end if;
+  cep := regexp_replace(coalesce(p_cep, ''), '\D', '', 'g'); uf := upper(trim(coalesce(p_state, '')));
+  if char_length(cep) <> 8 then return jsonb_build_object('error','cep_invalido'); end if;
+  if char_length(trim(coalesce(p_street, ''))) < 3 then return jsonb_build_object('error','rua_invalida'); end if;
+  if char_length(trim(coalesce(p_number, ''))) < 1 then return jsonb_build_object('error','numero_invalido'); end if;
+  if char_length(trim(coalesce(p_city, ''))) < 2 then return jsonb_build_object('error','cidade_invalida'); end if;
+  if uf !~ '^[A-Z]{2}$' then return jsonb_build_object('error','estado_invalido'); end if;
+  addr := left(trim(p_street) || ', ' || trim(p_number) || coalesce(' - ' || nullif(trim(coalesce(p_complement, '')), ''), '') ||
+    coalesce(', ' || nullif(trim(coalesce(p_district, '')), ''), '') || ', ' || trim(p_city) || '/' || uf || ', CEP ' || substr(cep,1,5) || '-' || substr(cep,6,3), 300);
+  v_code := lower(trim(coalesce(p_code, '')));
+  if v_code <> '' then select * into rp from public.fid_reps r where r.code = v_code and r.active; end if;
+  select email into mail from auth.users where id = uid;
+  select o.id, o.store_id into oid, sid from public.fid_orders o
+   where o.owner = uid and o.status = 'aguardando_pagamento' and o.buyer_whatsapp = wa and o.delivery = p_delivery and o.created_at > now() - interval '5 minutes'
+     and exists (select 1 from public.fid_stores s2 where s2.id = o.store_id and s2.name = p_store_name) limit 1;
+  if oid is not null then return jsonb_build_object('ok', true, 'order', oid, 'store', sid, 'dup', true); end if;
+  perform pg_advisory_xact_lock(7710);
+  is_promo := pct = 0 and public.fid_promo_left(null) > 0;
+  if is_promo then amt := 39.97; ship := 0; else amt := round(149.00 * (100 - pct) / 100, 2); ship := 15.99; end if;
+  insert into public.fid_stores (owner, name, rep_id, is_trial, blocked, pending_payment) values (uid, p_store_name, rp.id, false, true, true) returning id into sid;
+  insert into public.fid_orders (store_id, owner, rep_id, rep_code, buyer_name, buyer_whatsapp, buyer_email, ship_address, amount, delivery, shipping, ship_cep, coupon_code, discount_pct, promo)
+  values (sid, uid, rp.id, nullif(v_code, ''), p_buyer_name, wa, mail, addr, amt, p_delivery, ship, cep, case when pct > 0 then lower(trim(p_coupon)) end, pct, is_promo) returning id into oid;
+  return jsonb_build_object('ok', true, 'order', oid, 'store', sid, 'shipping', ship, 'total', amt + ship, 'promo', is_promo);
+end $function$;
+
+create or replace function public.fid_trial_kit_order(p_buyer_name text, p_whatsapp text, p_delivery text, p_cep text DEFAULT NULL::text, p_street text DEFAULT NULL::text, p_number text DEFAULT NULL::text, p_complement text DEFAULT NULL::text, p_district text DEFAULT NULL::text, p_city text DEFAULT NULL::text, p_state text DEFAULT NULL::text, p_coupon text DEFAULT NULL::text)
+ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+AS $function$
+declare uid uuid := auth.uid(); s public.fid_stores; o public.fid_orders; mail text; wa text; bn text := trim(coalesce(p_buyer_name,'')); cep text; addr text; ship numeric := 0; uf text; oid uuid; pct int := public.fid_coupon_pct(p_coupon); amt numeric; is_promo boolean := false;
+begin
+  if uid is null then return jsonb_build_object('error','entre_primeiro'); end if;
+  select * into s from public.fid_stores where owner = uid order by created_at limit 1;
+  if not found then return jsonb_build_object('error','sem_loja'); end if;
+  if not s.is_trial or s.blocked or s.pending_payment then return jsonb_build_object('error','loja_nao_esta_em_teste'); end if;
+  wa := regexp_replace(coalesce(p_whatsapp,''), '\D', '', 'g');
+  if char_length(bn) < 2 or char_length(bn) > 80 then return jsonb_build_object('error','nome_invalido'); end if;
+  if char_length(wa) < 10 or char_length(wa) > 13 then return jsonb_build_object('error','whatsapp_invalido'); end if;
+  if p_delivery <> 'correios' then return jsonb_build_object('error','forma_de_entrega_invalida'); end if;
+  if coalesce(trim(p_coupon), '') <> '' and pct = 0 then return jsonb_build_object('error','cupom_invalido'); end if;
+  cep := regexp_replace(coalesce(p_cep,''), '\D', '', 'g'); uf := upper(trim(coalesce(p_state,'')));
+  if char_length(cep) <> 8 then return jsonb_build_object('error','cep_invalido'); end if;
+  if char_length(trim(coalesce(p_street,''))) < 3 then return jsonb_build_object('error','rua_invalida'); end if;
+  if char_length(trim(coalesce(p_number,''))) < 1 then return jsonb_build_object('error','numero_invalido'); end if;
+  if char_length(trim(coalesce(p_city,''))) < 2 then return jsonb_build_object('error','cidade_invalida'); end if;
+  if uf !~ '^[A-Z]{2}$' then return jsonb_build_object('error','estado_invalido'); end if;
+  addr := left(trim(p_street) || ', ' || trim(p_number) || coalesce(' - ' || nullif(trim(coalesce(p_complement,'')),''), '') ||
+    coalesce(', ' || nullif(trim(coalesce(p_district,'')),''), '') || ', ' || trim(p_city) || '/' || uf || ', CEP ' || substr(cep,1,5) || '-' || substr(cep,6,3), 300);
+  if exists (select 1 from public.fid_orders x where x.store_id = s.id and x.status in ('pago','enviado')) then return jsonb_build_object('error','kit_ja_comprado'); end if;
+  perform pg_advisory_xact_lock(7710);
+  select * into o from public.fid_orders x where x.store_id = s.id and x.status = 'aguardando_pagamento' order by created_at desc limit 1;
+  is_promo := pct = 0 and public.fid_promo_left(case when found then o.id end) > 0;
+  if is_promo then amt := 39.97; ship := 0; else amt := round(149.00 * (100 - pct) / 100, 2); ship := 15.99; end if;
+  if o.id is not null then
+    if o.asaas_invoice_url is not null and o.delivery <> p_delivery then return jsonb_build_object('error','pedido_em_aberto'); end if;
+    if o.asaas_invoice_url is not null then return jsonb_build_object('ok', true, 'order', o.id, 'store', s.id, 'dup', true); end if;
+    update public.fid_orders set buyer_name = bn, buyer_whatsapp = wa, ship_address = addr, delivery = p_delivery, shipping = ship, ship_cep = cep,
+      amount = amt, coupon_code = case when pct > 0 then lower(trim(p_coupon)) end, discount_pct = pct, promo = is_promo where id = o.id;
+    return jsonb_build_object('ok', true, 'order', o.id, 'store', s.id, 'shipping', ship, 'total', amt + ship, 'promo', is_promo);
+  end if;
+  select email into mail from auth.users where id = uid;
+  insert into public.fid_orders (store_id, owner, rep_id, rep_code, buyer_name, buyer_whatsapp, buyer_email, ship_address, amount, delivery, shipping, ship_cep, upgrade, coupon_code, discount_pct, promo)
+    values (s.id, uid, s.rep_id, s.referred_by, bn, wa, mail, addr, amt, p_delivery, ship, cep, true, case when pct > 0 then lower(trim(p_coupon)) end, pct, is_promo) returning id into oid;
+  return jsonb_build_object('ok', true, 'order', oid, 'store', s.id, 'shipping', ship, 'total', amt + ship, 'promo', is_promo);
+end $function$;
