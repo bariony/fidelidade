@@ -73,6 +73,8 @@
   .err{color:var(--bad);font-weight:700;margin:14px 0 0;min-height:1.3em}
   .sum{position:sticky;top:16px}
   .sum h2{font-size:1.35rem}
+  .kitimg{display:block;width:100%;max-width:300px;height:auto;margin:6px auto 4px;filter:drop-shadow(0 12px 10px rgba(20,41,107,.25))}
+  .kitcap{text-align:center;font-size:.88rem;color:var(--muted,#3D4C80);margin:0 0 6px}
   .price{display:flex;align-items:baseline;gap:10px;margin:14px 0 4px}
   .price b{font-family:'Fredoka',sans-serif;font-size:2.6rem;line-height:1}
   .price s{color:var(--mut)}
@@ -91,7 +93,7 @@
   .ok ol{text-align:left;margin:20px 0 0;padding-left:22px}
   .ok li{margin:8px 0}
   .fine{font-size:.82rem;color:var(--mut);margin-top:14px}
-  @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}.kitimg{max-width:230px}}
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
 </style>
 <!-- Meta Pixel Code -->
@@ -198,6 +200,8 @@ function view(){
         <p class="fine">Ao fazer o pedido, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
       </form></section>
     <aside class="card sum"><h2>Kit de boas-vindas</h2>
+      <img class="kitimg" src="img/kit.webp" width="1100" height="882" alt="O que você recebe: 2 bastões Carimbô e 1 placa NFC de avaliação do Google">
+      <p class="kitcap">2 bastões + placa NFC de avaliação do Google</p>
       <div id="prbox"></div>
       <ul class="in">
         <li><i>✓</i><span><b>2 bastões Carimbô</b> para o balcão</span></li>
