@@ -899,17 +899,18 @@ function liveBody(){
       <section><h2 class="th">Funil de hoje</h2>${funnel}</section>
       <section><h2 class="th">Cidades hoje</h2><div class="tw"><table><thead><tr><th>Cidade</th><th class="n">Visitas</th></tr></thead><tbody>${cities}</tbody></table></div></section>
     </div>
-    <p class="dl" style="margin-top:12px">Atualiza sozinho a cada 5 segundos. Considera quem teve atividade nos últimos 45 segundos (quem foi pagar no Asaas fica visível por 10 minutos). Robôs são ignorados. A cidade é estimada pelo IP e é aproximada.</p>`;
+    <p class="dl" style="margin-top:12px">Atualiza sozinho a cada 5 segundos. Considera quem teve atividade no último minuto e meio (quem foi pagar no Asaas fica visível por 10 minutos). Robôs são ignorados. A cidade é estimada pelo IP e é aproximada.</p>`;
 }
 function viewLive(){
   return {html: heroTab('Ao vivo', 'quem está no site agora') + `<div class="wrap pad"><div id="livebody">${liveBody()}</div></div>`, bind(){}};
 }
-setInterval(async () => {
-  if(!S.user || S.tab !== 'live' || S.detail || document.hidden) return;
+async function liveRefresh(){
+  if(!S.user || S.tab !== 'live' || S.detail) return;
   const r = await sb.rpc('fid_super_live'); if(r.error || !r.data || !r.data.online) return;
   S.live = r.data; const el = document.getElementById('livebody'); if(el) el.innerHTML = liveBody();
-}, 5000);
-
+}
+setInterval(() => { if(!document.hidden) liveRefresh(); }, 5000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) liveRefresh(); });
 const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro', live:'aovivo'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }

@@ -12,13 +12,13 @@
     var step = /^\/comprar/.test(p) ? 'comprar' : /^\/obrigado/.test(p) ? 'comprou' : 'visitando';
     var url = FID.SUPABASE_URL + '/functions/v1/live-ping';
     function ping(){
-      if(document.visibilityState === 'hidden') return;
       try{ fetch(url, {method:'POST', body:JSON.stringify({sid:sid, page:p, step:step, src:src}), keepalive:true, headers:{'Content-Type':'text/plain'}}).catch(function(){}); }catch(e){}
     }
     window.liveStep = function(s){ step = s; ping(); };
     ping();
     setInterval(ping, 20000);
     document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') ping(); });
+    window.addEventListener('pagehide', function(){});
     if(step === 'comprar'){
       var once = function(){ if(step === 'comprar') window.liveStep('preenchendo'); document.removeEventListener('input', once); };
       document.addEventListener('input', once);
