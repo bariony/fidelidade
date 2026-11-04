@@ -294,6 +294,10 @@
   .seg{margin-left:0}
   td.n,th.n{white-space:nowrap}
   .grid2.fin{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  /* status discretos: texto + ponto, sem fundo colorido */
+  .pill,.pill[class*="st-"]{background:transparent!important;color:var(--ink)!important;padding:0!important;border:0!important;font-weight:600;font-size:.84rem;gap:7px}
+  .pill::before{background:#9AA3B8}
+  .st-ativa::before{background:#0F8A5F}.st-trial::before{background:#3B6FD4}.st-tolerancia::before{background:#D98A12}.st-vencida::before{background:#C0392B}.st-bloqueada::before{background:#14296B}
 </style>
 </head>
 <body>
@@ -548,7 +552,7 @@ function viewDetail(){
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
 const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
-const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago' || (!o.rep_id && o.status !== 'cancelado')).length
+const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'pago').length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
 const tabsBar = () => `<div class="tabs" role="tablist">${TABS.map(([k, l]) => { const n = badge(k); return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${l}${n ? `<i>${n}</i>` : ''}</button>`; }).join('')}</div>`;
@@ -748,7 +752,7 @@ function kitBlock(o){
     + (qr ? row('QR Code · ' + (qr.label || 'QR Code'), b + 'c.html?t=' + qr.id + '&o=qr', `<a class="btn small" target="_blank" rel="noopener" href="cartaz.html?t=${esc(qr.id)}">Cartaz QR</a>`) : '');
 }
 function viewOrders(){
-  const L = S.orders, todo = L.filter(o => o.status === 'aguardando_pagamento' || o.status === 'pago').length, norep = L.filter(o => !o.rep_id && o.status !== 'cancelado').length;
+  const L = S.orders, todo = L.filter(o => o.status === 'pago').length, norep = L.filter(o => !o.rep_id && o.status !== 'cancelado').length;
   const row = o => {
     const [cls, lab0] = OST[o.status] || ['trial', o.status], w = waLink(o.whatsapp), pick = o.delivery === 'retirada', lab = pick && o.status === 'enviado' ? 'Entregue em mãos' : o.status === 'pago' && o.prep_at && !pick ? 'Preparando · enviar' : lab0, tot = Number(o.amount) + Number(o.shipping || 0);
     const main = o.status === 'aguardando_pagamento' ? `<button class="btn ${o.invoice_url ? 'line ' : ''}small" data-pay="${o.id}" data-amt="${o.amount}">Confirmar pagamento</button>`
@@ -758,9 +762,9 @@ function viewOrders(){
     const det = `<div class="kv"><div><b>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(o.whatsapp)}</a>` : '—'}</b><small>WhatsApp</small></div><div><b>${esc(o.email || '—')}</b><small>e-mail</small></div><div><b>${money(tot)}</b><small>kit ${money(o.amount)}${o.shipping > 0 ? ' + frete ' + money(o.shipping) : ' · sem frete'}</small></div></div>
       ${o.status === 'aguardando_pagamento' && o.invoice_url ? `<p class="sub"><b>Cobrança Asaas:</b> <a href="${esc(o.invoice_url)}" target="_blank" rel="noopener">abrir link de pagamento</a> · confirma sozinho quando o cliente pagar. Pagou fora do Asaas? Use <b>Confirmar pagamento</b>.</p>` : ''}${o.asaas && o.paid_at ? '<p class="sub"><span class="pill st-ativa">Pago pelo Asaas</span></p>' : ''}<p class="sub"><b>${pick ? 'Entrega:' : 'Endereço:'}</b> ${pick ? 'Retirada em mãos' : esc(o.address)}</p>${o.tracking ? `<p class="sub"><b>Rastreio:</b> ${esc(o.tracking)}</p>` : ''}${o.paid_at ? `<p class="sub">Pago em ${fmtDT(o.paid_at)}${o.prep_at ? ' · preparo iniciado em ' + fmtDT(o.prep_at) : ''}${o.shipped_at ? ' · enviado em ' + fmtDT(o.shipped_at) : ''}</p>` : ''}
       ${kitBlock(o)}${upg}${assign}<div class="acts">${o.status === 'pago' && !o.prep_at && !pick ? `<button class="btn line small" data-ship="${o.id}" data-pick="0">Já enviei (marcar enviado)</button>` : ''}${o.status === 'aguardando_pagamento' ? `<button class="btn danger small" data-cx="${o.id}">Cancelar pedido</button>` : ''}${o.upgrade && o.loaner === 'pendente' ? `<button class="btn line small" data-loaner="${o.id}">Marcar bastão como recolhido</button>` : ''}${o.store_id ? `<button class="btn line small" data-open="${o.store_id}">Abrir loja</button>` : ''}</div>`;
-    return xrow('o' + o.id, `<td>${fmtDT(o.created_at)}</td><td><b>${esc(o.store_name || '(loja removida)')}</b><br><span class="dl">${esc(o.buyer_name)}</span></td><td class="n">${money(tot)}</td><td>${pick ? 'Em mãos' : 'Correios'}</td><td><span class="pill st-${cls}">${lab}</span></td><td>${o.rep_id ? esc(o.rep_name) : '<span class="pill st-vencida">Sem rep</span>'}</td><td class="n">${main}</td>`, det, 7);
+    return xrow('o' + o.id, `<td>${fmtDT(o.created_at)}</td><td><b>${esc(o.store_name || '(loja removida)')}</b><br><span class="dl">${esc(o.buyer_name)}</span></td><td class="n">${money(tot)}</td><td>${pick ? 'Em mãos' : 'Correios'}</td><td><span class="pill st-${cls}">${lab}</span></td><td>${o.rep_id ? esc(o.rep_name) : '<span class="dl">Direto</span>'}</td><td class="n">${main}</td>`, det, 7);
   };
-  return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar${norep ? ` · ${norep} sem representante` : ''}`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th class="n">Valor</th><th>Entrega</th><th>Status</th><th>Representante</th><th class="n">Ação</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div><p class="dl" style="margin-top:8px">Clique na linha para ver contato, endereço e outras ações.</p>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
+  return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th class="n">Valor</th><th>Entrega</th><th>Status</th><th>Representante</th><th class="n">Ação</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div><p class="dl" style="margin-top:8px">Clique na linha para ver contato, endereço e outras ações.</p>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
   bind(){
     root.querySelectorAll('[data-ocopy]').forEach(b => b.onclick = () => copyTxt(b.dataset.ocopy));
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
