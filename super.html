@@ -481,7 +481,9 @@ function viewDetail(){
           <p class="sub">O 1º mês já vem no kit. Depois do vencimento, a loja tem 10 dias de carência antes de parar os carimbos e as tags.</p>
           <div class="sect"><h3>Acesso</h3>
             <div class="acts">${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger small" id="block">Bloquear acesso</button>'}</div>
-            <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p></div>
+            <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p>
+            <div class="acts" style="margin-top:14px"><button class="btn line small" id="delstore" style="color:#C0392B;border-color:#C0392B">Excluir loja (apagar de vez)</button></div>
+            <p class="sub">Para limpar lojas de teste. Apaga a loja, clientes, carimbos, tags, cobranças e pedidos dela, e o login do dono (se ele não tiver outra loja). Não dá para desfazer.</p></div>
           <div class="sect"><h3>Representante</h3>
             <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado (cliente próprio do Carimbô).'}</p>
             <div class="acts"><select id="rp"><option value="">Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${s.rep_id === r.id ? 'selected' : ''}>${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" id="setrep">Salvar vínculo</button></div></div></section>
@@ -524,6 +526,13 @@ function viewDetail(){
     $('#trial').onclick = e => run(e.target, 'fid_super_trial', {p_store:s.id, p_days:+$('#td').value}, 'Teste liberado ✓');
     const bk = $('#block'), ub = $('#unblock');
     if(bk) bk.onclick = e => { if(confirm('Bloquear o acesso de "' + s.name + '"? Os cartões dos clientes param de carimbar.')) run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:true, p_note:'Bloqueio manual'}, 'Loja bloqueada'); };
+    $('#delstore').onclick = async e => {
+      const sub = d && d.subscription ? '\n\nATENÇÃO: esta loja tem mensalidade automática no Asaas. Cancele a assinatura lá também, senão a cobrança continua.' : '';
+      const t = prompt('EXCLUIR a loja "' + s.name + '" de vez?\nIsso apaga clientes, carimbos, tags, cobranças e pedidos, e o login do dono. Não dá para desfazer.' + sub + '\n\nPara confirmar, digite o nome da loja:', ''); if(t === null) return;
+      e.target.disabled = true; const r = await rpc('fid_super_delete_store', {p_store:s.id, p_confirm:t}); e.target.disabled = false;
+      if(!r) return;
+      S.detail = null; await reload(r.user_deleted ? 'Loja e login do dono excluídos ✓' : 'Loja excluída ✓');
+    };
     if(ub) ub.onclick = e => run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:false, p_note:'Desbloqueio manual'}, 'Loja desbloqueada ✓');
     $('#sale').onclick = e => run(e.target, 'fid_super_sale', {p_store:s.id, p_acquired:$('#sd').value, p_ship:+$('#ss').value, p_plan:+$('#sp').value, p_amount:$('#sa').value === '' ? null : +$('#sa').value, p_ref:$('#sr').value}, 'Venda registrada ✓');
     $('#savenote').onclick = e => run(e.target, 'fid_super_update', {p_store:s.id, p_ref:$('#sr').value, p_note:$('#an').value}, 'Salvo ✓');

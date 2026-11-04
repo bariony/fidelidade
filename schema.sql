@@ -844,3 +844,7 @@ end $function$;
 -- v14 (04/11/2026): acompanhamento da entrega do kit. fid_orders.prep_at; fid_super_order_status aceita 'preparando';
 -- fid_super_orders devolve prep_at; fid_my_kit() (lojista) devolve paid/prep/shipped/tracking e delivered_at = 1º carimbo depois do envio.
 -- E-mails order_prep e order_shipped na Edge Function send-email (só superadmin). (aplicado via migrations kit_tracking_timeline e kit_delivered_after_shipping)
+
+-- v15 (04/11/2026): admin pode excluir loja (limpar testes). fid_super_delete_store(p_store, p_confirm): só superadmin, exige digitar o nome da loja,
+-- recusa se houver comissão já repassada; apaga comissões, pedidos e a loja (cascata: clientes, carimbos, tags, cobranças, tickets) e o login do dono
+-- se ele não tiver outra loja nem for representante/superadmin. NÃO cancela a assinatura no Asaas (o admin avisa na tela). (migration super_delete_store)
