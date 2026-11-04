@@ -126,6 +126,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
 <main><div class="wrap" id="app"></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="js/live.js" defer></script>
 <script>
 const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
 const app = document.getElementById('app');
@@ -365,7 +366,7 @@ async function submit(ev){
     btn.textContent = 'Abrindo o pagamento…';
     const r = await sb.functions.invoke('asaas-checkout', {body:{order_id:S.orderId, cpf_cnpj:v('doc')}});
     const url = r.data && r.data.url;
-    if(url){ window.location.href = url; return; }
+    if(url){ try{ window.liveStep && window.liveStep('pagamento'); }catch(_){} window.location.href = url; return; }
     let code = r.data && r.data.error;
     if(!code && r.error && r.error.context && r.error.context.json){ try { code = (await r.error.context.json()).error; } catch(_){} }
     if(code === 'cpf_cnpj_invalido'){ setErr('doc', 'CPF ou CNPJ inválido. Confira os números.'); throw new Error('Confira o CPF ou CNPJ.'); }

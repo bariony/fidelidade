@@ -551,7 +551,7 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['pedidos', 'Pedidos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
+const TABS = [['lojas', 'Lojas'], ['live', 'Ao vivo'], ['pedidos', 'Pedidos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
 const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'pago').length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
@@ -570,6 +570,7 @@ async function loadTab(all){
     jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
   }
   if(all || S.tab === 'fin') jobs.push(rpc('fid_super_finance', {p_months:S.finMonths}).then(r => { if(r && r.totals) S.fin = r; }));
+  if(S.tab === 'live') jobs.push(rpc('fid_super_live').then(r => { if(r && r.online) S.live = r; }));
   if(all || S.tab === 'tum') jobs.push(rpc('fid_super_tum_usage', {p_days:S.tumDays}).then(r => { if(r && r.totals) S.tum = r; }));
   if(S.tab === 'reps' && S.repOpen) jobs.push(rpc('fid_super_rep', {p_rep:S.repOpen.id}).then(r => { if(r && !r.error) S.repOpen.d = r; }));
   await Promise.all(jobs);
@@ -591,7 +592,7 @@ function heroTab(title, sub){
   return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : S.tab === 'live' ? viewLive() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind(); bindRows();
@@ -875,7 +876,41 @@ function viewPayouts(){
 }
 
 /* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
-const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro'};
+/* ---------- ao vivo: quem está no site agora ---------- */
+const LIVE_STEP = {visitando:'Navegando no site', comprar:'Na página de compra', preenchendo:'Preenchendo o pedido', pagamento:'No pagamento (Asaas)', comprou:'Comprou ✓'};
+const livePlace = v => [v.city, v.region && v.region !== v.city ? v.region : '', v.country && v.country !== 'Brazil' && v.country !== 'Brasil' ? v.country : ''].filter(Boolean).join(' · ') || 'Local não identificado';
+const liveAgo = iso => { const sec = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000)); return sec < 60 ? sec + ' s' : sec < 3600 ? Math.floor(sec / 60) + ' min' : Math.floor(sec / 3600) + ' h'; };
+function liveBody(){
+  const L = S.live; if(!L) return '<p class="sub">Carregando…</p>';
+  const on = L.online, t = L.today, buy = on.filter(v => v.step === 'pagamento' || v.step === 'preenchendo' || v.step === 'comprar').length;
+  const rows = on.map(v => `<tr${v.step === 'preenchendo' || v.step === 'pagamento' ? ' style="font-weight:700"' : ''}><td>${esc(livePlace(v))}</td><td>${LIVE_STEP[v.step] || v.step}</td><td>${esc(v.page || '/')}</td><td>${liveAgo(v.first_seen)}</td><td>${esc(v.source || 'direto')}</td><td>${esc(v.device || '')}</td></tr>`).join('');
+  const fun = [['Visitantes hoje', t.visitors], ['Abriram a compra', t.checkout], ['Começaram a preencher', t.filling], ['Foram pagar', t.paying], ['Compraram', t.bought]];
+  const top = Math.max(1, t.visitors);
+  const funnel = fun.map(([l, n]) => `<div style="display:flex;align-items:center;gap:10px;margin:7px 0"><span style="width:170px;flex:none;font-size:.9rem">${l}</span><div style="flex:1;background:var(--paper);border-radius:6px;height:14px"><i style="display:block;height:100%;width:${Math.max(n ? 2 : 0, n / top * 100)}%;background:var(--ink);border-radius:6px"></i></div><b style="width:36px;text-align:right">${n}</b></div>`).join('');
+  const cities = L.by_city.length ? L.by_city.map(c => `<tr><td>${esc(c.city)}${c.region && c.region !== c.city ? ' <span class="dl">· ' + esc(c.region) + '</span>' : ''}</td><td class="n">${c.n}</td></tr>`).join('') : '<tr><td class="dl" colspan="2">Sem dados ainda.</td></tr>';
+  return `<div class="tiles">
+      <div class="tile"><div class="k">Pessoas no site agora</div><b style="font-size:2.4rem">${on.length}</b></div>
+      <div class="tile"><div class="k">No fluxo de compra</div><b>${buy}</b><small>compra, preenchendo ou pagando</small></div>
+      <div class="tile"><div class="k">Vendas hoje</div><b>${t.paid_orders}</b><small>${money(t.paid_total)}</small></div>
+    </div>
+    <h2 class="th" style="margin-top:18px">Agora</h2>
+    ${rows ? `<div class="tw"><table><thead><tr><th>Local</th><th>O que está fazendo</th><th>Página</th><th>No site há</th><th>Origem</th><th>Aparelho</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="sub">Ninguém no site neste momento.</p>'}
+    <div class="grid2" style="margin-top:18px">
+      <section><h2 class="th">Funil de hoje</h2>${funnel}</section>
+      <section><h2 class="th">Cidades hoje</h2><div class="tw"><table><thead><tr><th>Cidade</th><th class="n">Visitas</th></tr></thead><tbody>${cities}</tbody></table></div></section>
+    </div>
+    <p class="dl" style="margin-top:12px">Atualiza sozinho a cada 5 segundos. Considera quem teve atividade nos últimos 45 segundos (quem foi pagar no Asaas fica visível por 10 minutos). Robôs são ignorados. A cidade é estimada pelo IP e é aproximada.</p>`;
+}
+function viewLive(){
+  return {html: heroTab('Ao vivo', 'quem está no site agora') + `<div class="wrap pad"><div id="livebody">${liveBody()}</div></div>`, bind(){}};
+}
+setInterval(async () => {
+  if(!S.user || S.tab !== 'live' || S.detail || document.hidden) return;
+  const r = await sb.rpc('fid_super_live'); if(r.error || !r.data || !r.data.online) return;
+  S.live = r.data; const el = document.getElementById('livebody'); if(el) el.innerHTML = liveBody();
+}, 5000);
+
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro', live:'aovivo'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
 function parseRoute(){

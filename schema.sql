@@ -848,3 +848,7 @@ end $function$;
 -- v15 (04/11/2026): admin pode excluir loja (limpar testes). fid_super_delete_store(p_store, p_confirm): só superadmin, exige digitar o nome da loja,
 -- recusa se houver comissão já repassada; apaga comissões, pedidos e a loja (cascata: clientes, carimbos, tags, cobranças, tickets) e o login do dono
 -- se ele não tiver outra loja nem for representante/superadmin. NÃO cancela a assinatura no Asaas (o admin avisa na tela). (migration super_delete_store)
+
+-- v16 (04/11/2026): painel "Ao vivo" do admin. fid_live (visitas em tempo real: sid aleatório, página, etapa, origem, cidade/UF/país; sem IP),
+-- fid_super_live() (só superadmin). Edge Function live-ping (verify_jwt=false) recebe o pulso de js/live.js a cada 20s e estima a cidade pelo IP (ipwho.is), sem gravar o IP.
+-- (migrations live_visitors e live_visitors_paying_window)
