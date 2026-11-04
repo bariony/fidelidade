@@ -186,9 +186,11 @@ function view(){
             <div><label class="l" for="uf">Estado</label><select id="uf" autocomplete="address-level1"><option value="">UF</option>${UFS.map(u => `<option>${u}</option>`).join('')}</select><p class="fe" id="e-uf"></p></div></div></div>
         <div class="sec"><h3><b>3</b>Acesso ao painel</h3><small>Com este e-mail e esta senha você entra no painel da sua loja.</small>
           <label class="l" for="pw">Crie uma senha (mínimo 6 caracteres)</label><div class="pw"><input id="pw" type="password" minlength="6" autocomplete="new-password" required><button type="button" id="tg" aria-label="Mostrar senha">Mostrar</button></div><p class="fe" id="e-pw"></p></div>
-        <div class="sec"><label class="l" for="cp">Cupom de desconto (opcional)</label>
-          <div style="display:flex;gap:8px"><input id="cp" type="text" autocomplete="off" autocapitalize="characters" maxlength="30" placeholder="Digite o cupom" style="flex:1"><button type="button" class="btn line" id="cpb" style="width:auto;min-width:110px">Aplicar</button></div>
-          <p class="fe" id="cpm" style="display:block;min-height:1.2em"></p></div>
+        <div style="margin-top:14px">
+          <button type="button" id="cpt" aria-expanded="false" aria-controls="cpbox" style="background:none;border:0;padding:4px 0;font:inherit;font-size:.9rem;color:#3D4C80;text-decoration:underline;cursor:pointer">Tem um cupom?</button>
+          <div id="cpbox" hidden style="margin-top:6px">
+            <div style="display:flex;gap:8px"><input id="cp" type="text" autocomplete="off" autocapitalize="characters" maxlength="30" placeholder="Digite o cupom" aria-label="Cupom de desconto" style="flex:1"><button type="button" class="btn line" id="cpb" style="width:auto;min-width:110px">Aplicar</button></div>
+            <p class="fe" id="cpm" style="display:block;min-height:1.2em"></p></div></div>
         <p class="err" id="err" role="alert"></p>
         <button class="btn" id="go"></button>
         <p class="fine">Você escolhe a forma de pagar na próxima tela: Pix, boleto ou cartão. Pagamento seguro pelo Asaas.</p>
@@ -292,9 +294,10 @@ async function applyCoupon(code, quiet){
   refresh();
 }
 function bind(){
+  $('#cpt').onclick = () => { const o = $('#cpbox').hidden; $('#cpbox').hidden = !o; $('#cpt').setAttribute('aria-expanded', String(o)); if(o) $('#cp').focus(); };
   $('#cpb').onclick = () => applyCoupon($('#cp').value);
   $('#cp').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); applyCoupon($('#cp').value); } });
-  const pre = new URLSearchParams(location.search).get('cupom'); if(pre){ $('#cp').value = pre; applyCoupon(pre, true); }
+  const pre = new URLSearchParams(location.search).get('cupom'); if(pre){ $('#cpbox').hidden = false; $('#cpt').setAttribute('aria-expanded', 'true'); $('#cp').value = pre; applyCoupon(pre, true); }
   $('#wa').oninput = e => { e.target.value = maskPhone(e.target.value); setErr('wa', ''); };
   $('#doc').oninput = e => { e.target.value = maskDoc(e.target.value); setErr('doc', ''); };
   $('#cep').oninput = e => { e.target.value = maskCep(e.target.value); onCep(); };
