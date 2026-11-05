@@ -196,6 +196,7 @@ function view(){
             <p class="fe" id="cpm" style="display:block;min-height:1.2em"></p></div></div>
         <p class="err" id="err" role="alert"></p>
         <button class="btn" id="go"></button>
+        <p class="fine" id="leadnote">Se você não concluir o pedido, podemos lembrar você por e-mail ou WhatsApp usando o contato informado.</p>
         <p class="fine">Você escolhe a forma de pagar na próxima tela: Pix, boleto ou cartão. Pagamento seguro pelo Asaas.</p>
         <p class="fine">Ao fazer o pedido, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
       </form></section>
@@ -310,6 +311,17 @@ function bind(){
   $('#tg').onclick = () => { const p = $('#pw'), show = p.type === 'password'; p.type = show ? 'text' : 'password'; $('#tg').textContent = show ? 'Ocultar' : 'Mostrar'; };
   $('#f').addEventListener('input', () => { $('#err').textContent = ''; });
   $('#f').addEventListener('change', () => { $('#err').textContent = ''; });
+  /* carrinho abandonado: salva contato (nome + WhatsApp válidos) quando a pessoa sai do campo; some do funil se ela comprar */
+  let leadSig = '';
+  const saveLead = () => {
+    if(UPG) return;
+    const n = $('#nm').value.trim(), w = $('#wa').value.replace(/\D/g, ''), e = $('#em').value.trim(), s = $('#lj').value.trim();
+    if(n.length < 2 || (w.length !== 10 && w.length !== 11)) return;
+    const em = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(e) ? e : '', sig = [n, w, em, s].join('|');
+    if(sig === leadSig) return; leadSig = sig;
+    try { Promise.resolve(sb.rpc('fid_capture_lead', {p_name:n, p_whatsapp:w, p_email:em || null, p_store:s || null})).catch(() => {}); } catch(_){}
+  };
+  ['nm', 'lj', 'wa', 'em'].forEach(id => $('#' + id).addEventListener('blur', saveLead));
   $('#f').onsubmit = submit;
 }
 

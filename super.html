@@ -327,7 +327,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, leads:[], leadsF:'pend', tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -553,8 +553,9 @@ function viewDetail(){
 }
 
 /* ---------- abas: pedidos, representantes e repasses ---------- */
-const TABS = [['lojas', 'Lojas'], ['live', 'Ao vivo'], ['pedidos', 'Pedidos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
-const badge = k => k === 'pedidos' ? S.orders.filter(o => o.status === 'pago').length
+const TABS = [['lojas', 'Lojas'], ['live', 'Ao vivo'], ['pedidos', 'Pedidos'], ['leads', 'Carrinhos'], ['fin', 'Financeiro'], ['atend', 'Atendimentos'], ['testes', 'Testes'], ['reps', 'Representantes'], ['repasses', 'Repasses'], ['tum', 'Tum']];
+const leadPend = l => !l.converted_at && !l.wa_done_at;
+const badge = k => k === 'leads' ? S.leads.filter(leadPend).length : k === 'pedidos' ? S.orders.filter(o => o.status === 'pago').length
   : k === 'atend' ? S.tickets.filter(t => t.needs_admin && t.status !== 'resolvido').length
   : k === 'repasses' ? ((S.preview && S.preview.items) || []).filter(i => i.pay).length : 0;
 const tabsBar = () => `<div class="tabs" role="tablist">${TABS.map(([k, l]) => { const n = badge(k); return `<button class="tab" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${l}${n ? `<i>${n}</i>` : ''}</button>`; }).join('')}</div>`;
@@ -572,6 +573,7 @@ async function loadTab(all){
     jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
   }
   if(all || S.tab === 'fin') jobs.push(rpc('fid_super_finance', {p_months:S.finMonths}).then(r => { if(r && r.totals) S.fin = r; }));
+  if(all || S.tab === 'leads') jobs.push(rpc('fid_super_leads').then(r => { if(r && r.leads) S.leads = r.leads; }));
   if(S.tab === 'live') jobs.push(rpc('fid_super_live').then(r => { if(r && r.online) S.live = r; }));
   if(all || S.tab === 'tum') jobs.push(rpc('fid_super_tum_usage', {p_days:S.tumDays}).then(r => { if(r && r.totals) S.tum = r; }));
   if(S.tab === 'reps' && S.repOpen) jobs.push(rpc('fid_super_rep', {p_rep:S.repOpen.id}).then(r => { if(r && !r.error) S.repOpen.d = r; }));
@@ -594,7 +596,7 @@ function heroTab(title, sub){
   return `<div class="hero slim"><div class="wrap">${navBar('<a class="btn ghost small" href="lojista">Minha loja</a><button class="btn ghost small" id="out">Sair</button>')}${tabsBar()}</div></div>${title ? `<div class="wrap"><div class="ph"><h1>${title}</h1>${sub ? `<span>${sub}</span>` : ''}</div></div>` : ''}`;
 }
 function viewTab(){
-  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : S.tab === 'live' ? viewLive() : viewPayouts();
+  const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : S.tab === 'live' ? viewLive() : S.tab === 'leads' ? viewLeads() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   bindTabs(); if(v.bind) v.bind(); bindRows();
@@ -878,6 +880,47 @@ function viewPayouts(){
 }
 
 /* endereço por tela: super.html#/lojas, #/lojas/ID, #/pedidos, #/atendimentos, #/representantes, #/representantes/ID, #/repasses */
+/* ---------- carrinhos abandonados: e-mail automático + WhatsApp manual ---------- */
+const WA_MSG = n => `Oi, ${String(n || '').split(' ')[0]}! Aqui é o Igor, do Carimbô. Vi que você começou o pedido do kit e não chegou a finalizar. Posso te ajudar com alguma dúvida?`;
+function leadEmail(l){
+  if(!l.email) return '<span class="dl">Sem e-mail</span>';
+  if(l.email_status === 'enviado') return `<span class="pill st-ativa">Enviado</span> <span class="dl">${fmtDT(l.email_sent_at)}</span>`;
+  if(l.email_status === 'erro') return '<span class="pill st-vencida">Falhou</span>';
+  const mins = (Date.now() - new Date(l.updated_at)) / 60000;
+  if(l.converted_at) return '<span class="dl">Não precisou</span>';
+  return mins >= 24 * 60 ? '<span class="dl">Expirou (+24 h)</span>' : `<span class="dl">Sai em ~${Math.max(1, Math.ceil(30 - mins))} min</span>`;
+}
+function viewLeads(){
+  const all = S.leads, pend = all.filter(leadPend), sentN = all.filter(l => l.email_status === 'enviado').length;
+  const rec = all.filter(l => l.converted_at && l.email_sent_at && new Date(l.converted_at) > new Date(l.email_sent_at)).length;
+  const list = S.leadsF === 'pend' ? pend : S.leadsF === 'wa' ? all.filter(l => l.wa_done_at && !l.converted_at) : all;
+  const rows = list.map(l => {
+    const w = waLink(l.whatsapp), sit = l.converted_at ? '<span class="pill st-ativa">Comprou</span>' : l.order_status === 'aguardando_pagamento' ? '<span class="pill st-trial">Pedido em aberto</span>' : '<span class="dl">Parou no formulário</span>';
+    const wa = l.wa_done_at ? `<span class="dl">Chamado ${fmtDT(l.wa_done_at)}</span> <button class="btn line small" data-lwa="${l.id}" data-undo="1">Desfazer</button>`
+      : l.converted_at ? '<span class="dl">—</span>' : `<button class="btn small" data-lwa="${l.id}" data-num="${esc(l.whatsapp)}" data-nm="${esc(l.name)}">Chamar no WhatsApp</button>`;
+    return `<tr><td>${fmtDT(l.updated_at)}</td><td><b>${esc(l.name)}</b>${l.store ? `<br><span class="dl">${esc(l.store)}</span>` : ''}</td><td>${w ? `<a href="${w}" target="_blank" rel="noopener">${esc(maskTel(l.whatsapp))}</a>` : '—'}</td><td>${esc(l.email || '—')}</td><td>${leadEmail(l)}</td><td>${sit}</td><td>${wa}</td></tr>`;
+  }).join('');
+  const chips = [['pend', `Falta chamar (${pend.length})`], ['wa', 'Já chamados'], ['todos', 'Todos']].map(([k, t]) => `<button class="chip" data-lf="${k}" aria-pressed="${S.leadsF === k}">${t}</button>`).join(' ');
+  const html = heroTab('Carrinhos', 'quem começou o pedido e não finalizou') + `<div class="wrap pad">
+    <div class="tiles">
+      <div class="tile"><div class="k">Falta chamar no WhatsApp</div><b>${pend.length}</b><small>não compraram e ainda sem contato seu</small></div>
+      <div class="tile"><div class="k">Lembretes por e-mail enviados</div><b>${sentN}</b><small>últimos 14 dias</small></div>
+      <div class="tile"><div class="k">Compraram depois do lembrete</div><b>${rec}</b><small>e-mail enviado antes da compra</small></div>
+    </div>
+    <div style="margin:16px 0 10px;display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
+    ${rows ? `<div class="tw"><table><thead><tr><th>Última atividade</th><th>Quem</th><th>WhatsApp</th><th>E-mail</th><th>Lembrete por e-mail</th><th>Situação</th><th>WhatsApp (manual)</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="sub">Nada por aqui.</p>'}
+    <p class="dl" style="margin-top:12px">O e-mail sai sozinho 30 minutos depois do último preenchimento (uma vez por pessoa, só para quem informou e-mail e não comprou). O WhatsApp é manual: o botão abre a conversa com uma mensagem pronta e marca como chamado. Quem comprar sai da lista de pendentes sozinho. Últimos 14 dias.</p></div>`;
+  return {html, bind(){
+    root.querySelectorAll('[data-lf]').forEach(b => b.onclick = () => { S.leadsF = b.dataset.lf; render(false); });
+    root.querySelectorAll('[data-lwa]').forEach(b => b.onclick = async () => {
+      const undo = !!b.dataset.undo;
+      if(!undo){ const w = waLink(b.dataset.num); if(w) window.open(w + '?text=' + encodeURIComponent(WA_MSG(b.dataset.nm)), '_blank', 'noopener'); }
+      await act(b, 'fid_super_lead_wa', {p_id:b.dataset.lwa, p_done:!undo}, undo ? 'Desfeito' : 'Marcado como chamado ✓');
+    });
+  }};
+}
+const maskTel = v => { const d = String(v || '').replace(/\D/g, ''); return d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d; };
+
 /* ---------- ao vivo: quem está no site agora ---------- */
 const LIVE_STEP = {visitando:'Navegando no site', comprar:'Na página de compra', preenchendo:'Preenchendo o pedido', pagamento:'No pagamento (Asaas)', comprou:'Comprou ✓'};
 const livePlace = v => [v.city, v.region && v.region !== v.city ? v.region : '', v.country && v.country !== 'Brazil' && v.country !== 'Brasil' ? v.country : ''].filter(Boolean).join(' · ') || 'Local não identificado';
@@ -913,7 +956,7 @@ async function liveRefresh(){
 }
 setInterval(() => { if(!document.hidden) liveRefresh(); }, 5000);
 document.addEventListener('visibilitychange', () => { if(!document.hidden) liveRefresh(); });
-const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro', live:'aovivo'};
+const SLUG = {lojas:'lojas', pedidos:'pedidos', atend:'atendimentos', testes:'testes', reps:'representantes', repasses:'repasses', tum:'tum', fin:'financeiro', live:'aovivo', leads:'carrinhos'};
 const hashFor = () => S.detail ? '#/lojas/' + S.detail.s.id : S.tab === 'reps' && S.repOpen ? '#/representantes/' + S.repOpen.id : '#/' + (SLUG[S.tab] || 'lojas');
 function syncHash(){ const h = hashFor(); if(location.hash === h) return; try { if(!location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch(e){} }
 function parseRoute(){

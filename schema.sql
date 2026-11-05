@@ -852,3 +852,6 @@ end $function$;
 -- v16 (04/11/2026): painel "Ao vivo" do admin. fid_live (visitas em tempo real: sid aleatório, página, etapa, origem, cidade/UF/país; sem IP),
 -- fid_super_live() (só superadmin). Edge Function live-ping (verify_jwt=false) recebe o pulso de js/live.js a cada 20s e estima a cidade pelo IP (ipwho.is), sem gravar o IP.
 -- (migrations live_visitors e live_visitors_paying_window)
+
+-- v17 (carrinho abandonado): ver /mig/leads.sql — tabela fid_leads, fid_capture_lead (anon), trigger fid_leads_from_order_t,
+-- fid_super_leads, fid_super_lead_wa, fid_leads_claim_due (service_role); edge function lead-reminders (pg_cron */5 min).

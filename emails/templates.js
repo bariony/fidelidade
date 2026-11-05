@@ -195,3 +195,18 @@ export function authEmailChange() {
     small("Se você não pediu essa troca, ignore este e-mail e troque a sua senha por segurança.");
   return { subject: "Confirme a troca de e-mail no Carimbô", html: layout({ preheader: "Confirme a troca do e-mail do seu acesso.", body }) };
 }
+
+/* ---------- Lembrete de carrinho abandonado (30 min depois) ---------- */
+export function leadReminder({ name, payUrl }) {
+  const first = esc((name || "").split(" ")[0] || "");
+  const body = h1(first ? `${first}, o seu kit ficou esperando` : "O seu kit ficou esperando") +
+    p("Você começou o pedido do <b>Kit Carimbô</b> e não chegou a finalizar. Sem problema: dá para continuar de onde parou, em menos de 2 minutos.") +
+    kraftBox([["No kit", "2 bastões + placa Google"], ["Painel", "30 dias incluídos"], ["Entrega", "Correios, até 7 dias"]]) +
+    button(esc(payUrl), "Finalizar meu pedido") +
+    small("Enviamos este lembrete uma única vez, para não incomodar.");
+  return {
+    subject: first ? `${first}, seu kit Carimbô ficou esperando` : "Seu kit Carimbô ficou esperando",
+    html: layout({ preheader: "Falta pouco para finalizar o seu pedido do Kit Carimbô.", body }),
+    text: plain(["Você começou o pedido do Kit Carimbô e não finalizou.", "Continue de onde parou:", payUrl, "", "Enviamos este lembrete uma única vez.", "Carimbô · carimbo.io"]),
+  };
+}
