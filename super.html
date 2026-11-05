@@ -803,26 +803,25 @@ function repFormHtml(r){
     <div class="acts"><button class="btn" id="rsave">Salvar</button><button class="btn line" type="button" id="rcancel">Cancelar</button></div></form>`;
 }
 function repReqBlock(){
-  const L = S.repReqs || [], pend = L.filter(x => x.status === 'pendente'), done = L.filter(x => x.status !== 'pendente');
-  if(!L.length) return '';
-  const wa = (x, msg) => { const d = String(x.whatsapp || '').replace(/\D/g, ''); return d ? `https://wa.me/55${d}?text=${encodeURIComponent(msg)}` : ''; };
-  const MSG = x => `Oi ${x.name.split(' ')[0]}! Aqui é do Carimbô. Aprovei o seu acesso de representante. Você recebeu um e-mail com o link para criar a sua senha e entrar no painel. Qualquer dúvida é só falar por aqui.`;
-  const row = x => {
-    const w = wa(x, MSG(x)), p = x.status === 'pendente';
-    const st = p ? '<span class="pill st-tolerancia">Pendente</span>' : x.status === 'aprovado' ? `<span class="pill st-trial">Aprovado</span>${x.email_sent_at ? ' <span class="dl">e-mail enviado</span>' : ' <span class="dl" style="color:#B42318">e-mail não enviado</span>'}` : '<span class="pill st-bloqueada">Recusado</span>';
-    const acts = p ? `<button class="btn small" data-rq-ok="${x.id}">Aprovar</button> <button class="btn line small" data-rq-no="${x.id}">Recusar</button>`
-      : x.status === 'aprovado' ? `${w ? `<a class="btn line small" href="${w}" target="_blank" rel="noopener" data-rq-wa="${x.id}" style="text-decoration:none">${x.wa_done_at ? 'WhatsApp ✓' : 'Avisar no WhatsApp'}</a>` : ''}${x.email_sent_at ? '' : ` <button class="btn line small" data-rq-mail="${x.id}">Reenviar e-mail</button>`}` : '';
-    return `<tr><td>${fmtDT(x.created_at)}</td><td><b>${esc(x.name)}</b><br><span class="dl">${esc(x.email)} · ${esc(maskTel(x.whatsapp))}</span></td><td>${st}</td><td class="n">${acts}</td></tr>`;
-  };
-  return `<h2 class="th" style="margin:0 0 8px">Pedidos de representante ${pend.length ? `<span class="pill st-tolerancia">${pend.length} ${pl(pend.length, 'pendente', 'pendentes')}</span>` : ''}</h2>
-    <div class="tw" style="margin-bottom:22px"><table><thead><tr><th>Pedido</th><th>Quem</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${[...pend, ...done.slice(0, 15)].map(row).join('')}</tbody></table></div>`;
+  const pend = (S.repReqs || []).filter(x => x.status === 'pendente');
+  if(!pend.length) return '';
+  const row = x => `<tr><td>${fmtDT(x.created_at)}</td><td><b>${esc(x.name)}</b><br><span class="dl">${esc(x.email)} · ${esc(maskTel(x.whatsapp))}</span></td><td><span class="pill st-tolerancia">Pendente</span></td><td class="n"><button class="btn small" data-rq-ok="${x.id}">Aprovar</button> <button class="btn line small" data-rq-no="${x.id}">Recusar</button></td></tr>`;
+  return `<h2 class="th" style="margin:0 0 8px">Pedidos de representante <span class="pill st-tolerancia">${pend.length} ${pl(pend.length, 'pendente', 'pendentes')}</span></h2>
+    <div class="tw" style="margin-bottom:22px"><table><thead><tr><th>Pedido</th><th>Quem</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${pend.map(row).join('')}</tbody></table></div>`;
+}
+const repReqOf = r => (S.repReqs || []).find(x => x.rep_id === r.id && x.status === 'aprovado');
+const repWaMsg = x => `Oi ${x.name.split(' ')[0]}! Aqui é do Carimbô. Aprovei o seu acesso de representante. Você recebeu um e-mail com o link para criar a sua senha e entrar no painel. Qualquer dúvida é só falar por aqui.`;
+function repNotify(r){
+  const x = r.claimed ? null : repReqOf(r); if(!x) return '';
+  const d = String(x.whatsapp || '').replace(/\D/g, '');
+  return `${d ? `<a class="btn line small" href="https://wa.me/55${d}?text=${encodeURIComponent(repWaMsg(x))}" target="_blank" rel="noopener" data-rq-wa="${x.id}" style="text-decoration:none">${x.wa_done_at ? 'WhatsApp ✓' : 'Avisar no WhatsApp'}</a>` : ''}${x.email_sent_at ? '' : ` <button class="btn line small" data-rq-mail="${x.id}">Reenviar e-mail</button>`}`;
 }
 function viewReps(){
   const L = S.reps;
   const row = r => {
     const det = `<p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
       ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · ele cria o acesso em <code>${esc(baseUrl())}rep</code></p>`}
-      <div class="acts"><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}<button class="btn line small" data-edit="${r.id}">Editar</button></div>`;
+      <div class="acts"><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}<button class="btn line small" data-edit="${r.id}">Editar</button> ${repNotify(r)}</div>`;
     return xrow('r' + r.id, `<td><b>${esc(r.name)}</b><br><span class="dl">${esc(r.code)} · ${esc(r.email || '')}</span></td><td><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span> <span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : '1º acesso pendente'}</span></td><td class="n">${r.stores}</td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td><td class="n"><button class="btn line small" data-view="${r.id}">Ver painel dele</button></td>`, det, 8);
   };
   const body = S.repForm !== null ? repFormHtml(S.repForm === 'new' ? null : L.find(x => x.id === S.repForm))
