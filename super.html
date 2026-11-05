@@ -439,8 +439,10 @@ function viewList(){
 async function openStore(id){
   const s = S.stores.find(x => x.id === id); if(!s) return;
   S.detail = {s, d:null}; render();
-  const d = await rpc('fid_super_store', {p_store:id}); if(!d) return;
-  S.detail.d = d; render(false);
+  // a lista pode estar velha (ex.: a loja acabou de pagar): recarrega a loja junto com o detalhe
+  const [d] = await Promise.all([rpc('fid_super_store', {p_store:id}), loadAll()]); if(!d) return;
+  const fresh = S.stores.find(x => x.id === id) || s;
+  if(S.detail && S.detail.s.id === id){ S.detail = {s:fresh, d}; render(false); }
 }
 async function refreshDetail(){
   const id = S.detail.s.id; await loadAll();
@@ -1010,7 +1012,7 @@ async function applyRoute(){
   S.tab = r.tab; S.detail = null; S.repOpen = null; S.repForm = null;
   if(r.tab === 'lojas' && r.id){
     const st = S.stores.find(x => x.id === r.id);
-    if(st){ S.detail = {s:st, d:null}; render(); const d = await rpc('fid_super_store', {p_store:r.id}); if(d && S.detail && S.detail.s.id === r.id){ S.detail.d = d; render(false); } return true; }
+    if(st){ S.detail = {s:st, d:null}; render(); const [d] = await Promise.all([rpc('fid_super_store', {p_store:r.id}), loadAll()]); if(d && S.detail && S.detail.s.id === r.id){ S.detail = {s:S.stores.find(x => x.id === r.id) || st, d}; render(false); } return true; }
   }
   if(r.tab === 'reps' && r.id){ const rp = S.reps.find(x => x.id === r.id); if(rp) S.repOpen = {id:rp.id, d:null}; }
   render(); await loadTab(); render(false); return true;
