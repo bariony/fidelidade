@@ -74,13 +74,13 @@ Deno.serve(async (req) => {
         // cria a assinatura da mensalidade (começa quando acaba o mês incluso)
         const storeId = data?.store_id;
         if (storeId) {
-          const { data: s } = await admin.from("fid_stores").select("asaas_subscription_id, renews_at").eq("id", storeId).maybeSingle();
+          const { data: s } = await admin.from("fid_stores").select("asaas_subscription_id, renews_at, monthly_price").eq("id", storeId).maybeSingle();
           const { data: o } = await admin.from("fid_orders").select("asaas_customer_id").eq("id", pay.externalReference).maybeSingle();
           if (s && !s.asaas_subscription_id && o?.asaas_customer_id) {
             const sub = await asaas("/subscriptions", {
               customer: o.asaas_customer_id,
               billingType: "UNDEFINED",
-              value: 49.97,
+              value: Number(s.monthly_price ?? 49.97),
               nextDueDate: s.renews_at,
               cycle: "MONTHLY",
               description: "Carimbô — mensalidade",

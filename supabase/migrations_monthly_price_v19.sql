@@ -1,0 +1,2 @@
+-- v19: mensalidade combinada por loja (fid_stores.monthly_price, NULL = R$ 49,97)
+-- Aplicada no Supabase como "store_monthly_price_v19": coluna, fid_my_billing (price), fid_super_store (monthly_price) e fid_super_set_price.

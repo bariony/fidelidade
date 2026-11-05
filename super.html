@@ -467,7 +467,7 @@ function viewDetail(){
   const saleB = d && d.billing.find(b => b.kind === 'sale' && !refunded(b));
   const kitLine = !d ? 'Carregando…' : saleB ? (saleB.asaas_payment_id ? `✅ <b>Kit pago pelo Asaas</b> em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}` : `✅ Kit registrado à mão em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}`)
     : d.billing.some(b => b.kind === 'sale') ? '↩️ <b>Kit reembolsado</b>' : '⏳ Kit ainda não pago';
-  const subLine = !d ? '' : d.subscription ? `🔁 <b>Mensalidade automática no Asaas</b> · R$ 49,97 · próxima cobrança em <b>${fmtDate(s.renews_at)}</b>` : saleB ? '🔁 Sem assinatura automática. Quem pagou à mão renova pelos Ajustes manuais.' : '🔁 A mensalidade é criada sozinha quando o kit for pago.';
+  const subLine = !d ? '' : d.subscription ? `🔁 <b>Mensalidade automática no Asaas</b> · ${money(d.monthly_price || 49.97)}${d.monthly_price ? ' (valor combinado)' : ''} · próxima cobrança em <b>${fmtDate(s.renews_at)}</b>` : saleB ? '🔁 Sem assinatura automática. Quem pagou à mão renova pelos Ajustes manuais.' : '🔁 A mensalidade é criada sozinha quando o kit for pago.';
   const payBox = `<div class="sect" style="margin-top:0;background:#F6F8FF;border-radius:12px;padding:14px"><p style="margin:0 0 8px">${kitLine}</p><p style="margin:0">${subLine}</p></div>`;
   const html = `<div class="hero"><div class="wrap">${navBar('<button class="btn ghost small" id="out">Sair</button>')}
       <div style="margin-top:22px"><button class="back" id="back">← Todas as lojas</button></div>
@@ -490,6 +490,9 @@ function viewDetail(){
             <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p>
             <div class="acts" style="margin-top:14px"><button class="btn line small" id="delstore" style="color:#C0392B;border-color:#C0392B">Excluir loja (apagar de vez)</button></div>
             <p class="sub">Para limpar lojas de teste. Apaga a loja, clientes, carimbos, tags, cobranças e pedidos dela, e o login do dono (se ele não tiver outra loja). Não dá para desfazer.</p></div>
+          <div class="sect"><h3>Mensalidade desta loja</h3>
+            <p class="sub">${d && d.monthly_price ? `Valor combinado: <b>${money(d.monthly_price)}</b> por mês (padrão ${money(49.97)}).` : `Valor padrão: <b>${money(49.97)}</b> por mês.`} ${d && d.subscription ? 'Ao salvar, a assinatura no Asaas e a cobrança em aberto passam para o novo valor.' : 'Vale na primeira cobrança, quando a assinatura for criada.'} A comissão do representante é calculada sobre o valor pago.</p>
+            <div class="acts"><input id="mpr" type="number" step="0.01" min="5" max="500" inputmode="decimal" style="max-width:140px" placeholder="${(d && d.monthly_price) || 49.97}" value="${(d && d.monthly_price) || ''}" aria-label="Mensalidade em reais"><button class="btn line small" id="setprice">Salvar valor</button>${d && d.monthly_price ? '<button class="btn line small" id="resetprice">Voltar ao padrão</button>' : ''}</div></div>
           <div class="sect"><h3>Representante</h3>
             <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado (cliente próprio do Carimbô).'}</p>
             <div class="acts"><select id="rp"><option value="">Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${s.rep_id === r.id ? 'selected' : ''}>${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" id="setrep">Salvar vínculo</button></div></div></section>
@@ -542,6 +545,18 @@ function viewDetail(){
     if(ub) ub.onclick = e => run(e.target, 'fid_super_block', {p_store:s.id, p_blocked:false, p_note:'Desbloqueio manual'}, 'Loja desbloqueada ✓');
     $('#sale').onclick = e => run(e.target, 'fid_super_sale', {p_store:s.id, p_acquired:$('#sd').value, p_ship:+$('#ss').value, p_plan:+$('#sp').value, p_amount:$('#sa').value === '' ? null : +$('#sa').value, p_ref:$('#sr').value}, 'Venda registrada ✓');
     $('#savenote').onclick = e => run(e.target, 'fid_super_update', {p_store:s.id, p_ref:$('#sr').value, p_note:$('#an').value}, 'Salvo ✓');
+    const callPrice = async (btn, price) => {
+      btn.disabled = true;
+      const r = await sb.functions.invoke('asaas-conta', {body:{action:'set_price', store_id:s.id, price}});
+      let e = r.data && r.data.error; if(!e && r.error && r.error.context && r.error.context.json){ try { e = (await r.error.context.json()).error; } catch(_){} }
+      btn.disabled = false;
+      if(e) return toast(e === 'valor_invalido_use_entre_5_e_500' ? 'Use um valor entre R$ 5 e R$ 500.' : 'Não foi possível salvar: ' + e, true);
+      await refreshDetail();
+      const a = r.data && r.data.asaas;
+      toast(a === 'falhou' ? 'Valor salvo, mas o Asaas não atualizou. Tente de novo.' : 'Mensalidade em ' + money(r.data.price) + (a === 'atualizado' ? ' ✓ Asaas atualizado' : ' ✓'), a === 'falhou');
+    };
+    const spb = $('#setprice'); if(spb) spb.onclick = () => { const v = $('#mpr').value.trim(); if(!v) return toast('Digite o valor da mensalidade', true); callPrice(spb, Number(v.replace(',', '.'))); };
+    const rpb = $('#resetprice'); if(rpb) rpb.onclick = () => callPrice(rpb, null);
     $('#setrep').onclick = e => run(e.target, 'fid_super_set_rep', {p_store:s.id, p_rep:$('#rp').value || null}, 'Vínculo salvo ✓');
     root.querySelectorAll('[data-refund]').forEach(b => b.onclick = async () => {
       const note = prompt('Reembolsar este pagamento? Motivo (opcional):', ''); if(note === null) return;

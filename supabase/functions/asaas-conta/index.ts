@@ -2,6 +2,7 @@
 //  pay_link  → lojista: link da cobrança em aberto da mensalidade ("Pagar agora")
 //  subscribe → lojista em teste: cria a assinatura (1ª cobrança só quando o teste acaba)
 //  cancel    → lojista: cancela a assinatura (o plano segue até o vencimento)
+//  set_price → admin: define a mensalidade combinada da loja e atualiza a assinatura
 //  refund    → admin: aprova um pedido de reembolso e manda o estorno ao Asaas
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
     const user = ud?.user;
     if (!user) return json({ error: "nao_autenticado" }, 401);
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { action, ticket, note, cpf_cnpj } = await req.json();
+    const { action, ticket, note, cpf_cnpj, store_id, price } = await req.json();
 
     if (action === "refund") {
       const { data: tgt } = await me.rpc("fid_super_refund_target", { p_ticket: ticket });
@@ -77,7 +78,19 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
-    const { data: s } = await admin.from("fid_stores").select("id, name, renews_at, is_trial, blocked, asaas_subscription_id, pending_payment").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
+    if (action === "set_price") {
+      // admin: define a mensalidade combinada da loja (null/vazio = padrão) e atualiza a assinatura no Asaas
+      const { data: r } = await me.rpc("fid_super_set_price", { p_store: store_id, p_price: price === null || price === "" || price === undefined ? null : Number(price) });
+      if (!r || r.error) return json({ error: r?.error ?? "sem_permissao" }, r?.error === "sem_permissao" ? 403 : 400);
+      let asaasOk = true;
+      if (r.subscription) {
+        try { await asaas("PUT", `/subscriptions/${r.subscription}`, { value: r.price, updatePendingPayments: true }); }
+        catch (e) { console.error("set_price asaas", String(e)); asaasOk = false; }
+      }
+      return json({ ok: true, price: r.price, custom: r.custom, asaas: r.subscription ? (asaasOk ? "atualizado" : "falhou") : "sem_assinatura" });
+    }
+
+    const { data: s } = await admin.from("fid_stores").select("id, name, renews_at, is_trial, blocked, asaas_subscription_id, pending_payment, monthly_price").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
     if (!s) return json({ error: "sem_loja" }, 404);
 
     if (action === "subscribe") {
@@ -91,7 +104,7 @@ Deno.serve(async (req) => {
       const today = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
       const first = String(s.renews_at) > today ? String(s.renews_at) : today;
       const sub = await asaas("POST", "/subscriptions", {
-        customer: customer.id, billingType: "UNDEFINED", value: 49.97, nextDueDate: first,
+        customer: customer.id, billingType: "UNDEFINED", value: Number(s.monthly_price ?? 49.97), nextDueDate: first,
         cycle: "MONTHLY", description: "Carimbô — mensalidade", externalReference: s.id,
       });
       await admin.rpc("fid_asaas_set_subscription", { p_store: s.id, p_customer: customer.id, p_subscription: sub.id });
