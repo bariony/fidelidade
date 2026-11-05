@@ -810,7 +810,7 @@ function repReqBlock(){
   const row = x => {
     const w = wa(x, MSG(x)), p = x.status === 'pendente';
     const st = p ? '<span class="pill st-tolerancia">Pendente</span>' : x.status === 'aprovado' ? `<span class="pill st-trial">Aprovado</span>${x.email_sent_at ? ' <span class="dl">e-mail enviado</span>' : ' <span class="dl" style="color:#B42318">e-mail não enviado</span>'}` : '<span class="pill st-bloqueada">Recusado</span>';
-    const acts = p ? `<button class="btn small" data-rq-ok="${x.id}">Aprovar e enviar e-mail</button> <button class="btn line small" data-rq-no="${x.id}">Recusar</button>`
+    const acts = p ? `<button class="btn small" data-rq-ok="${x.id}">Aprovar</button> <button class="btn line small" data-rq-no="${x.id}">Recusar</button>`
       : x.status === 'aprovado' ? `${w ? `<a class="btn line small" href="${w}" target="_blank" rel="noopener" data-rq-wa="${x.id}" style="text-decoration:none">${x.wa_done_at ? 'WhatsApp ✓' : 'Avisar no WhatsApp'}</a>` : ''}${x.email_sent_at ? '' : ` <button class="btn line small" data-rq-mail="${x.id}">Reenviar e-mail</button>`}` : '';
     return `<tr><td>${fmtDT(x.created_at)}</td><td><b>${esc(x.name)}</b><br><span class="dl">${esc(x.email)} · ${esc(maskTel(x.whatsapp))}</span></td><td>${st}</td><td class="n">${acts}</td></tr>`;
   };
