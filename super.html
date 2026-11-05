@@ -327,7 +327,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repForm:null, trials:{items:[], reps:[]}, leads:[], leadsF:'pend', tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repReqs:[], repForm:null, trials:{items:[], reps:[]}, leads:[], leadsF:'pend', tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -573,6 +573,7 @@ async function loadTab(all){
     jobs.push(rpc('fid_super_payouts').then(r => { if(r && r.items) S.payouts = r.items; }));
   }
   if(all || S.tab === 'fin') jobs.push(rpc('fid_super_finance', {p_months:S.finMonths}).then(r => { if(r && r.totals) S.fin = r; }));
+  if(all || S.tab === 'reps') jobs.push(rpc('fid_super_rep_requests').then(r => { if(r && r.items) S.repReqs = r.items; }));
   if(all || S.tab === 'leads') jobs.push(rpc('fid_super_leads').then(r => { if(r && r.leads) S.leads = r.leads; }));
   if(S.tab === 'live') jobs.push(rpc('fid_super_live').then(r => { if(r && r.online) S.live = r; }));
   if(all || S.tab === 'tum') jobs.push(rpc('fid_super_tum_usage', {p_days:S.tumDays}).then(r => { if(r && r.totals) S.tum = r; }));
@@ -801,6 +802,21 @@ function repFormHtml(r){
     <p class="sub">Mudanças valem só para vendas e mensalidades novas. O que já foi lançado não muda.</p>
     <div class="acts"><button class="btn" id="rsave">Salvar</button><button class="btn line" type="button" id="rcancel">Cancelar</button></div></form>`;
 }
+function repReqBlock(){
+  const L = S.repReqs || [], pend = L.filter(x => x.status === 'pendente'), done = L.filter(x => x.status !== 'pendente');
+  if(!L.length) return '';
+  const wa = (x, msg) => { const d = String(x.whatsapp || '').replace(/\D/g, ''); return d ? `https://wa.me/55${d}?text=${encodeURIComponent(msg)}` : ''; };
+  const MSG = x => `Oi ${x.name.split(' ')[0]}! Aqui é do Carimbô. Aprovei o seu acesso de representante. Você recebeu um e-mail com o link para criar a sua senha e entrar no painel. Qualquer dúvida é só falar por aqui.`;
+  const row = x => {
+    const w = wa(x, MSG(x)), p = x.status === 'pendente';
+    const st = p ? '<span class="pill st-tolerancia">Pendente</span>' : x.status === 'aprovado' ? `<span class="pill st-trial">Aprovado</span>${x.email_sent_at ? ' <span class="dl">e-mail enviado</span>' : ' <span class="dl" style="color:#B42318">e-mail não enviado</span>'}` : '<span class="pill st-bloqueada">Recusado</span>';
+    const acts = p ? `<button class="btn small" data-rq-ok="${x.id}">Aprovar e enviar e-mail</button> <button class="btn line small" data-rq-no="${x.id}">Recusar</button>`
+      : x.status === 'aprovado' ? `${w ? `<a class="btn line small" href="${w}" target="_blank" rel="noopener" data-rq-wa="${x.id}" style="text-decoration:none">${x.wa_done_at ? 'WhatsApp ✓' : 'Avisar no WhatsApp'}</a>` : ''}${x.email_sent_at ? '' : ` <button class="btn line small" data-rq-mail="${x.id}">Reenviar e-mail</button>`}` : '';
+    return `<tr><td>${fmtDT(x.created_at)}</td><td><b>${esc(x.name)}</b><br><span class="dl">${esc(x.email)} · ${esc(maskTel(x.whatsapp))}</span></td><td>${st}</td><td class="n">${acts}</td></tr>`;
+  };
+  return `<h2 class="th" style="margin:0 0 8px">Pedidos de representante ${pend.length ? `<span class="pill st-tolerancia">${pend.length} ${pl(pend.length, 'pendente', 'pendentes')}</span>` : ''}</h2>
+    <div class="tw" style="margin-bottom:22px"><table><thead><tr><th>Pedido</th><th>Quem</th><th>Situação</th><th class="n">Ações</th></tr></thead><tbody>${[...pend, ...done.slice(0, 15)].map(row).join('')}</tbody></table></div>`;
+}
 function viewReps(){
   const L = S.reps;
   const row = r => {
@@ -812,8 +828,20 @@ function viewReps(){
   const body = S.repForm !== null ? repFormHtml(S.repForm === 'new' ? null : L.find(x => x.id === S.repForm))
     : (L.length ? `<div class="tw"><table><thead><tr><th>Representante</th><th>Situação</th><th class="n">Lojas</th><th class="n">Previstas</th><th class="n">Liberadas</th><th class="n">Em repasse</th><th class="n">Pagas</th><th></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum representante ainda.</p>');
   return {html: heroTab('Representantes', `${L.length} ${pl(L.length, 'representante', 'representantes')} · próximo repasse em ${fmtDate(S.next)}`) +
-    `<div class="wrap pad">${S.repForm === null ? '<div class="bar" style="margin-top:0"><button class="btn small" id="rnew">+ Novo representante</button></div>' : ''}${body}</div>`,
+    `<div class="wrap pad">${S.repForm === null ? repReqBlock() + '<div class="bar" style="margin-top:0"><button class="btn small" id="rnew">+ Novo representante</button></div>' : ''}${body}</div>`,
   bind(){
+    const sendRepMail = async (id) => { const r = await sb.functions.invoke('send-email', {body:{kind:'rep_approved', request_id:id}}); return !r.error && r.data && (r.data.ok === true); };
+    root.querySelectorAll('[data-rq-ok]').forEach(b => b.onclick = async () => {
+      if(!confirm('Aprovar este representante? Ele recebe o e-mail de parabéns com o link para criar o acesso.')) return;
+      b.disabled = true; const r = await rpc('fid_super_rep_request_decide', {p_id:b.dataset.rqOk, p_approve:true});
+      if(!r){ b.disabled = false; return; }
+      const sent = await sendRepMail(b.dataset.rqOk);
+      await reload(sent ? 'Aprovado ✓ E-mail enviado. Se quiser, avise também no WhatsApp.' : null);
+      if(!sent) toast('Aprovado, mas o e-mail falhou. Use "Reenviar e-mail".', true);
+    });
+    root.querySelectorAll('[data-rq-mail]').forEach(b => b.onclick = async () => { b.disabled = true; const ok = await sendRepMail(b.dataset.rqMail); await reload(ok ? 'E-mail enviado ✓' : null); if(!ok) toast('Não foi possível enviar o e-mail.', true); });
+    root.querySelectorAll('[data-rq-no]').forEach(b => b.onclick = () => { if(confirm('Recusar este pedido? Nenhum e-mail é enviado.')) act(b, 'fid_super_rep_request_decide', {p_id:b.dataset.rqNo, p_approve:false}, 'Pedido recusado'); });
+    root.querySelectorAll('[data-rq-wa]').forEach(b => b.addEventListener('click', () => { rpc('fid_super_rep_request_wa', {p_id:b.dataset.rqWa}); }));
     const nw = $('#rnew'); if(nw) nw.onclick = () => { S.repForm = 'new'; render(false); };
     root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { S.repForm = b.dataset.edit; render(false); });
     root.querySelectorAll('[data-copylink]').forEach(b => b.onclick = () => copyTxt(repLink(b.dataset.copylink)));

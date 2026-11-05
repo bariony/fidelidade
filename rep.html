@@ -142,6 +142,7 @@ function viewSignup(msg){
     <p style="margin:12px 0 0;font-size:.82rem;opacity:.75">Ao criar o acesso, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
     <p class="err" role="alert">${esc(msg || '')}</p>
     <div class="actions"><button class="btn">Criar acesso</button><button class="btn line" type="button" id="back">Voltar</button></div></form></div>`;
+  { const ci = $('#c'); if(ci && INV) ci.value = INV; }
   $('#back').onclick = () => viewLogin();
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
@@ -194,6 +195,7 @@ function viewInvite(msg){
     <form id="f"><label for="c">Código</label><input id="c" required autocomplete="off" autocapitalize="off" spellcheck="false">
     <p class="err" role="alert">${esc(msg || '')}</p>
     <div class="actions"><button class="btn">Ativar meu acesso</button><button class="btn line" type="button" id="out">Sair</button></div></form></div>`;
+  { const ci = $('#c'); if(ci && INV) ci.value = INV; }
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
   $('#f').onsubmit = async ev => {
     ev.preventDefault();
@@ -201,10 +203,11 @@ function viewInvite(msg){
     if(r && r.ok){ sb.functions.invoke('send-email', {body:{kind:'welcome_rep'}}).catch(() => {}); boot(); } else if(r) viewInvite(ERR[r.error] || r.error);
   };
 }
+const INV = (new URLSearchParams(location.search).get('c') || '').trim();
 async function boot(){
   if(RECOVERY) return viewNewPass();
   const {data:{session}} = await sb.auth.getSession();
-  if(!session) return viewLogin();
+  if(!session) return INV ? viewSignup() : viewLogin();
   const d = await rpc('fid_rep_dashboard');
   if(!d) return;
   if(d.error === 'sem_cadastro') return viewInvite();

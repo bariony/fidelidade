@@ -166,6 +166,22 @@ export function welcomeRep({ name, email, saleLink, loginUrl = SITE + "/rep" }) 
   };
 }
 
+export function repApproved({ name, email, invite, signupUrl }) {
+  const first = name ? ", " + esc(name.split(" ")[0]) : "";
+  const body = h1("Parabéns, você agora é representante Carimbô") +
+    p(`Oi${first}! Seu pedido foi <b>aprovado</b>. A partir de agora você é <b>revendedor oficial do Carimbô</b> (carimbo.io), o sistema de fidelidade por toque NFC para o comércio local.`) +
+    kraftBox([["Seu e-mail de acesso", esc(email)], ["Seu código de convite", `<b>${esc(invite)}</b>`]]) +
+    `<p style="margin:18px 0 4px;font-family:${HFONT};font-weight:700;font-size:19px;color:${C.ink}">Para começar</p>` +
+    steps(["Toque no botão abaixo. O código de convite já vem preenchido.", "Use o e-mail acima e <b>crie a sua senha</b>.", "No painel você pega o seu <b>link de venda</b>, gera <b>testes grátis</b> para os lojistas e acompanha as comissões."]) +
+    button(esc(signupUrl), "Criar meu acesso") +
+    small("O código vale uma única vez. Qualquer dúvida, é só chamar a gente no WhatsApp.");
+  return {
+    subject: "Parabéns! Você agora é representante oficial do Carimbô",
+    html: layout({ preheader: "Seu pedido foi aprovado. Crie o seu acesso e comece a vender.", body }),
+    text: plain(["Parabéns, você agora é representante oficial do Carimbô!", `Crie o seu acesso com o e-mail ${email}:`, signupUrl, `Código de convite: ${invite}`, "", "Carimbô · carimbo.io"]),
+  };
+}
+
 /* ---------- 5. E-mails do Supabase Auth (placeholders do Supabase, sem escape) ---------- */
 export const AUTH_URL = "{{ .ConfirmationURL }}";
 export function authReset() {

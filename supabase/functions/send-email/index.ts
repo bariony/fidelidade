@@ -5,7 +5,7 @@
 //  - welcome_shop / welcome_rep: usuário logado, sempre para o próprio e-mail
 // Idempotência: fid_email_log (kind, ref) único; cada e-mail sai uma vez.
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { orderPaid, orderPending, orderPrep, orderShipped, welcomeShop, welcomeRep } from "./templates.ts";
+import { orderPaid, orderPending, orderPrep, orderShipped, welcomeShop, welcomeRep, repApproved } from "./templates.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -84,6 +84,16 @@ Deno.serve(async (req) => {
         if (!r) return json({ error: "nao_e_representante" }, 403);
         mail = welcomeRep({ name: r.name, email: to, saleLink: r.code ? `${SITE}/comprar?r=${r.code}` : "" });
       }
+    } else if (kind === "rep_approved") {
+      if (!internal) { const { data } = await userClient.rpc("fid_is_super"); if (data !== true) return json({ error: "sem_permissao" }, 403); }
+      const rid = String(body?.request_id ?? "");
+      if (!/^[0-9a-f-]{36}$/i.test(rid)) return json({ error: "pedido_invalido" }, 400);
+      const { data: q } = await admin.from("fid_rep_requests").select("id, name, email, status, rep_id").eq("id", rid).maybeSingle();
+      if (!q || q.status !== "aprovado" || !q.rep_id) return json({ error: "pedido_nao_aprovado" }, 409);
+      const { data: rp } = await admin.from("fid_reps").select("invite, user_id").eq("id", q.rep_id).maybeSingle();
+      if (!rp?.invite) return json({ error: "convite_ja_usado" }, 409);
+      to = q.email; ref = q.id;
+      mail = repApproved({ name: q.name, email: q.email, invite: rp.invite, signupUrl: `${SITE}/rep?c=${encodeURIComponent(rp.invite)}` });
     } else return json({ error: "tipo_invalido" }, 400);
 
     const { error: le } = await admin.from("fid_email_log").insert({ kind, ref, to_email: to });
@@ -91,7 +101,7 @@ Deno.serve(async (req) => {
       if ((le as any).code === "23505") return json({ ok: true, skipped: "ja_enviado" });
       throw le;
     }
-    try { await resend(KEY, to, mail!); }
+    try { await resend(KEY, to, mail!); if (kind === "rep_approved") await admin.from("fid_rep_requests").update({ email_sent_at: new Date().toISOString() }).eq("id", ref); }
     catch (e) { await admin.from("fid_email_log").delete().eq("kind", kind).eq("ref", ref); throw e; }
     return json({ ok: true });
   } catch (e) {

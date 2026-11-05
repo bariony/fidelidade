@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14296B">
+<title>Seja um representante · Carimbô</title>
+<meta name="description" content="Seja um representante e revendedor oficial do Carimbô (carimbo.io): sistema de fidelidade por toque NFC para o comércio local. Peça o seu acesso.">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/svg+xml" href="icons/favicon.svg"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14296B;--night:#0E1D4E;--red:#E03A2F;--paper:#FBF7EE;--gold:#EAD9B6;--line:#E4D9C0;--mut:#3D4C80;--good:#0E7A47}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--navy);font-family:'Nunito',system-ui,sans-serif;font-size:16px;line-height:1.5}
+  h1,h2,.btn,.brand{font-family:'Fredoka',system-ui,sans-serif}
+  .hero{background:radial-gradient(800px 360px at 85% -10%,rgba(224,58,47,.35),transparent 60%),linear-gradient(135deg,var(--night),var(--navy));color:#fff;padding:18px 0 64px;border-bottom:4px solid var(--red)}
+  .wrap{max-width:720px;margin:0 auto;padding:0 clamp(16px,4vw,28px)}
+  .brand{font-weight:700;font-size:1.25rem;color:#fff;text-decoration:none}.brand i{color:var(--red);font-style:normal}
+  .tag{display:inline-block;margin:34px 0 10px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(234,217,182,.6);border-radius:99px;padding:3px 12px;font-weight:700}
+  h1{margin:0;font-size:clamp(1.9rem,6vw,2.7rem);line-height:1.1;font-weight:600}
+  .lead{margin:14px 0 0;max-width:34em;color:#DCE3F7;font-size:1.08rem}
+  .card{background:#fff;border:2.5px solid var(--navy);border-radius:18px;box-shadow:5px 5px 0 var(--navy);padding:clamp(18px,4vw,28px);margin:-36px 0 28px}
+  label{display:block;font-weight:800;font-size:.92rem;margin:14px 0 5px}
+  input{width:100%;min-height:48px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--paper);font:inherit;color:var(--navy)}
+  input:focus{outline:3px solid rgba(20,41,107,.25);border-color:var(--navy)}
+  .btn{margin-top:20px;width:100%;min-height:50px;border:2.5px solid var(--navy);border-radius:12px;background:var(--red);color:#fff;font-size:1.05rem;font-weight:600;cursor:pointer;box-shadow:3px 3px 0 var(--navy)}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .err{color:#B42318;font-weight:700;min-height:1.3em;margin:10px 0 0;font-size:.92rem}
+  .ok{text-align:center;padding:10px 0}.ok h2{font-size:1.5rem;margin:6px 0}
+  ul.ben{list-style:none;margin:0 0 30px;padding:0;display:grid;gap:12px}
+  ul.ben li{display:flex;gap:12px;align-items:flex-start;font-weight:700}
+  ul.ben i{flex:none;width:26px;height:26px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-style:normal;font-size:.85rem;margin-top:1px}
+  .sm{font-size:.82rem;color:var(--mut);margin:12px 0 0}
+  footer{padding:10px 0 40px;text-align:center;font-size:.88rem;color:var(--mut)}footer a{color:var(--navy)}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <a class="brand" href="./">carimb<i>ô</i></a><br>
+  <span class="tag">Revendedor oficial</span>
+  <h1>Seja um representante do Carimbô</h1>
+  <p class="lead">Leve o cartão de fidelidade por toque NFC para os comércios da sua região e ganhe comissão por cada loja que você trouxer.</p>
+</div></header>
+<main class="wrap">
+  <section class="card" id="box">
+    <form id="f" novalidate>
+      <label for="n">Nome completo</label><input id="n" autocomplete="name" required>
+      <label for="w">WhatsApp</label><input id="w" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" required>
+      <label for="e">E-mail</label><input id="e" type="email" autocomplete="email" required>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" id="go">Quero ser representante</button>
+      <p class="sm">Cada pedido é analisado pela nossa equipe. Se for aprovado, você recebe o acesso por e-mail.</p>
+    </form>
+  </section>
+  <h2 style="font-size:1.3rem;margin:0 0 14px">Como funciona</h2>
+  <ul class="ben">
+    <li><i>1</i><span>Você envia o pedido e a gente aprova.</span></li>
+    <li><i>2</i><span>Você recebe por e-mail o acesso ao seu painel de representante.</span></li>
+    <li><i>3</i><span>Divulga o seu link de venda e gera testes grátis para os lojistas.</span></li>
+    <li><i>4</i><span>Acompanha as lojas, comissões e repasses direto no painel.</span></li>
+  </ul>
+</main>
+<footer><div class="wrap"><a href="./">carimbo.io</a> · <a href="privacidade">Privacidade e termos</a></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY);
+const ERR = {nome_completo:'Digite o nome completo (nome e sobrenome).', email_invalido:'Confira o e-mail.', whatsapp_invalido:'Confira o WhatsApp com DDD.', muitas_tentativas:'Muitas tentativas agora. Tente de novo em alguns minutos.'};
+$('#w').addEventListener('input', e => { const d = e.target.value.replace(/\D/g,'').slice(0,11); e.target.value = d.length > 6 ? '(' + d.slice(0,2) + ') ' + d.slice(2, d.length > 10 ? 7 : 6) + '-' + d.slice(d.length > 10 ? 7 : 6) : d.length > 2 ? '(' + d.slice(0,2) + ') ' + d.slice(2) : d; });
+$('#f').addEventListener('submit', async ev => {
+  ev.preventDefault(); const b = $('#go'), er = $('#err'); er.textContent = ''; b.disabled = true;
+  let r; try { r = await sb.rpc('fid_rep_request', {p_name:$('#n').value, p_email:$('#e').value, p_whatsapp:$('#w').value}); } catch(_){ r = {error:{message:'x'}}; }
+  b.disabled = false;
+  if(r.error || !r.data) { er.textContent = 'Não foi possível enviar agora. Tente de novo.'; return; }
+  if(r.data.error) { er.textContent = ERR[r.data.error] || 'Confira os dados.'; return; }
+  try { if(window.fbq) fbq('trackCustom', 'RepRequest'); } catch(_){}
+  $('#box').innerHTML = '<div class="ok"><div style="font-size:2.4rem">🎉</div><h2>Pedido recebido!</h2><p>Vamos analisar e, se for aprovado, você recebe o acesso no e-mail informado. Fique de olho na caixa de entrada e no spam.</p></div>';
+});
+</script>
+</body>
+</html>
