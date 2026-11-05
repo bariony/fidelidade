@@ -293,7 +293,7 @@ function render(){
         <p class="sub">Mande este link para o dono da loja. Quando ele fizer o pedido por aqui, a venda fica registrada no seu nome, automaticamente.</p>
         <div class="linkbox"><code id="lk">${esc(link)}</code><button class="btn" id="cp">Copiar link</button><a class="btn line" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Dá uma olhada no Carimbô, o cartão fidelidade por toque: ' + link)}">Enviar por WhatsApp</a></div></section>
       <section class="panel"><h2>Como você ganha</h2>
-        <div class="rules"><div class="rule"><b>Venda do kit: ${pct(r.kit_share_pct)} do lucro</b>Lucro = valor pago − custo de ${money(r.kit_cost)}. No kit de R$ 149,00 são ${money(net)} para você. Liberada ${r.release_kit_days} dias depois da venda.</div>
+        <div class="rules"><div class="rule"><b>Venda do kit: ${money(net)} por kit vendido</b>Em cada kit de R$ 149,00 vendido por você, ${money(net)} é seu. Liberada ${r.release_kit_days} dias depois da venda.</div>
           <div class="rule"><b>Mensalidades: ${pct(r.recur_pct)}</b>De cada mensalidade paga a partir do 2º mês (R$ 49,97 = ${money(49.97 * r.recur_pct / 100)}). Liberada ${r.release_recur_days} dias depois do pagamento.</div>
           <div class="rule"><b>Repasse todo dia 15</b>Pagamos por Pix tudo que já estiver liberado até o dia 15. O que ainda estiver no prazo vai para o repasse seguinte.</div>
           <div class="rule"><b>Reembolsos</b>Se o cliente pedir reembolso antes do repasse, a comissão é cancelada e aparece aqui. Depois do repasse, vira um estorno descontado do seu próximo repasse.</div></div></section>
