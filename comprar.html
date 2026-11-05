@@ -86,6 +86,7 @@
   .tot div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
   .tot .t{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.35rem;margin-top:6px}
   .tot .g{color:var(--good);font-weight:800}
+  .eta{margin-top:14px;display:flex;gap:10px;align-items:flex-start;background:#EAF6EE;border:2px solid #BFE3CC;border-radius:14px;padding:11px 14px;font-size:.93rem;color:var(--ink)}.eta small{display:block;color:var(--mut);font-weight:600;margin-top:2px}
   .after{margin-top:16px;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:12px 14px;font-size:.93rem;color:var(--mut)}
   .after b{color:var(--navy)}
   .ok{max-width:560px;margin:0 auto;text-align:center}
@@ -210,6 +211,7 @@ function view(){
         <li><i>✓</i><span><b>30 dias de painel</b> já incluídos</span></li>
         <li><i>✓</i><span><b>Configuração</b> da sua loja</span></li></ul>
       <div class="tot" id="tot"></div>
+      <div class="eta"><span aria-hidden="true">📦</span><div><b>Prazo estimado de entrega: 7 dias</b><small id="etan">Pelos Correios, em média. Pode variar um pouco conforme a sua região.</small></div></div>
       <div class="after"><b>Depois do 1º mês:</b> R$ 49,97 por mês para manter o painel.</div></aside></div>`;
   bind(); refresh(); loadPromo();
   if(UPG) setupUpgrade();
@@ -282,6 +284,7 @@ async function onCep(){
   const r = await lookupCep(raw); if(my !== cepSeq) return;
   if(r){
     S.cepOk = true; st.className = 'cepst ok'; st.textContent = '✓ Endereço encontrado. Confira e informe o número.';
+    { const en = $('#etan'); if(en && r.city) en.textContent = 'Para ' + r.city + (r.uf ? '/' + r.uf : '') + ': média de 7 dias pelos Correios, podendo variar um pouco.'; }
     for(const [id, v] of [['rua', r.street], ['bai', r.district], ['cid', r.city], ['uf', r.uf]]){ if(v){ $('#' + id).value = v; setErr(id, ''); } }
     ($('#rua').value ? $('#num') : $('#rua')).focus();
   } else if(r === null){
