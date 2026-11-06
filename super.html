@@ -711,7 +711,7 @@ function viewTickets(){
     const last = t.msgs[t.msgs.length - 1], st = done ? ['ativa', 'Resolvido'] : t.needs_admin ? ['tolerancia', 'Aguardando você'] : ['trial', 'Respondido'];
     return xrow('t' + t.id, `<td>${fmtDT(t.updated_at || t.created_at)}</td><td><b>${esc(t.store_name)}</b><br><span class="dl">${esc(t.buyer_name || '')}</span></td><td><span class="pill st-${t.kind === 'cancelamento' || t.kind === 'reembolso' ? 'vencida' : 'trial'}">${TKL[t.kind]}</span></td><td><span class="pill st-${st[0]}">${st[1]}</span></td><td class="clip">${last ? esc(last.body) : ''}</td><td class="n"><button class="btn ${done ? 'line ' : ''}small" data-toggle="t${t.id}">${S.open['t' + t.id] ? 'Fechar' : done ? 'Ver' : 'Responder'}</button></td>`, det, 6);
   };
-  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'aberto', 'abertos')} · ajuda, cancelamentos e reembolsos`) + `<div class="wrap pad">${L.some(ordShippable) ? `<div class="bar" style="margin-top:0"><button class="btn line small" id="xall">Baixar Excel do fornecedor (pedidos a enviar)</button><span class="hint" style="margin-left:8px">Uma linha por bastão, com nome, endereço e o link para gravar.</span></div>` : ''}${L.length ? `<div class="tw"><table><thead><tr><th>Atualizado</th><th>Loja</th><th>Tipo</th><th>Status</th><th>Última mensagem</th><th class="n"></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
+  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'aberto', 'abertos')} · ajuda, cancelamentos e reembolsos`) + `<div class="wrap pad">${L.some(ordShippable) ? `<div class="bar" style="margin-top:0"><button class="btn small" id="xwa">Enviar lista no WhatsApp (pedidos a enviar)</button> <button class="btn line small" id="xall">Baixar Excel (computador)</button><span class="hint" style="margin-left:8px">A lista leva nome, endereço e o link de cada bastão.</span></div>` : ''}${L.length ? `<div class="tw"><table><thead><tr><th>Atualizado</th><th>Loja</th><th>Tipo</th><th>Status</th><th>Última mensagem</th><th class="n"></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
   bind(){
     const txt = id => root.querySelector(`[data-txt="${id}"]`).value.trim();
     root.querySelectorAll('[data-send]').forEach(b => b.onclick = () => { const v = txt(b.dataset.send); if(!v) return toast('Escreva a resposta', true); act(b, 'fid_super_ticket_reply', {p_ticket:b.dataset.send, p_body:v, p_resolve:false}, 'Resposta enviada ✓'); });
@@ -776,6 +776,13 @@ function labelText(o){
     '*Kit:* 2 bastões Carimbô + 1 placa Google', '', '*Gravar em cada bastão (NFC Tools):*',
     ...B.map(b => `${b.n}) ${b.nome}\n${b.url}`)].join('\n');
 }
+async function shareText(text){
+  if(navigator.share){ try { await navigator.share({text}); return; } catch(e){ if(e && e.name === 'AbortError') return; } }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+}
+function listText(L){
+  return L.map(labelText).join('\n\n━━━━━━━━━━\n\n');
+}
 function printLabel(o){
   const B = ordBastoes(o), e = esc;
   const w = window.open('', '_blank', 'width=520,height=720'); if(!w) return toast('O navegador bloqueou a janela. Libere pop-ups para imprimir.', true);
@@ -808,7 +815,7 @@ function kitBlock(o){
   const row = (lab, url, extra) => `<div class="trow"><div class="l"><b>${esc(lab)}</b><br><code>${esc(url)}</code></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn line small" data-ocopy="${esc(url)}">Copiar link</button>${extra || ''}</div></div>`;
   return `<div class="sub" style="margin-top:12px"><b>Kit para preparar</b> · grave cada link num bastão (NFC Tools) e imprima o cartaz QR${o.status === 'aguardando_pagamento' ? ' <span class="pill st-tolerancia">só depois do pagamento</span>' : ''}</div>`
     + nfc.map((t, i) => row('Bastão NFC ' + (i + 1) + ' · ' + (t.label || NFC_NAMES[i]), b + 'c.html?t=' + t.id)).join('')
-    + (ordShippable(o) ? `<div class="acts" style="margin-top:8px"><button class="btn small" data-etq-copy="${o.id}">Copiar etiqueta (WhatsApp)</button><button class="btn line small" data-etq-print="${o.id}">Imprimir etiqueta</button><button class="btn line small" data-etq-csv="${o.id}">Baixar Excel</button></div>` : '')
+    + (ordShippable(o) ? `<div class="acts" style="margin-top:8px"><button class="btn small" data-etq-share="${o.id}">Enviar no WhatsApp</button><button class="btn line small" data-etq-copy="${o.id}">Copiar texto</button><button class="btn line small" data-etq-print="${o.id}">Imprimir etiqueta</button><button class="btn line small" data-etq-csv="${o.id}">Baixar Excel</button></div>` : '')
     + (qr ? row('QR Code · ' + (qr.label || 'QR Code'), b + 'c.html?t=' + qr.id + '&o=qr', `<a class="btn small" target="_blank" rel="noopener" href="cartaz.html?t=${esc(qr.id)}">Cartaz QR</a>`) : '');
 }
 function viewOrders(){
@@ -830,6 +837,9 @@ function viewOrders(){
     root.querySelectorAll('[data-etq-copy]').forEach(b => b.onclick = () => copyTxt(labelText(byId(b.dataset.etqCopy))));
     root.querySelectorAll('[data-etq-print]').forEach(b => b.onclick = () => printLabel(byId(b.dataset.etqPrint)));
     root.querySelectorAll('[data-etq-csv]').forEach(b => b.onclick = () => { const o = byId(b.dataset.etqCsv); csvDownload([o], 'etiqueta-' + ordCode(o) + '.csv'); });
+    root.querySelectorAll('[data-etq-share]').forEach(b => b.onclick = () => shareText(labelText(byId(b.dataset.etqShare))));
+    const toShip = () => S.orders.filter(o => ordShippable(o) && !o.shipped_at && o.delivery !== 'retirada');
+    const xw = $('#xwa'); if(xw) xw.onclick = () => { const L = toShip(); if(!L.length) return toast('Nenhum pedido pago a enviar', true); shareText(L.length + ' pedido(s) para enviar\n\n' + listText(L)); };
     const xa = $('#xall'); if(xa) xa.onclick = () => csvDownload(S.orders.filter(o => ordShippable(o) && !o.shipped_at && o.delivery !== 'retirada'), 'pedidos-fornecedor-' + new Date().toISOString().slice(0, 10) + '.csv');
     root.querySelectorAll('[data-ocopy]').forEach(b => b.onclick = () => copyTxt(b.dataset.ocopy));
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
