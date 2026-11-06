@@ -298,6 +298,21 @@
   .pill,.pill[class*="st-"]{background:transparent!important;color:var(--ink)!important;padding:0!important;border:0!important;font-weight:600;font-size:.84rem;gap:7px}
   .pill::before{background:#9AA3B8}
   .st-ativa::before{background:#0F8A5F}.st-trial::before{background:#3B6FD4}.st-tolerancia::before{background:#D98A12}.st-vencida::before{background:#C0392B}.st-bloqueada::before{background:#14296B}
+  /* celular: tabelas viram cartões (sem rolar para o lado) */
+  @media (max-width:720px){
+    .tw{overflow:visible;border:0;background:transparent;box-shadow:none;border-radius:0}
+    .tw table{min-width:0!important;display:block}.tw thead{display:none}.tw tbody{display:block}
+    .tw tbody tr{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 10px;padding:6px 14px}
+    .tw tbody tr.r.on{border-color:var(--primary-d)}
+    .tw td{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:7px 0;border:0;text-align:right;background:transparent!important}
+    .tw td::before{content:attr(data-label);flex:none;max-width:42%;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;font-weight:600}
+    .tw td[data-label=""]::before,.tw td:not([data-label])::before{display:none}
+    .tw td:has(br){display:block;text-align:left}.tw td:has(br)::before{display:block;margin-bottom:2px;max-width:none}
+    .tw td.n{text-align:right}
+    .tw tbody tr.x{background:transparent;border:0;padding:0;margin:-6px 0 12px}
+    .tw tbody tr.x td{display:block;text-align:left;padding:12px 4px 4px}
+    .tw td .btn{white-space:nowrap}
+  }
 </style>
 </head>
 <body>
@@ -617,7 +632,7 @@ function viewTab(){
   const v = S.tab === 'pedidos' ? viewOrders() : S.tab === 'atend' ? viewTickets() : S.tab === 'testes' ? viewTrials() : S.tab === 'reps' ? (S.repOpen ? viewRepOpen() : viewReps()) : S.tab === 'tum' ? viewTum() : S.tab === 'fin' ? viewFin() : S.tab === 'live' ? viewLive() : S.tab === 'leads' ? viewLeads() : viewPayouts();
   root.innerHTML = v.html;
   $('#out').onclick = async () => { await sb.auth.signOut(); boot(); };
-  bindTabs(); if(v.bind) v.bind(); bindRows();
+  bindTabs(); if(v.bind) v.bind(); bindRows(); labelCells();
 }
 
 
@@ -1070,7 +1085,16 @@ async function applyRoute(){
   render(); await loadTab(); render(false); return true;
 }
 window.addEventListener('popstate', () => { if(S.user) applyRoute(); });
+function labelCells(){
+  document.querySelectorAll('.tw table').forEach(t => {
+    const hs = [...t.querySelectorAll('thead th')].map(h => h.textContent.trim());
+    t.querySelectorAll('tbody tr').forEach(r => { if(r.classList.contains('x')) return; [...r.children].forEach((c, i) => { if(c.tagName === 'TD' && !c.hasAttribute('data-label')) c.setAttribute('data-label', hs[i] || ''); }); });
+  });
+}
 function render(top = true){
+  render0(top); labelCells();
+}
+function render0(top = true){
   syncHash();
   if(S.detail){ const v = viewDetail(); root.innerHTML = v.html; v.bind(); if(top) window.scrollTo(0, 0); }
   else if(S.tab !== 'lojas'){ viewTab(); if(top) window.scrollTo(0, 0); }
