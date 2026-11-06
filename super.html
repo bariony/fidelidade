@@ -711,7 +711,7 @@ function viewTickets(){
     const last = t.msgs[t.msgs.length - 1], st = done ? ['ativa', 'Resolvido'] : t.needs_admin ? ['tolerancia', 'Aguardando você'] : ['trial', 'Respondido'];
     return xrow('t' + t.id, `<td>${fmtDT(t.updated_at || t.created_at)}</td><td><b>${esc(t.store_name)}</b><br><span class="dl">${esc(t.buyer_name || '')}</span></td><td><span class="pill st-${t.kind === 'cancelamento' || t.kind === 'reembolso' ? 'vencida' : 'trial'}">${TKL[t.kind]}</span></td><td><span class="pill st-${st[0]}">${st[1]}</span></td><td class="clip">${last ? esc(last.body) : ''}</td><td class="n"><button class="btn ${done ? 'line ' : ''}small" data-toggle="t${t.id}">${S.open['t' + t.id] ? 'Fechar' : done ? 'Ver' : 'Responder'}</button></td>`, det, 6);
   };
-  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'aberto', 'abertos')} · ajuda, cancelamentos e reembolsos`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Atualizado</th><th>Loja</th><th>Tipo</th><th>Status</th><th>Última mensagem</th><th class="n"></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
+  return {html: heroTab('Atendimentos', `${open.length} ${pl(open.length, 'aberto', 'abertos')} · ajuda, cancelamentos e reembolsos`) + `<div class="wrap pad">${L.some(ordShippable) ? `<div class="bar" style="margin-top:0"><button class="btn line small" id="xall">Baixar Excel do fornecedor (pedidos a enviar)</button><span class="hint" style="margin-left:8px">Uma linha por bastão, com nome, endereço e o link para gravar.</span></div>` : ''}${L.length ? `<div class="tw"><table><thead><tr><th>Atualizado</th><th>Loja</th><th>Tipo</th><th>Status</th><th>Última mensagem</th><th class="n"></th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Os pedidos de ajuda, cancelamento e reembolso dos lojistas chegam aqui.</p>'}</div>`,
   bind(){
     const txt = id => root.querySelector(`[data-txt="${id}"]`).value.trim();
     root.querySelectorAll('[data-send]').forEach(b => b.onclick = () => { const v = txt(b.dataset.send); if(!v) return toast('Escreva a resposta', true); act(b, 'fid_super_ticket_reply', {p_ticket:b.dataset.send, p_body:v, p_resolve:false}, 'Resposta enviada ✓'); });
@@ -766,12 +766,49 @@ function viewTrials(){
 /* pedidos */
 const OST = {aguardando_pagamento:['tolerancia', 'Aguardando pagamento'], pago:['ativa', 'Pago · enviar kit'], enviado:['trial', 'Enviado'], cancelado:['bloqueada', 'Cancelado'], reembolsado:['vencida', 'Reembolsado']};
 const NFC_NAMES = ['Bastão 1', 'Bastão 2'];
+/* etiqueta e planilha para o fornecedor */
+const ordCode = o => 'CAR-' + String(o.id).replace(/-/g, '').slice(0, 8).toUpperCase();
+const ordBastoes = o => (o.tags || []).slice(0, 2).map((t, i) => ({n: i + 1, nome: t.label || NFC_NAMES[i] || 'Bastão ' + (i + 1), url: baseUrl() + 'c.html?t=' + t.id}));
+const ordShippable = o => o.store_id && o.status !== 'aguardando_pagamento' && o.status !== 'cancelado' && (o.tags || []).length;
+function labelText(o){
+  const B = ordBastoes(o);
+  return [`📦 *Pedido ${ordCode(o)}*`, '', `*Enviar para:* ${o.buyer_name}`, `*WhatsApp:* ${o.whatsapp || '—'}`, `*Endereço:* ${o.address || '—'}`, '',
+    '*Kit:* 2 bastões Carimbô + 1 placa Google', '', '*Gravar em cada bastão (NFC Tools):*',
+    ...B.map(b => `${b.n}) ${b.nome}\n${b.url}`)].join('\n');
+}
+function printLabel(o){
+  const B = ordBastoes(o), e = esc;
+  const w = window.open('', '_blank', 'width=520,height=720'); if(!w) return toast('O navegador bloqueou a janela. Libere pop-ups para imprimir.', true);
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Etiqueta ${ordCode(o)}</title><style>
+    @page{size:100mm 150mm;margin:5mm}*{box-sizing:border-box}body{margin:0;font:13px/1.35 Arial,sans-serif;color:#000}
+    .l{border:2px solid #000;border-radius:6px;padding:10px}h1{margin:0 0 6px;font-size:18px}.k{font-size:11px;text-transform:uppercase;color:#444;margin-top:8px}
+    .v{font-size:15px;font-weight:700}.a{font-size:14px;font-weight:700}code{display:block;font:11px/1.3 monospace;word-break:break-all;margin:2px 0 6px}hr{border:0;border-top:1px dashed #000;margin:10px 0}
+    .no{margin:12px;text-align:center}@media print{.no{display:none}}</style></head><body>
+    <div class="l"><h1>carimbô · ${e(ordCode(o))}</h1>
+    <div class="k">Enviar para</div><div class="v">${e(o.buyer_name)}</div><div>${e(o.whatsapp || '')}</div>
+    <div class="k">Endereço</div><div class="a">${e(o.address || '—')}</div><hr>
+    <div class="k">Kit</div><div>2 bastões Carimbô + 1 placa Google</div><hr>
+    <div class="k">Gravar em cada bastão (NFC Tools)</div>${B.map(b => `<div><b>${b.n}) ${e(b.nome)}</b></div><code>${e(b.url)}</code>`).join('')}</div>
+    <div class="no"><button onclick="print()">Imprimir</button></div><script>setTimeout(function(){print()},300)<\/script></body></html>`);
+  w.document.close();
+}
+function csvDownload(orders, name){
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
+  const head = ['Pedido', 'Cliente', 'WhatsApp', 'Endereço', 'Entrega', 'Bastão nº', 'Identificação do bastão', 'Link para gravar no NFC', 'Placa Google (qtd)'];
+  const rows = [];
+  orders.forEach(o => ordBastoes(o).forEach(b => rows.push([ordCode(o), o.buyer_name, o.whatsapp, o.address, o.delivery === 'retirada' ? 'Em mãos' : 'Correios', b.n, b.nome, b.url, b.n === 1 ? 1 : ''])));
+  if(!rows.length) return toast('Nenhum pedido com bastões para exportar', true);
+  const csv = '\uFEFF' + [head, ...rows].map(r => r.map(q).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  toast('Planilha baixada ✓ Abra no Excel e mande para o fornecedor');
+}
 function kitBlock(o){
   const T = o.tags || []; if(!o.store_id || !T.length) return '<p class="sub"><b>Kit:</b> a loja ainda não tem tags.</p>';
   const b = baseUrl(), nfc = T.slice(0, 2), qr = T[2];
   const row = (lab, url, extra) => `<div class="trow"><div class="l"><b>${esc(lab)}</b><br><code>${esc(url)}</code></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn line small" data-ocopy="${esc(url)}">Copiar link</button>${extra || ''}</div></div>`;
   return `<div class="sub" style="margin-top:12px"><b>Kit para preparar</b> · grave cada link num bastão (NFC Tools) e imprima o cartaz QR${o.status === 'aguardando_pagamento' ? ' <span class="pill st-tolerancia">só depois do pagamento</span>' : ''}</div>`
     + nfc.map((t, i) => row('Bastão NFC ' + (i + 1) + ' · ' + (t.label || NFC_NAMES[i]), b + 'c.html?t=' + t.id)).join('')
+    + (ordShippable(o) ? `<div class="acts" style="margin-top:8px"><button class="btn small" data-etq-copy="${o.id}">Copiar etiqueta (WhatsApp)</button><button class="btn line small" data-etq-print="${o.id}">Imprimir etiqueta</button><button class="btn line small" data-etq-csv="${o.id}">Baixar Excel</button></div>` : '')
     + (qr ? row('QR Code · ' + (qr.label || 'QR Code'), b + 'c.html?t=' + qr.id + '&o=qr', `<a class="btn small" target="_blank" rel="noopener" href="cartaz.html?t=${esc(qr.id)}">Cartaz QR</a>`) : '');
 }
 function viewOrders(){
@@ -789,6 +826,11 @@ function viewOrders(){
   };
   return {html: heroTab('Pedidos', `${todo} ${pl(todo, 'pedido', 'pedidos')} para tratar`) + `<div class="wrap pad">${L.length ? `<div class="tw"><table><thead><tr><th>Data</th><th>Loja</th><th class="n">Valor</th><th>Entrega</th><th>Status</th><th>Representante</th><th class="n">Ação</th></tr></thead><tbody>${L.map(row).join('')}</tbody></table></div><p class="dl" style="margin-top:8px">Clique na linha para ver contato, endereço e outras ações.</p>` : '<p class="sub" style="text-align:center;padding:40px">Nenhum pedido ainda. Eles chegam aqui quando alguém compra pelo link.</p>'}</div>`,
   bind(){
+    const byId = id => S.orders.find(x => x.id === id);
+    root.querySelectorAll('[data-etq-copy]').forEach(b => b.onclick = () => copyTxt(labelText(byId(b.dataset.etqCopy))));
+    root.querySelectorAll('[data-etq-print]').forEach(b => b.onclick = () => printLabel(byId(b.dataset.etqPrint)));
+    root.querySelectorAll('[data-etq-csv]').forEach(b => b.onclick = () => { const o = byId(b.dataset.etqCsv); csvDownload([o], 'etiqueta-' + ordCode(o) + '.csv'); });
+    const xa = $('#xall'); if(xa) xa.onclick = () => csvDownload(S.orders.filter(o => ordShippable(o) && !o.shipped_at && o.delivery !== 'retirada'), 'pedidos-fornecedor-' + new Date().toISOString().slice(0, 10) + '.csv');
     root.querySelectorAll('[data-ocopy]').forEach(b => b.onclick = () => copyTxt(b.dataset.ocopy));
     root.querySelectorAll('[data-pay]').forEach(b => b.onclick = () => {
       const v = prompt('Valor do kit, sem o frete (R$). É a base da comissão do representante:', b.dataset.amt); if(v === null) return; const n = parseFloat(String(v).replace(',', '.'));
