@@ -645,10 +645,11 @@ function viewFin(){
   const F = S.fin;
   if(!F) return {html: heroTab('Financeiro', 'Carregando…') + '<div class="wrap pad"></div>', bind(){}};
   const t = F.totals, c = F.commissions, b = F.base, gross = +t.sales + +t.renewals, net = gross + +t.refunds, res = net - +c.period;
-  const mrr = b.active_paying * SUB_PRICE, topay = +c.liberada + +c.em_repasse;
+  const mrr = +(b.mrr ?? b.active_paying * SUB_PRICE), topay = +c.liberada + +c.em_repasse;
   const months = F.by_month.map(x => { const n = +x.sales + +x.renewals + +x.refunds; return `<tr><td><b>${mLabel(x.month)}</b></td><td class="n">${money(x.sales)}</td><td class="n">${money(x.renewals)}</td><td class="n ${x.refunds < 0 ? 'neg' : ''}">${money(x.refunds)}</td><td class="n"><b>${money(n)}</b></td><td class="n">${money(x.commissions)}</td><td class="n ${n - x.commissions < 0 ? 'neg' : ''}"><b>${money(n - x.commissions)}</b></td></tr>`; }).join('');
   const repRows = S.reps.map(r => `<tr><td><b>${esc(r.name)}</b></td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td></tr>`).join('');
-  const tx = F.recent.map(x => { const k = KIND_FIN[x.kind] || ['trial', x.kind]; return `<tr><td>${fmtDT(x.at)}</td><td><b>${esc(x.store || '—')}</b></td><td><span class="pill st-${k[0]}">${k[1]}</span></td><td class="n ${x.amount < 0 ? 'neg' : ''}">${money(x.amount)}</td><td>${x.asaas ? 'Asaas' : 'Manual'}</td><td>${esc(x.rep || '—')}</td><td class="clip">${esc(x.note || '')}</td></tr>`; }).join('');
+  const up = (F.upcoming || []).map(x => `<tr><td>${fmtDate(x.due)}</td><td><b>${esc(x.store || '—')}</b></td><td><span class="pill st-tolerancia">Mensalidade prevista</span></td><td class="n">${money(x.amount)}</td><td>${x.auto ? 'Asaas (automática)' : 'Sem assinatura'}</td><td>—</td><td class="clip">${x.custom ? 'Valor combinado · ' : ''}1ª cobrança em ${fmtDate(x.due)}</td></tr>`).join('');
+  const tx = up + F.recent.map(x => { const k = KIND_FIN[x.kind] || ['trial', x.kind]; return `<tr><td>${fmtDT(x.at)}</td><td><b>${esc(x.store || '—')}</b></td><td><span class="pill st-${k[0]}">${k[1]}</span></td><td class="n ${x.amount < 0 ? 'neg' : ''}">${money(x.amount)}</td><td>${x.asaas ? 'Asaas' : 'Manual'}</td><td>${esc(x.rep || '—')}</td><td class="clip">${esc(x.note || '')}</td></tr>`; }).join('');
   return {html: heroTab('Financeiro', 'Receita, comissões dos representantes e caixa') + `<div class="wrap pad">
     <div class="bar" style="margin-top:0"><div class="seg" role="group" aria-label="Período">${[3, 6, 12].map(d => `<button data-m="${d}" aria-pressed="${S.finMonths === d}">${d} meses</button>`).join('')}</div>
       <span class="dl" style="margin-left:8px">Valores cobrados dos lojistas. Não inclui custo dos kits nem taxas do Asaas.</span></div>
@@ -660,8 +661,8 @@ function viewFin(){
       <div class="tile"><div class="k">Resultado após comissões</div><b class="${res < 0 ? 'neg' : ''}">${money(res)}</b></div>
     </div>
     <div class="tiles">
-      <div class="tile"><div class="k">Mensalidade recorrente</div><b>${money(mrr)}</b></div>
-      <div class="tile"><div class="k">Lojas pagantes</div><b>${b.active_paying}</b></div>
+      <div class="tile"><div class="k">Mensalidade prevista / mês</div><b>${money(mrr)}</b><div class="dl">só lojas que já pagaram o kit · ainda não cobrada</div></div>
+      <div class="tile"><div class="k">Lojas pagantes</div><b>${b.active_paying}</b>${+b.free_active ? `<div class="dl">+${b.free_active} ativa sem pagamento</div>` : ''}</div>
       <div class="tile"><div class="k">Em teste</div><b>${b.trial}</b></div>
       <div class="tile bad"><div class="k">Vencidas / tolerância</div><b>${b.at_risk}</b></div>
       <div class="tile"><div class="k">Renovam em 30 dias</div><b>${b.renew_30d_n}</b></div>
