@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
       const today = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
       const first = String(s.renews_at) > today ? String(s.renews_at) : today;
       const sub = await asaas("POST", "/subscriptions", {
-        customer: customer.id, billingType: "UNDEFINED", value: Number(s.monthly_price ?? 49.97), nextDueDate: first,
+        customer: customer.id, billingType: "UNDEFINED", value: Number(s.monthly_price ?? 39.9), nextDueDate: first,
         cycle: "MONTHLY", description: "Carimbô — mensalidade", externalReference: s.id,
       });
       await admin.rpc("fid_asaas_set_subscription", { p_store: s.id, p_customer: customer.id, p_subscription: sub.id });

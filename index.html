@@ -325,7 +325,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
         <button class="btn big" type="button" data-cta="hero">Quero o kit por R$ 149</button>
         <a class="btn line big" href="#como" style="text-decoration:none">Ver como funciona</a>
       </div>
-      <p class="price-note" style="margin-top:16px">Preço de lançamento. Depois, R$ 49,97 por mês. Cancele quando quiser.</p>
+      <p class="price-note" style="margin-top:16px">Preço de lançamento. Depois, R$ 39,90 por mês. Cancele quando quiser.</p>
       <div class="proof">
         <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Funciona em iPhone e Android</span>
         <span><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>Nada para instalar</span>
@@ -375,7 +375,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
       <div class="fld"><label for="c3">Quanto um cliente gasta por visita, em média?</label><div class="in"><span>R$</span><input id="c3" type="number" inputmode="decimal" min="1" value="35"></div></div>
       <div class="res" aria-live="polite">
         <div class="rbox"><small>Cada cliente novo te custa</small><b id="r1">R$ 50,00</b></div>
-        <div class="rbox good"><small>O Carimbô (R$ 49,97 por mês) se paga com</small><b id="r2">2 visitas a mais</b></div>
+        <div class="rbox good"><small>O Carimbô (R$ 39,90 por mês) se paga com</small><b id="r2">2 visitas a mais</b></div>
       </div>
     </form>
   </div>
@@ -487,7 +487,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
         <span class="was">de R$ 249</span>
         <div class="now">R$ 149</div>
         <span class="once">uma vez só</span>
-        <div class="then"><b>R$ 49,97 por mês</b> a partir do 2º mês, para manter o painel, a gestão e a manutenção do sistema. Esse valor fica garantido para quem entrar no lançamento.</div>
+        <div class="then"><b>R$ 39,90 por mês</b> a partir do 2º mês, para manter o painel, a gestão e a manutenção do sistema. Esse valor fica garantido para quem entrar no lançamento.</div>
         <button class="btn big" type="button" data-cta="preco">Quero o kit</button>
       </div>
     </div>
@@ -507,7 +507,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
       <details><summary>O cliente precisa baixar algum aplicativo?</summary><p>Não. O cartão abre no navegador do celular quando ele encosta no bastão. Se ele quiser, pode colocar um ícone na tela inicial, mas é opcional.</p></details>
       <details><summary>Funciona em qualquer celular?</summary><p>Funciona nos iPhones e nos Androids que têm NFC, que hoje são a grande maioria. Para o raro aparelho sem NFC, o link do bastão também pode ser aberto na mão.</p></details>
       <details><summary>E se o cliente trocar de celular ou apagar o histórico?</summary><p>Ele toca em "Já tenho cartão", digita o WhatsApp cadastrado e o cartão volta com todos os carimbos.</p></details>
-      <details><summary>O que acontece depois dos 30 dias?</summary><p>O painel continua por R$ 49,97 por mês, no Pix ou no cartão, para manter a gestão e a manutenção do sistema. Se você decidir parar, é só cancelar, sem multa e sem fidelidade.</p></details>
+      <details><summary>O que acontece depois dos 30 dias?</summary><p>O painel continua por R$ 39,90 por mês, no Pix ou no cartão, para manter a gestão e a manutenção do sistema. Se você decidir parar, é só cancelar, sem multa e sem fidelidade.</p></details>
       <details><summary>Dá para mudar o prêmio e a meta de carimbos?</summary><p>Dá, a qualquer momento, pelo painel, em Regras. Você também escolhe a cor da sua loja e o prazo para o cliente retirar o prêmio.</p></details>
       <details><summary>Como evito que alguém tente fraudar?</summary><p>Cada cliente tem um tempo mínimo entre carimbos e um limite por dia, e você pode exigir confirmação de presença na loja. O prêmio só sai depois que você confere a tela e confirma a entrega no painel.</p></details>
       <details><summary>Quanto tempo leva para começar?</summary><p>No mesmo dia. A gente configura a sua loja, você coloca o bastão no balcão e o primeiro cliente já pode carimbar.</p></details>
@@ -583,7 +583,7 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
   function calc(){
     var a = parseFloat($('c1').value) || 0, n = Math.max(1, parseFloat($('c2').value) || 1), t = Math.max(1, parseFloat($('c3').value) || 1);
     $('r1').textContent = brl(a / n);
-    var v = Math.max(1, Math.ceil(49.97 / t));
+    var v = Math.max(1, Math.ceil(39.9 / t));
     $('r2').textContent = v + (v === 1 ? ' visita a mais' : ' visitas a mais');
   }
   ['c1','c2','c3'].forEach(function(id){ $(id).addEventListener('input', calc); }); calc();

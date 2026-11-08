@@ -485,7 +485,7 @@ function viewDetail(){
   const saleB = d && d.billing.find(b => b.kind === 'sale' && !refunded(b));
   const kitLine = !d ? 'Carregando…' : saleB ? (saleB.asaas_payment_id ? `✅ <b>Kit pago pelo Asaas</b> em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}` : `✅ Kit registrado à mão em ${fmtDT(saleB.created_at)} · ${money(saleB.amount)}`)
     : d.billing.some(b => b.kind === 'sale') ? '↩️ <b>Kit reembolsado</b>' : '⏳ Kit ainda não pago';
-  const subLine = !d ? '' : d.subscription ? `🔁 <b>Mensalidade automática no Asaas</b> · ${money(d.monthly_price || 49.97)}${d.monthly_price ? ' (valor combinado)' : ''} · próxima cobrança em <b>${fmtDate(s.renews_at)}</b>` : saleB ? '🔁 Sem assinatura automática. Quem pagou à mão renova pelos Ajustes manuais.' : '🔁 A mensalidade é criada sozinha quando o kit for pago.';
+  const subLine = !d ? '' : d.subscription ? `🔁 <b>Mensalidade automática no Asaas</b> · ${money(d.monthly_price || 39.9)}${d.monthly_price ? ' (valor combinado)' : ''} · próxima cobrança em <b>${fmtDate(s.renews_at)}</b>` : saleB ? '🔁 Sem assinatura automática. Quem pagou à mão renova pelos Ajustes manuais.' : '🔁 A mensalidade é criada sozinha quando o kit for pago.';
   const payBox = `<div class="sect" style="margin-top:0;background:#F6F8FF;border-radius:12px;padding:14px"><p style="margin:0 0 8px">${kitLine}</p><p style="margin:0">${subLine}</p></div>`;
   const html = `<div class="hero"><div class="wrap">${navBar('<button class="btn ghost small" id="out">Sair</button>')}
       <div style="margin-top:22px"><button class="back" id="back">← Todas as lojas</button></div>
@@ -509,8 +509,8 @@ function viewDetail(){
             <div class="acts" style="margin-top:14px"><button class="btn line small" id="delstore" style="color:#C0392B;border-color:#C0392B">Excluir loja (apagar de vez)</button></div>
             <p class="sub">Para limpar lojas de teste. Apaga a loja, clientes, carimbos, tags, cobranças e pedidos dela, e o login do dono (se ele não tiver outra loja). Não dá para desfazer.</p></div>
           <div class="sect"><h3>Mensalidade desta loja</h3>
-            <p class="sub">${d && d.monthly_price ? `Valor combinado: <b>${money(d.monthly_price)}</b> por mês (padrão ${money(49.97)}).` : `Valor padrão: <b>${money(49.97)}</b> por mês.`} ${d && d.subscription ? 'Ao salvar, a assinatura no Asaas e a cobrança em aberto passam para o novo valor.' : 'Vale na primeira cobrança, quando a assinatura for criada.'} A comissão do representante é calculada sobre o valor pago.</p>
-            <div class="acts"><input id="mpr" type="number" step="0.01" min="5" max="500" inputmode="decimal" style="max-width:140px" placeholder="${(d && d.monthly_price) || 49.97}" value="${(d && d.monthly_price) || ''}" aria-label="Mensalidade em reais"><button class="btn line small" id="setprice">Salvar valor</button>${d && d.monthly_price ? '<button class="btn line small" id="resetprice">Voltar ao padrão</button>' : ''}</div></div>
+            <p class="sub">${d && d.monthly_price ? `Valor combinado: <b>${money(d.monthly_price)}</b> por mês (padrão ${money(39.9)}).` : `Valor padrão: <b>${money(39.9)}</b> por mês.`} ${d && d.subscription ? 'Ao salvar, a assinatura no Asaas e a cobrança em aberto passam para o novo valor.' : 'Vale na primeira cobrança, quando a assinatura for criada.'} A comissão do representante é calculada sobre o valor pago.</p>
+            <div class="acts"><input id="mpr" type="number" step="0.01" min="5" max="500" inputmode="decimal" style="max-width:140px" placeholder="${(d && d.monthly_price) || 39.9}" value="${(d && d.monthly_price) || ''}" aria-label="Mensalidade em reais"><button class="btn line small" id="setprice">Salvar valor</button>${d && d.monthly_price ? '<button class="btn line small" id="resetprice">Voltar ao padrão</button>' : ''}</div></div>
           <div class="sect"><h3>Representante</h3>
             <p class="sub">${s.rep_name ? 'Vinculada a <b>' + esc(s.rep_name) + '</b>. Só dá para trocar se ainda não houver comissões lançadas.' : 'Sem representante vinculado (cliente próprio do Carimbô).'}</p>
             <div class="acts"><select id="rp"><option value="">Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${s.rep_id === r.id ? 'selected' : ''}>${esc(r.name)} (${esc(r.code)})</option>`).join('')}</select><button class="btn line small" id="setrep">Salvar vínculo</button></div></div></section>
@@ -528,7 +528,7 @@ function viewDetail(){
             <div class="acts"><button class="btn line" id="sale">Registrar venda</button></div></div>
           <div><h3 style="margin:0 0 4px">Renovar mensalidade à mão</h3>
             <p class="sub">Use só se a mensalidade foi paga fora do Asaas.</p>
-            <div class="cols"><div><label for="rd">Dias a adicionar</label><input id="rd" type="number" min="1" max="400" value="30"></div><div><label for="ra">Valor recebido (R$)</label><input id="ra" type="number" step="0.01" min="0" value="49.97"></div></div>
+            <div class="cols"><div><label for="rd">Dias a adicionar</label><input id="rd" type="number" min="1" max="400" value="30"></div><div><label for="ra">Valor recebido (R$)</label><input id="ra" type="number" step="0.01" min="0" value="39.9"></div></div>
             <label for="rn">Observação (opcional)</label><input id="rn" type="text" maxlength="200" placeholder="Ex.: pagou por PIX direto">
             <div class="acts"><button class="btn line" id="renew">Renovar plano</button></div>
             <h3 style="margin:22px 0 4px">Período de teste</h3>
@@ -638,7 +638,7 @@ function viewTab(){
 
 
 /* financeiro */
-const SUB_PRICE = 49.97;
+const SUB_PRICE = 39.9;
 const KIND_FIN = {sale:['trial', 'Kit'], renewal:['ativa', 'Mensalidade'], refund:['vencida', 'Reembolso']};
 const mLabel = m => { const [y, mo] = m.split('-'); return MES[+mo - 1] + '/' + y; };
 function viewFin(){
@@ -880,7 +880,7 @@ function repFormHtml(r){
     <div><label for="re">E-mail</label><input id="re" type="email" value="${esc(v.email || '')}"></div><div><label for="rw">WhatsApp</label><input id="rw" type="text" value="${esc(v.whatsapp || '')}"></div>
     <div><label for="rk">Seu custo por kit (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"><span class="hint">O que você gasta para montar e enviar 1 kit. Hoje: 45. Não é o lucro.</span></div>
     <div><label for="rs">Representante recebe: % do lucro do kit</label><input id="rs" type="number" step="0.01" min="0" max="100" value="${v.kit_share_pct}"><span class="hint">Lucro = valor que o cliente pagou − seu custo. Ex.: 50.</span></div>
-    <div><label for="rr">Representante recebe: % de cada mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"><span class="hint">Sobre o valor da mensalidade paga (R$ 49,97). Ex.: 20.</span></div><div></div>
+    <div><label for="rr">Representante recebe: % de cada mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"><span class="hint">Sobre o valor da mensalidade paga (R$ 39,90). Ex.: 20.</span></div><div></div>
     <div><label for="rdk">Libera o kit após (dias)</label><input id="rdk" type="number" min="0" max="120" value="${v.release_kit_days}"></div><div><label for="rdr">Libera a mensalidade após (dias)</label><input id="rdr" type="number" min="0" max="120" value="${v.release_recur_days}"></div></div>
     <label style="display:flex;gap:8px;align-items:center"><input id="ra" type="checkbox" style="width:auto;min-height:0" ${v.active ? 'checked' : ''}> Ativo (o link só vale enquanto estiver ativo)</label>
     <div class="prev" id="rprev"></div>
@@ -934,8 +934,8 @@ function viewReps(){
     const f = $('#rf');
     if(f){
       const prev = () => {
-        const c = +$('#rk').value || 0, sh = +$('#rs').value || 0, rc = +$('#rr').value || 0, lucro = Math.max(0, 149 - c), rk = Math.round(lucro * sh) / 100, rm = Math.round(49.97 * rc) / 100;
-        $('#rprev').innerHTML = `<b>Exemplo com as regras acima</b><br>Kit de R$ 149,00 − seu custo ${money(c)} = lucro de ${money(lucro)}. Representante recebe ${money(rk)} e você fica com ${money(lucro - rk)}.<br>Mensalidade de R$ 49,97: representante recebe ${money(rm)} e você fica com ${money(49.97 - rm)}.`;
+        const c = +$('#rk').value || 0, sh = +$('#rs').value || 0, rc = +$('#rr').value || 0, lucro = Math.max(0, 149 - c), rk = Math.round(lucro * sh) / 100, rm = Math.round(39.9 * rc) / 100;
+        $('#rprev').innerHTML = `<b>Exemplo com as regras acima</b><br>Kit de R$ 149,00 − seu custo ${money(c)} = lucro de ${money(lucro)}. Representante recebe ${money(rk)} e você fica com ${money(lucro - rk)}.<br>Mensalidade de R$ 39,90: representante recebe ${money(rm)} e você fica com ${money(39.9 - rm)}.`;
       };
       ['rk', 'rs', 'rr'].forEach(i => $('#' + i).oninput = prev); prev();
       $('#rcancel').onclick = () => { S.repForm = null; render(false); };

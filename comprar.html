@@ -212,7 +212,7 @@ function view(){
         <li><i>✓</i><span><b>Configuração</b> da sua loja</span></li></ul>
       <div class="tot" id="tot"></div>
       <div class="eta"><span aria-hidden="true">📦</span><div><b>Prazo estimado de entrega: 7 dias</b><small id="etan">Pelos Correios, em média. Pode variar um pouco conforme a sua região.</small></div></div>
-      <div class="after"><b>Depois do 1º mês:</b> R$ 49,97 por mês para manter o painel.</div></aside></div>`;
+      <div class="after"><b>Depois do 1º mês:</b> R$ 39,90 por mês para manter o painel.</div></aside></div>`;
   bind(); refresh(); loadPromo();
   if(UPG) setupUpgrade();
 }
@@ -224,7 +224,7 @@ async function setupUpgrade(){
   hide('lj'); hide('em'); $('#pw').closest('.sec').style.display = 'none';
   document.querySelector('h1').textContent = 'Peça o kit da sua loja';
   document.querySelector('.lead').textContent = 'A sua loja continua a mesma: clientes, carimbos e regras ficam como estão. Só falta receber o kit completo.';
-  document.querySelector('.after').innerHTML = '<b>Sua mensalidade:</b> R$ 49,97 por mês, cobrada só depois do fim do seu teste. O bastão de teste que você está usando será recolhido pelo seu representante quando o kit chegar.';
+  document.querySelector('.after').innerHTML = '<b>Sua mensalidade:</b> R$ 39,90 por mês, cobrada só depois do fim do seu teste. O bastão de teste que você está usando será recolhido pelo seu representante quando o kit chegar.';
   document.querySelector('.in li:nth-child(3) span').innerHTML = '<b>Sua loja já configurada</b>, sem refazer nada';
   const w = $('#wa'); const {data:b} = await sb.rpc('fid_my_billing'); if(b && b.store && !b.store.is_trial){ location.href = 'lojista#/assinatura'; }
 }

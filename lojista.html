@@ -623,7 +623,7 @@ function helpFab(){
     <label for="mm">Quer contar o motivo? (opcional)</label><textarea id="mm" maxlength="2000"></textarea>
     <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Enviar pedido de reembolso</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;
-  if(m.type === 'subscribe') return fab + `<div class="ovl" id="ovl"><form class="modal" id="mform" role="dialog" aria-label="Assinar o plano"><h2>Assinar o plano</h2><p class="sub2">Mensalidade de R$ 49,97. A primeira cobrança é só em ${fdate(m.until)}, quando o teste termina. Você escolhe Pix, boleto ou cartão na fatura. Cancele quando quiser.</p>
+  if(m.type === 'subscribe') return fab + `<div class="ovl" id="ovl"><form class="modal" id="mform" role="dialog" aria-label="Assinar o plano"><h2>Assinar o plano</h2><p class="sub2">Mensalidade de R$ 39,90. A primeira cobrança é só em ${fdate(m.until)}, quando o teste termina. Você escolhe Pix, boleto ou cartão na fatura. Cancele quando quiser.</p>
     <label for="mdoc">CPF ou CNPJ (para a nota da cobrança)</label><input id="mdoc" inputmode="numeric" maxlength="18" autocomplete="off" required placeholder="Só números">
     <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Assinar agora</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;

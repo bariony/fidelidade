@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
             const sub = await asaas("/subscriptions", {
               customer: o.asaas_customer_id,
               billingType: "UNDEFINED",
-              value: Number(s.monthly_price ?? 49.97),
+              value: Number(s.monthly_price ?? 39.9),
               nextDueDate: s.renews_at,
               cycle: "MONTHLY",
               description: "Carimbô — mensalidade",

@@ -116,7 +116,7 @@ async function start(){
   if(!data || data.error) return box('Ops', MSG[data && data.error] || MSG.codigo_invalido, '<a class="btn line" href="./">Conhecer o Carimbô</a>');
   S.days = data.days;
   app.innerHTML = `<div class="card"><h1>Teste de ${S.days} dias</h1>
-    <p class="lead">Crie o painel da sua loja e comece a carimbar. Sem cartão agora. Só depois do teste, se você assinar, a mensalidade é R$ 49,97.</p>
+    <p class="lead">Crie o painel da sua loja e comece a carimbar. Sem cartão agora. Só depois do teste, se você assinar, a mensalidade é R$ 39,90.</p>
     <form id="f" novalidate>
       <label class="l" for="lj">Nome da loja</label><input id="lj" maxlength="80" autocomplete="organization" required>
       <label class="l" for="nm">Seu nome</label><input id="nm" maxlength="80" autocomplete="name" required>

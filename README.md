@@ -17,7 +17,7 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 
 ## Pagamento automático com Asaas (v13)
 - `comprar.html` cria o pedido (`fid_order_create`) e chama a Edge Function `asaas-checkout`, que cria cliente + cobrança (`billingType UNDEFINED`: Pix, boleto ou cartão) e devolve o `invoiceUrl`. O comprador é levado a essa página.
-- `asaas-webhook` (sem JWT; autenticada pelo header `asaas-access-token`) recebe os eventos: `PAYMENT_RECEIVED/CONFIRMED` → kit pago (`fid_asaas_pay_order`: confirma pedido, cria venda, gera comissão) e cria a assinatura mensal de R$ 49,97 (`nextDueDate` = fim do mês incluso); cobrança de assinatura paga → `fid_asaas_pay_renewal`; `PAYMENT_REFUNDED/CHARGEBACK_REQUESTED` → `fid_asaas_refund` (cancela comissão ou lança estorno). Idempotente por id do evento (`fid_asaas_events`) e por id da cobrança (`fid_billing.asaas_payment_id`).
+- `asaas-webhook` (sem JWT; autenticada pelo header `asaas-access-token`) recebe os eventos: `PAYMENT_RECEIVED/CONFIRMED` → kit pago (`fid_asaas_pay_order`: confirma pedido, cria venda, gera comissão) e cria a assinatura mensal de R$ 39,90 (`nextDueDate` = fim do mês incluso); cobrança de assinatura paga → `fid_asaas_pay_renewal`; `PAYMENT_REFUNDED/CHARGEBACK_REQUESTED` → `fid_asaas_refund` (cancela comissão ou lança estorno). Idempotente por id do evento (`fid_asaas_events`) e por id da cobrança (`fid_billing.asaas_payment_id`).
 - Segredos (Supabase → Edge Functions → Secrets): `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN`, `ASAAS_ENV` (`sandbox` ou `prod`). Webhook URL: `https://qpdcffsessmxmkedrjyc.supabase.co/functions/v1/asaas-webhook`.
 - Código em `supabase/functions/`. O admin continua com "Confirmar à mão" para pagamentos fora do Asaas.
 - Admin, detalhe da loja: topo mostra "Kit pago pelo Asaas" e a assinatura; formulários manuais (venda do kit, renovação, teste) ficam em "Ajustes manuais".
@@ -35,7 +35,7 @@ Cartão de fidelidade por toque NFC: o cliente encosta o celular no bastão, a p
 
 - Representante gera link `teste.html?c=CODIGO` na área dele: cota de **3 testes por mês** (renova todo mês, fuso de São Paulo) e até **45 dias** cada. Admin muda os dois limites por representante e gera links sem limite, na aba **Testes** do super.html.
 - O lojista abre o link, cria o painel (sem passar pela compra) e a loja nasce `is_trial` com o rep vinculado. Convite vale 14 dias, uso único; o mesmo WhatsApp não usa dois testes.
-- Em **Assinatura → Assinar agora** (CPF/CNPJ) a function `asaas-conta` (`subscribe`) cria o cliente e a assinatura de R$ 49,97 com 1ª cobrança no último dia do teste. Pagando antes, o plano estende 30 dias a partir do fim do teste.
+- Em **Assinatura → Assinar agora** (CPF/CNPJ) a function `asaas-conta` (`subscribe`) cria o cliente e a assinatura de R$ 39,90 com 1ª cobrança no último dia do teste. Pagando antes, o plano estende 30 dias a partir do fim do teste.
 - Sem assinatura, o teste pausa no vencimento (sem carência de 10 dias). Com assinatura vale a carência normal.
 - Comissão: sem kit, não há comissão de aquisição; o rep ganha só os 20% de cada mensalidade (teste conta como 1º período).
 - Tabelas/RPCs: `fid_trial_invites`, `fid_rep_trial_create`, `fid_super_trial_create`, `fid_super_trials`, `fid_super_trial_cancel`, `fid_super_rep_trial_limits`, `fid_trial_peek`, `fid_trial_redeem`.
