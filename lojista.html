@@ -273,6 +273,13 @@
     .band{grid-template-columns:1fr}
     .marks{justify-content:flex-start}
   }
+  @media (max-width:640px){
+    .band{padding:22px 20px;gap:16px}
+    .marks{gap:6px;flex-wrap:nowrap}
+    .mark{width:28px;height:28px;border-width:2px}
+    .mark svg{width:14px;height:14px}
+    .mark.more{height:28px;padding:0 10px;font-size:.8rem}
+  }
   @media (max-width:820px){
     .shell,.shell.collapsed{grid-template-columns:60px minmax(0,1fr)}
     .rail{padding:12px 6px}
@@ -960,9 +967,10 @@ function viewHoje(){
   const st = S.stats, s = S.store;
   if(!st) return {html: head(s.name, 'Como está a loja agora') + '<p class="note">Não foi possível carregar os números agora. Recarregue a página.</p>'};
   const t = st.today || {stamps:0, customers:0, redeems:0};
-  const shown = Math.min(t.stamps, 28);
+  const cap = window.matchMedia && matchMedia('(max-width:640px)').matches ? 6 : 14;
+  const shown = Math.min(t.stamps, cap);
   const marks = Array.from({length:shown}, (_, i) => `<span class="mark" style="--i:${i};--r:${(i * 47 % 15) - 7}deg">${CHECK}</span>`).join('')
-    + (t.stamps > 28 ? `<span class="mark more">+${t.stamps - 28}</span>` : '');
+    + (t.stamps > cap ? `<span class="mark more">+${t.stamps - cap}</span>` : '');
   const prev = st.stamps_prev_7d, cur = st.stamps_7d;
   const delta = prev > 0 ? Math.round((cur - prev) / prev * 100) : null;
   const deltaHtml = delta === null ? '' : `<em class="${delta >= 0 ? 'up' : 'down'}" title="comparado aos 7 dias anteriores">${delta >= 0 ? '+' : ''}${delta}%</em>`;
