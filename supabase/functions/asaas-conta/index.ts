@@ -3,6 +3,7 @@
 //  subscribe → lojista em teste: cria a assinatura (1ª cobrança só quando o teste acaba)
 //  cancel    → lojista: cancela a assinatura (o plano segue até o vencimento)
 //  set_price → admin: define a mensalidade combinada da loja e atualiza a assinatura
+//  retain    → lojista: aceita a oferta de retenção (R$ 10 a menos, 1x por loja) em vez de cancelar
 //  refund    → admin: aprova um pedido de reembolso e manda o estorno ao Asaas
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
       return json({ ok: true, price: r.price, custom: r.custom, asaas: r.subscription ? (asaasOk ? "atualizado" : "falhou") : "sem_assinatura" });
     }
 
-    const { data: s } = await admin.from("fid_stores").select("id, name, renews_at, is_trial, blocked, asaas_subscription_id, pending_payment, monthly_price").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
+    const { data: s } = await admin.from("fid_stores").select("id, name, renews_at, is_trial, blocked, asaas_subscription_id, pending_payment, monthly_price, cancelled_at").eq("owner", user.id).order("created_at").limit(1).maybeSingle();
     if (!s) return json({ error: "sem_loja" }, 404);
 
     if (action === "subscribe") {
@@ -114,6 +115,27 @@ Deno.serve(async (req) => {
         invoice = l.data?.[0]?.invoiceUrl ?? null;
       } catch { /* o link também chega por e-mail do Asaas */ }
       return json({ ok: true, first_due: first, url: invoice });
+    }
+
+    if (action === "retain") {
+      // oferta ao tentar cancelar: mensalidade R$ 10 menor (piso R$ 19,90), uma única vez por loja
+      if (!s.asaas_subscription_id) return json({ error: "sem_assinatura" }, 404);
+      if (s.cancelled_at || s.blocked || s.pending_payment) return json({ error: "loja_indisponivel" }, 409);
+      const cur = Number(s.monthly_price ?? 39.9);
+      const next = Math.round((cur - 10) * 100) / 100;
+      if (next < 19.9) return json({ error: "sem_oferta" }, 409);
+      const { data: up } = await admin.from("fid_stores")
+        .update({ monthly_price: next, retention_offer_at: new Date().toISOString(), retention_prev_price: cur })
+        .eq("id", s.id).is("retention_offer_at", null).is("cancelled_at", null).select("id").maybeSingle();
+      if (!up) return json({ error: "oferta_ja_usada" }, 409);
+      try {
+        await asaas("PUT", `/subscriptions/${s.asaas_subscription_id}`, { value: next, updatePendingPayments: true });
+      } catch (e) {
+        console.error("retain asaas", String(e));
+        await admin.from("fid_stores").update({ monthly_price: s.monthly_price, retention_offer_at: null, retention_prev_price: null }).eq("id", s.id);
+        return json({ error: "falha_no_asaas" }, 502);
+      }
+      return json({ ok: true, price: next, was: cur });
     }
 
     if (action === "pay_link") {

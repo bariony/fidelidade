@@ -627,11 +627,25 @@ function helpFab(){
     <label for="mdoc">CPF ou CNPJ (para a nota da cobrança)</label><input id="mdoc" inputmode="numeric" maxlength="18" autocomplete="off" required placeholder="Só números">
     <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn">Assinar agora</button><button class="btn line" type="button" id="mcancel">Voltar</button></div></form></div>`;
+  if(m.type === 'retain') return fab + `<div class="ovl" id="ovl"><div class="modal" id="mretain" role="dialog" aria-label="Oferta para continuar"><h2>Antes de ir…</h2>
+    <p class="sub2">Que tal continuar pagando menos? Sua mensalidade cai <b>R$ 10</b>, já a partir da próxima cobrança.</p>
+    <div class="pbanner info" style="margin:12px 0;text-align:center"><span class="sub2" style="text-decoration:line-through">${brl(m.from)}</span> <b style="font-size:1.6em">${brl(m.to)}</b> <span class="sub2">por mês</span></div>
+    <p class="sub2">Sem fidelidade. Você continua com os carimbos, as tags e o painel funcionando, e pode cancelar quando quiser.</p>
+    <p class="err" id="merr" role="alert" style="color:var(--alert);min-height:1.2em"></p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px"><button class="btn" type="button" id="retyes">Quero pagar ${brl(m.to)} por mês</button><button class="btn line" type="button" id="retno">Não, quero cancelar mesmo</button></div></div></div>`;
   return fab;
 }
 function bindFab(){
   const o = $('#fabopen'); if(o) o.onclick = () => { S.modal = {type:'help'}; render(); setTimeout(() => { const t = $('#mm'); if(t) t.focus(); }, 30); };
   const x = $('#fabx'); if(x) x.onclick = () => { S.helpHidden = true; render(); };
+  const ry = $('#retyes'); if(ry) ry.onclick = async () => {
+    ry.disabled = true; const nb = $('#retno'); if(nb) nb.disabled = true; $('#merr').textContent = '';
+    const r = await callConta({action:'retain'});
+    if(r.data && r.data.ok){ S.modal = null; toast('Combinado! Sua mensalidade agora é ' + brl(r.data.price) + '. 🎉'); await loadBill(true); go('assinatura'); render(); return; }
+    ry.disabled = false; if(nb) nb.disabled = false;
+    $('#merr').textContent = r.code === 'oferta_ja_usada' ? 'Essa oferta já foi usada nesta loja.' : 'Não foi possível aplicar agora. Tente de novo ou peça ajuda.';
+  };
+  const rn = $('#retno'); if(rn) rn.onclick = () => { S.modal = null; render(); doCancel(); };
   const c = $('#mcancel'); if(c) c.onclick = () => { S.modal = null; render(); };
   const ov = $('#ovl'); if(ov) ov.onclick = e => { if(e.target === ov){ S.modal = null; render(); } };
   const f = $('#mform'); if(f) f.onsubmit = async ev => {
@@ -703,11 +717,14 @@ function viewAssinatura(){
       toast(r.code === 'sem_cobranca_aberta' ? 'Nenhuma cobrança aberta agora. A próxima é gerada perto do vencimento.' : 'Não foi possível abrir a cobrança. Tente de novo ou peça ajuda.', true);
     };
     const sn = $('#subn'); if(sn) sn.onclick = () => { S.modal = {type:'subscribe', until:st.renews_at}; render(); setTimeout(() => { const t = $('#mdoc'); if(t) t.focus(); }, 30); };
-    const cs = $('#cancelsub'); if(cs) cs.onclick = async () => {
+    const doCancel = window.doCancel = async () => {
       if(!confirm('Cancelar a assinatura?\n\nSeu plano segue ativo até ' + fdate(st.renews_at) + ' e você não será cobrado de novo. Depois dessa data os carimbos e as tags pausam.')) return;
-      cs.disabled = true; const r = await callConta({action:'cancel'}); cs.disabled = false;
+      const cs = $('#cancelsub'); if(cs) cs.disabled = true; const r = await callConta({action:'cancel'}); if(cs) cs.disabled = false;
       if(r.data && r.data.ok){ toast('Assinatura cancelada. Seu plano segue até ' + fdate(st.renews_at) + '.'); await loadBill(true); await load(); go('assinatura'); }
       else toast('Não foi possível cancelar agora. Peça ajuda pelo botão.', true);
+    };
+    const cs = $('#cancelsub'); if(cs) cs.onclick = () => {
+      if(b.offer){ S.modal = {type:'retain', from:b.offer.from, to:b.offer.to}; render(); } else doCancel();
     };
     root.querySelectorAll('[data-refund]').forEach(x => x.onclick = () => { S.modal = {type:'refund', id:+x.dataset.refund, label:x.dataset.lbl, amount:x.dataset.amt}; render(); });
     root.querySelectorAll('[data-reply]').forEach(f => f.onsubmit = async ev => {
