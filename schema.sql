@@ -746,7 +746,7 @@ end $$;
 -- fid_order_create e fid_trial_kit_order ganham p_coupon e gravam coupon_code/discount_pct em fid_orders (amount já com desconto).
 -- (definições completas aplicadas via migrations "default_tags_per_store" e "coupons_for_kit_orders" no projeto).
 
--- v13 (04/11/2026): promoção de lançamento R$ 39,97 (kit + envio) para as 10 primeiras lojas; depois R$ 149 + R$ 15,99. Só Correios.
+-- v13 (04/11/2026): promoção de lançamento R$ 39,97 (kit + envio) para as 10 primeiras lojas; depois R$ 99,97 + R$ 15,99. Só Correios.
 -- Promoção de lançamento: as 10 primeiras lojas pagam R$ 39,97 no total (kit + frete). Depois volta a R$ 149 + R$ 15,99.
 -- Retirada em mãos deixa de existir (só Correios). Limite e preço ficam aqui (v_limit / v_price).
 alter table public.fid_orders add column if not exists promo boolean not null default false;
@@ -794,7 +794,7 @@ begin
   if oid is not null then return jsonb_build_object('ok', true, 'order', oid, 'store', sid, 'dup', true); end if;
   perform pg_advisory_xact_lock(7710);
   is_promo := pct = 0 and public.fid_promo_left(null) > 0;
-  if is_promo then amt := 39.97; ship := 0; else amt := round(149.00 * (100 - pct) / 100, 2); ship := 15.99; end if;
+  if is_promo then amt := 39.97; ship := 0; else amt := round(99.97 * (100 - pct) / 100, 2); ship := 15.99; end if;
   insert into public.fid_stores (owner, name, rep_id, is_trial, blocked, pending_payment) values (uid, p_store_name, rp.id, false, true, true) returning id into sid;
   insert into public.fid_orders (store_id, owner, rep_id, rep_code, buyer_name, buyer_whatsapp, buyer_email, ship_address, amount, delivery, shipping, ship_cep, coupon_code, discount_pct, promo)
   values (sid, uid, rp.id, nullif(v_code, ''), p_buyer_name, wa, mail, addr, amt, p_delivery, ship, cep, case when pct > 0 then lower(trim(p_coupon)) end, pct, is_promo) returning id into oid;
@@ -827,7 +827,7 @@ begin
   perform pg_advisory_xact_lock(7710);
   select * into o from public.fid_orders x where x.store_id = s.id and x.status = 'aguardando_pagamento' order by created_at desc limit 1;
   is_promo := pct = 0 and public.fid_promo_left(case when found then o.id end) > 0;
-  if is_promo then amt := 39.97; ship := 0; else amt := round(149.00 * (100 - pct) / 100, 2); ship := 15.99; end if;
+  if is_promo then amt := 39.97; ship := 0; else amt := round(99.97 * (100 - pct) / 100, 2); ship := 15.99; end if;
   if o.id is not null then
     if o.asaas_invoice_url is not null and o.delivery <> p_delivery then return jsonb_build_object('error','pedido_em_aberto'); end if;
     if o.asaas_invoice_url is not null then return jsonb_build_object('ok', true, 'order', o.id, 'store', s.id, 'dup', true); end if;

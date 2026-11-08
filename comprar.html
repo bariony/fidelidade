@@ -136,7 +136,7 @@ const app = document.getElementById('app');
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',');
-const KIT = 149, FRETE = 15.99, PROMO_PRICE = 39.97; /* promoção de lançamento: preço total (kit + envio) das primeiras lojas; limite e valor reais ficam no banco (fid_promo_state) */
+const KIT = 99.97, FRETE = 15.99, PROMO_PRICE = 39.97; /* promoção de lançamento: preço total (kit + envio) das primeiras lojas; limite e valor reais ficam no banco (fid_promo_state) */
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
 /* Representante: o código vem no link (?r=) e fica guardado no aparelho por 60 dias. Fica invisível para o cliente. */
@@ -238,7 +238,7 @@ function refresh(){
   $('#addr').style.display = '';
   $('#prbox').innerHTML = p
     ? `<div class="price"><b>${brl(PROMO_PRICE)}</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · já com o envio · condição de lançamento${S.promo.left <= 10 ? ` · restam <b>${S.promo.left}</b> de ${S.promo.limit}` : ''}</small>`
-    : `<div class="price"><b>R$ 149</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · mais o envio pelos Correios</small>`;
+    : `<div class="price"><b>R$ 99,97</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · mais o envio pelos Correios</small>`;
   $('#tot').innerHTML = p
     ? `<div><span>Kit + envio (lançamento)</span><span>${brl(PROMO_PRICE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`
     : `<div><span>Kit</span><span>${S.coupon ? `<s style="opacity:.6">${brl(KIT)}</s> ${brl(kitNet())}` : brl(KIT)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete (Correios)</span><span>${brl(FRETE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
