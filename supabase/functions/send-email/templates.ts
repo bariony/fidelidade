@@ -88,6 +88,7 @@ export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, emai
       `<b>Entre no painel</b> com o e-mail <b>${esc(email || "da compra")}</b> e a senha que você criou.`,
       "Monte o seu cartão em <b>Loja</b> (nome, símbolo, cores) e defina o prêmio em <b>Regras</b>.",
       "Em <b>Tags</b>, crie o ponto de toque (ex.: Balcão). Quando o kit chegar, é só gravar o link no bastão com o app NFC Tools.",
+      `<b>Não espere o kit para começar:</b> use o <b>QR Code</b> que já está no painel e fidelize hoje mesmo. <a href="${SITE}/comecar-hoje" style="color:${C.ink};font-weight:700">Veja o passo a passo</a>.`,
     ]) +
     button(esc(loginUrl), "Acessar minha loja") +
     small("Guarde o número do pedido. Se precisar de ajuda, ele agiliza o atendimento.");
@@ -135,18 +136,19 @@ export function orderShipped({ name, orderId, tracking, shippedAt, loginUrl = SI
 }
 
 /* ---------- 3. Acesso criado: lojista ---------- */
-export function welcomeShop({ name, email, loginUrl = SITE + "/lojista" }) {
-  const body = h1("Seu acesso está pronto") +
-    p(`Oi${name ? ", " + esc(name.split(" ")[0]) : ""}! Sua conta no <b>Carimbô</b> foi criada. Agora é só entrar no painel e montar o cartão fidelidade da sua loja.`) +
+export function welcomeShop({ name, email, loginUrl = SITE + "/lojista", guideUrl = SITE + "/comecar-hoje" }) {
+  const body = h1("Seja bem-vindo! Comece por aqui") +
+    p(`Oi${name ? ", " + esc(name.split(" ")[0]) : ""}! Sua conta no <b>Carimbô</b> está pronta. E você <b>não precisa esperar o bastão chegar</b> para começar a fidelizar seus clientes: o QR Code da sua loja já está no painel.`) +
     kraftBox([["Seu acesso", esc(email)]]) +
-    `<p style="margin:18px 0 4px;font-family:${HFONT};font-weight:700;font-size:19px;color:${C.ink}">Comece em 3 passos</p>` +
-    steps(["Em <b>Loja</b>, coloque o nome, o símbolo e as cores do seu cartão.", "Em <b>Regras</b>, escolha o prêmio e quantos carimbos o cliente precisa.", "Em <b>Tags</b>, crie o ponto de toque e grave o link no bastão com o NFC Tools."]) +
-    button(esc(loginUrl), "Entrar no painel") +
+    `<p style="margin:18px 0 4px;font-family:${HFONT};font-weight:700;font-size:19px;color:${C.ink}">Comece hoje mesmo, em 5 minutos</p>` +
+    steps(["No painel, abra <b>Tags</b> e toque em <b>Cartaz QR</b>.", "<b>Imprima</b> o cartaz em casa, ou salve o QR Code no celular.", "O cliente aponta a câmera e <b>ganha o carimbo na hora</b>, sem instalar nada."]) +
+    button(esc(guideUrl), "Ver o passo a passo ilustrado") +
+    p(`Depois, é só <a href="${esc(loginUrl)}" style="color:${C.ink};font-weight:700">entrar no painel</a> e personalizar o cartão da loja em <b>Loja</b> e <b>Regras</b>.`) +
     small("Esqueceu a senha? Na tela de entrada, toque em <b>Esqueci minha senha</b>.");
   return {
-    subject: "Seu acesso ao Carimbô está pronto",
-    html: layout({ preheader: "Sua conta foi criada. Entre no painel e monte o cartão da sua loja.", body }),
-    text: plain(["Seu acesso ao Carimbô está pronto.", `Entre com o e-mail ${email}:`, loginUrl, "", "Carimbô · carimbo.io"]),
+    subject: "Seja bem-vindo ao Carimbô! Comece por aqui",
+    html: layout({ preheader: "Você não precisa esperar o bastão: comece a fidelizar hoje com o QR Code da sua loja.", body }),
+    text: plain(["Seja bem-vindo ao Carimbô! Comece por aqui.", "Você não precisa esperar o bastão chegar: use o QR Code que já está no painel da sua loja e comece a fidelizar hoje mesmo.", `Passo a passo ilustrado (5 minutos): ${guideUrl}`, "", `Seu acesso (${email}): ${loginUrl}`, "", "Carimbô · carimbo.io"]),
   };
 }
 
