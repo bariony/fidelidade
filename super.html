@@ -1058,13 +1058,21 @@ const OST = {aguardando_pagamento:['tolerancia', 'Aguardando pagamento'], pago:[
 const NFC_NAMES = ['Bastão 1', 'Bastão 2'];
 /* etiqueta e planilha para o fornecedor */
 const ordCode = o => 'CAR-' + String(o.id).replace(/-/g, '').slice(0, 8).toUpperCase();
-const ordBastoes = o => (o.tags || []).slice(0, 2).map((t, i) => ({n: i + 1, nome: t.label || NFC_NAMES[i] || 'Bastão ' + (i + 1), url: baseUrl() + 'c.html?t=' + t.id}));
+/* tags: 'kind' vem do banco (nfc ou qr). Lojas antigas têm 2 links NFC (um por bastão) + QR; lojas novas têm 1 link NFC para todos os bastões + QR. */
+const isQr = t => t.kind ? t.kind === 'qr' : String(t.label || '').trim().toLowerCase() === 'qr code';
+const nfcTags = o => (o.tags || []).filter(t => !isQr(t));
+const qrTag = o => (o.tags || []).find(isQr);
+const kitWands = o => Number(o.wands) || 2, kitPlates = o => Number(o.plates) || 1;
+const kitLabel = o => kitWands(o) + (kitWands(o) === 1 ? ' bastão' : ' bastões') + ' Carimbô + ' + kitPlates(o) + (kitPlates(o) === 1 ? ' placa' : ' placas') + ' Google';
+const sharedLink = o => nfcTags(o).length === 1 && kitWands(o) > 1;
+const ordBastoes = o => nfcTags(o).map((t, i) => ({n: i + 1, nome: t.label || NFC_NAMES[i] || 'Bastão ' + (i + 1), url: baseUrl() + 'c.html?t=' + t.id}));
+const gravarTxt = o => sharedLink(o) ? `*Gravar o MESMO link nos ${kitWands(o)} bastões (NFC Tools):*` : (kitWands(o) === 1 ? '*Gravar no bastão (NFC Tools):*' : '*Gravar em cada bastão (NFC Tools):*');
 const ordShippable = o => o.store_id && o.status !== 'aguardando_pagamento' && o.status !== 'cancelado' && (o.tags || []).length;
 function labelText(o){
   const B = ordBastoes(o);
   return [`📦 *Pedido ${ordCode(o)}*`, '', `*Enviar para:* ${o.buyer_name}`, `*WhatsApp:* ${o.whatsapp || '—'}`, `*Endereço:* ${o.address || '—'}`, '',
-    '*Kit:* 2 bastões Carimbô + 1 placa Google', '', '*Gravar em cada bastão (NFC Tools):*',
-    ...B.map(b => `${b.n}) ${b.nome}\n${b.url}`)].join('\n');
+    '*Kit' + (o.kit_name ? ' ' + o.kit_name : '') + ':* ' + kitLabel(o), '', gravarTxt(o),
+    ...B.map(b => sharedLink(o) ? `${b.nome}\n${b.url}` : `${b.n}) ${b.nome}\n${b.url}`)].join('\n');
 }
 async function shareText(text){
   if(navigator.share){ try { await navigator.share({text}); return; } catch(e){ if(e && e.name === 'AbortError') return; } }
@@ -1082,17 +1090,17 @@ function printLabel(o){
     <div class="l"><h1>carimbô · ${e(ordCode(o))}</h1>
     <div class="k">Enviar para</div><div class="v">${e(o.buyer_name)}</div><div>${e(o.whatsapp || '')}</div>
     <div class="k">Endereço</div><div class="a">${e(o.address || '—')}</div><hr>
-    <div class="k">Kit</div><div>2 bastões Carimbô + 1 placa Google</div><hr>
-    <div class="k">Gravar em cada bastão (NFC Tools)</div>${B.map(b => `<div><b>${b.n}) ${e(b.nome)}</b></div><code>${e(b.url)}</code>`).join('')}</div></body></html>`;
+    <div class="k">Kit${o.kit_name ? ' ' + e(o.kit_name) : ''}</div><div>${e(kitLabel(o))}</div><hr>
+    <div class="k">${e(gravarTxt(o).replace(/\*/g, '').replace(/:$/, ''))}</div>${B.map(b => `<div><b>${sharedLink(o) ? '' : b.n + ') '}${e(b.nome)}</b></div><code>${e(b.url)}</code>`).join('')}</div></body></html>`;
   const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; f.srcdoc = html;
   f.onload = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch(_){ toast('Não foi possível imprimir aqui. Use "Enviar no WhatsApp".', true); } setTimeout(() => f.remove(), 60000); };
   document.body.appendChild(f);
 }
 function csvDownload(orders, name){
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\r?\n/g, ' ') + '"';
-  const head = ['Pedido', 'Cliente', 'WhatsApp', 'Endereço', 'Entrega', 'Bastão nº', 'Identificação do bastão', 'Link para gravar no NFC', 'Placa Google (qtd)'];
+  const head = ['Pedido', 'Cliente', 'WhatsApp', 'Endereço', 'Entrega', 'Kit', 'Link nº', 'Identificação do link', 'Link para gravar no NFC', 'Bastões que usam este link', 'Placa Google (qtd)'];
   const rows = [];
-  orders.forEach(o => ordBastoes(o).forEach(b => rows.push([ordCode(o), o.buyer_name, o.whatsapp, o.address, o.delivery === 'retirada' ? 'Em mãos' : 'Correios', b.n, b.nome, b.url, b.n === 1 ? 1 : ''])));
+  orders.forEach(o => ordBastoes(o).forEach(b => rows.push([ordCode(o), o.buyer_name, o.whatsapp, o.address, o.delivery === 'retirada' ? 'Em mãos' : 'Correios', o.kit_name || '', b.n, b.nome, b.url, sharedLink(o) ? kitWands(o) : 1, b.n === 1 ? kitPlates(o) : ''])));
   if(!rows.length) return toast('Nenhum pedido com bastões para exportar', true);
   const csv = '\uFEFF' + [head, ...rows].map(r => r.map(q).join(';')).join('\r\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})); a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -1100,10 +1108,10 @@ function csvDownload(orders, name){
 }
 function kitBlock(o){
   const T = o.tags || []; if(!o.store_id || !T.length) return '<p class="sub"><b>Kit:</b> a loja ainda não tem tags.</p>';
-  const b = baseUrl(), nfc = T.slice(0, 2), qr = T[2];
+  const b = baseUrl(), nfc = nfcTags(o), qr = qrTag(o), shared = sharedLink(o);
   const row = (lab, url, extra) => `<div class="trow"><div class="l"><b>${esc(lab)}</b><br><code>${esc(url)}</code></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn line small" data-ocopy="${esc(url)}">Copiar link</button>${extra || ''}</div></div>`;
-  return `<div class="sub" style="margin-top:12px"><b>Kit para preparar</b> · grave cada link num bastão (NFC Tools) e imprima o cartaz QR${o.status === 'aguardando_pagamento' ? ' <span class="pill st-tolerancia">só depois do pagamento</span>' : ''}</div>`
-    + nfc.map((t, i) => row('Bastão NFC ' + (i + 1) + ' · ' + (t.label || NFC_NAMES[i]), b + 'c.html?t=' + t.id)).join('')
+  return `<div class="sub" style="margin-top:12px"><b>Kit para preparar${o.kit_name ? ' · ' + esc(o.kit_name) : ''}</b> · ${esc(kitLabel(o))}<br>${shared ? `grave o <b>mesmo link</b> nos ${kitWands(o)} bastões (NFC Tools)` : 'grave cada link num bastão (NFC Tools)'} e imprima o cartaz QR${o.status === 'aguardando_pagamento' ? ' <span class="pill st-tolerancia">só depois do pagamento</span>' : ''}</div>`
+    + nfc.map((t, i) => row(shared ? 'Link único · ' + kitWands(o) + ' bastões NFC · ' + (t.label || 'Bastão NFC') : 'Bastão NFC ' + (i + 1) + ' · ' + (t.label || NFC_NAMES[i]), b + 'c.html?t=' + t.id)).join('')
     + (ordShippable(o) ? `<div class="acts" style="margin-top:8px"><button class="btn small" data-etq-share="${o.id}">Enviar no WhatsApp</button><button class="btn line small" data-etq-copy="${o.id}">Copiar texto</button><button class="btn line small desk" data-etq-print="${o.id}">Imprimir etiqueta</button><button class="btn line small desk" data-etq-csv="${o.id}">Baixar Excel</button></div>` : '')
     + (qr ? row('QR Code · ' + (qr.label || 'QR Code'), b + 'c.html?t=' + qr.id + '&o=qr', `<a class="btn small" target="_blank" rel="noopener" href="cartaz.html?t=${esc(qr.id)}">Cartaz QR</a>`) : '');
 }
@@ -1151,7 +1159,7 @@ function repFormHtml(r){
   return `<form class="rcard" id="rf"><h3>${r ? 'Editar representante' : 'Novo representante'}</h3>
     <div class="cols"><div><label for="rn1">Nome</label><input id="rn1" type="text" required maxlength="80" value="${esc(v.name)}"></div><div><label for="rc">Código do link (letras e números)</label><input id="rc" type="text" required maxlength="20" pattern="[a-zA-Z0-9]{3,20}" value="${esc(v.code)}" placeholder="ex.: joao"></div>
     <div><label for="re">E-mail</label><input id="re" type="email" value="${esc(v.email || '')}"></div><div><label for="rw">WhatsApp</label><input id="rw" type="text" value="${esc(v.whatsapp || '')}"></div>
-    <div><label for="rk">Seu custo por kit (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"><span class="hint">O que você gasta para montar e enviar 1 kit. Hoje: 45. Não é o lucro.</span></div>
+    <div><label for="rk">Custo do kit lançado à mão (R$)</label><input id="rk" type="number" step="0.01" min="0" value="${v.kit_cost}"><span class="hint">Só vale para vendas lançadas à mão, sem pedido. Nos pedidos do site o custo é R$ 12 por bastão e por placa, e o lucro (preço − custo) é dividido pela % abaixo.</span></div>
     <div><label for="rs">Representante recebe: % do lucro do kit</label><input id="rs" type="number" step="0.01" min="0" max="100" value="${v.kit_share_pct}"><span class="hint">Lucro = valor que o cliente pagou − seu custo. Ex.: 50.</span></div>
     <div><label for="rr">Representante recebe: % de cada mensalidade</label><input id="rr" type="number" step="0.01" min="0" max="100" value="${v.recur_pct}"><span class="hint">Sobre o valor da mensalidade paga (R$ 39,90). Ex.: 20.</span></div><div></div>
     <div><label for="rdk">Libera o kit após (dias)</label><input id="rdk" type="number" min="0" max="120" value="${v.release_kit_days}"></div><div><label for="rdr">Libera a mensalidade após (dias)</label><input id="rdr" type="number" min="0" max="120" value="${v.release_recur_days}"></div></div>
@@ -1177,7 +1185,7 @@ function repNotify(r){
 function viewReps(){
   const L = S.reps;
   const row = r => {
-    const det = `<p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo ${money(r.kit_cost)}) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
+    const det = `<p class="sub">Regra: ${r.kit_share_pct}% do lucro do kit (custo R$ 12 por bastão e por placa) liberado em ${r.release_kit_days} dias · ${r.recur_pct}% da mensalidade liberado em ${r.release_recur_days} dias · ${esc(pixTxt(r.pix_type, r.pix_key))}</p>
       ${r.claimed ? '' : `<p class="sub"><b>Convite:</b> <code>${esc(r.invite)}</code> · ele cria o acesso em <code>${esc(baseUrl())}rep</code></p>`}
       <div class="acts"><button class="btn line small" data-copylink="${esc(r.code)}">Copiar link de venda</button>${r.claimed ? '' : `<button class="btn line small" data-copyinv="${esc(r.invite)}">Copiar convite</button>`}<button class="btn line small" data-edit="${r.id}">Editar</button> ${repNotify(r)}</div>`;
     return xrow('r' + r.id, `<td><b>${esc(r.name)}</b><br><span class="dl">${esc(r.code)} · ${esc(r.email || '')}</span></td><td><span class="pill ${r.active ? 'st-ativa' : 'st-bloqueada'}">${r.active ? 'Ativo' : 'Inativo'}</span> <span class="pill ${r.claimed ? 'st-trial' : 'st-tolerancia'}">${r.claimed ? 'Acesso criado' : '1º acesso pendente'}</span></td><td class="n">${r.stores}</td><td class="n">${money(r.prevista)}</td><td class="n ${r.liberada < 0 ? 'neg' : ''}">${money(r.liberada)}</td><td class="n">${money(r.em_repasse)}</td><td class="n">${money(r.paga)}</td><td class="n"><button class="btn line small" data-view="${r.id}">Ver painel dele</button></td>`, det, 8);

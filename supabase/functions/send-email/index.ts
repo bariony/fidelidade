@@ -5,6 +5,7 @@
 //  - welcome_shop / welcome_rep: usuário logado, sempre para o próprio e-mail
 // Idempotência: fid_email_log (kind, ref) único; cada e-mail sai uma vez.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+const KIT_LABELS: Record<string, string> = { start: "1 bastão + 1 placa Google", medio: "2 bastões + 1 placa Google", completo: "3 bastões + 2 placas Google" };
 import { orderPaid, orderPending, orderPrep, orderShipped, welcomeShop, welcomeRep, repApproved } from "./templates.ts";
 
 const CORS = {
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
       to = o.buyer_email; ref = oid;
       if (kind === "order_paid") {
         if (!o.paid_at) return json({ error: "pedido_nao_pago" }, 409);
-        mail = orderPaid({ name: o.buyer_name, orderId: oid, kit: Number(o.amount), shipping: Number(o.shipping ?? 0), delivery: o.delivery, paidAt: o.paid_at, email: o.buyer_email });
+        mail = orderPaid({ kitLabel: KIT_LABELS[o.kit as string] || KIT_LABELS.medio, name: o.buyer_name, orderId: oid, kit: Number(o.amount), shipping: Number(o.shipping ?? 0), delivery: o.delivery, paidAt: o.paid_at, email: o.buyer_email });
       } else if (kind === "order_prep") {
         if (!o.prep_at) return json({ error: "pedido_nao_em_preparo" }, 409);
         mail = orderPrep({ name: o.buyer_name, orderId: o.id });

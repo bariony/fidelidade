@@ -262,7 +262,10 @@ function trialPanel(d){
 }
 function render(){
   const d = S.d, r = d.rep, t = d.totals, link = base() + 'comprar?r=' + r.code;
-  const net = Math.max(0, 99.97 - r.kit_cost) * r.kit_share_pct / 100;
+  /* custo fixo de R$ 12 por bastão e por placa; o lucro (preço − custo) é dividido pela % do representante */
+  const KITS = [['Start', '1 bastão + 1 placa', 79.97], ['Médio', '2 bastões + 1 placa', 99.97, 3], ['Completo', '3 bastões + 2 placas', 169.97]];
+  const kitNet = (n, price) => Math.max(0, price - n * 12) * r.kit_share_pct / 100;
+  const items = {Start:2, 'Médio':3, Completo:5};
   const stores = d.stores.map(s => {
     const [k, lab] = storeState(s), wa = (s.whatsapp || '').replace(/\D/g, '');
     const paid = s.order_status === 'aguardando_pagamento';
@@ -293,7 +296,7 @@ function render(){
         <p class="sub">Mande este link para o dono da loja. Quando ele fizer o pedido por aqui, a venda fica registrada no seu nome, automaticamente.</p>
         <div class="linkbox"><code id="lk">${esc(link)}</code><button class="btn" id="cp">Copiar link</button><a class="btn line" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent('Dá uma olhada no Carimbô, o cartão fidelidade por toque: ' + link)}">Enviar por WhatsApp</a></div></section>
       <section class="panel"><h2>Como você ganha</h2>
-        <div class="rules"><div class="rule"><b>Venda do kit: ${money(net)} por kit vendido</b>Em cada kit de R$ 99,97 vendido por você, ${money(net)} é seu. Liberada ${r.release_kit_days} dias depois da venda.</div>
+        <div class="rules"><div class="rule"><b>Venda do kit: você ganha ${r.kit_share_pct}% do lucro</b>Lucro = preço do kit − R$ 12 por bastão e por placa. Liberada ${r.release_kit_days} dias depois da venda.<br>${KITS.map(k => `${k[0]} (${k[1]}, ${money(k[2])}): <b>${money(kitNet(items[k[0]], k[2]))}</b>`).join('<br>')}</div>
           <div class="rule"><b>Mensalidades: ${pct(r.recur_pct)}</b>De cada mensalidade paga a partir do 2º mês (R$ 39,90 = ${money(39.9 * r.recur_pct / 100)}). Liberada ${r.release_recur_days} dias depois do pagamento.</div>
           <div class="rule"><b>Repasse todo dia 15</b>Pagamos por Pix tudo que já estiver liberado até o dia 15. O que ainda estiver no prazo vai para o repasse seguinte.</div>
           <div class="rule"><b>Reembolsos</b>Se o cliente pedir reembolso antes do repasse, a comissão é cancelada e aparece aqui. Depois do repasse, vira um estorno descontado do seu próximo repasse.</div></div></section>

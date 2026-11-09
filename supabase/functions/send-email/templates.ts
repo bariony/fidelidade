@@ -70,14 +70,14 @@ export function orderPending({ name, orderId, total, payUrl }) {
 }
 
 /* ---------- 2. Pedido confirmado ---------- */
-export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, email, loginUrl = SITE + "/lojista" }) {
+export function orderPaid({ name, orderId, kit, shipping, delivery, paidAt, email, kitLabel = "2 bastões + placa Google", loginUrl = SITE + "/lojista" }) {
   const code = orderCode(orderId), hand = delivery === "retirada", total = Number(kit) + Number(shipping || 0);
   const body = h1(`Pedido confirmado! 🎉`) +
     p(`Oi, ${esc((name || "").split(" ")[0] || "tudo bem")}! Recebemos o seu pagamento e o seu <b>Kit Carimbô</b> já está sendo preparado.`) +
     kraftBox([
       ["Pedido", code],
       ["Data", fdate(paidAt || new Date())],
-      ["Kit", "2 bastões + placa Google"],
+      ["Kit", kitLabel],
       ["Valor", brl(total)],
       ["Entrega", hand ? "Em mãos" : "Correios"],
       ["Prazo", "até 7 dias"],
@@ -220,7 +220,7 @@ export function leadReminder({ name, payUrl }) {
   const first = esc((name || "").split(" ")[0] || "");
   const body = h1(first ? `${first}, o seu kit ficou esperando` : "O seu kit ficou esperando") +
     p("Você começou o pedido do <b>Kit Carimbô</b> e não chegou a finalizar. Sem problema: dá para continuar de onde parou, em menos de 2 minutos.") +
-    kraftBox([["No kit", "2 bastões + placa Google"], ["Painel", "30 dias incluídos"], ["Entrega", "Correios, até 7 dias"]]) +
+    kraftBox([["No kit", "Bastões NFC + placa Google"], ["Painel", "30 dias incluídos"], ["Entrega", "Correios, até 7 dias"]]) +
     button(esc(payUrl), "Finalizar meu pedido") +
     small("Enviamos este lembrete uma única vez, para não incomodar.");
   return {

@@ -216,8 +216,8 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
     </div>
     <div class="sg-dots" id="sg-dots" role="group" aria-label="Escolher segmento"></div>
     <div class="sg-cta">
-      <button class="sg-btn" id="sg-cta" type="button">Quero o kit por R$ 99,97</button>
-      <small>2 bastões + placa NFC do Google + 30 dias de painel incluídos</small>
+      <button class="sg-btn" id="sg-cta" type="button">Quero o kit · a partir de R$ 79,97</button>
+      <small id="sg-small">2 bastões + placa NFC do Google + 30 dias de painel incluídos</small>
     </div>
   </div>
 </section>
@@ -252,23 +252,30 @@ const MSG = {
   cupom_invalido:'Cupom inválido, vencido ou esgotado.',
   nome_da_loja_invalido:'Confira o nome da loja.', nome_invalido:'Confira o seu nome.', whatsapp_invalido:'Confira o WhatsApp, com DDD.',
   cep_invalido:'Confira o CEP.', rua_invalida:'Confira a rua.', numero_invalido:'Informe o número.', cidade_invalida:'Confira a cidade.', estado_invalido:'Escolha o estado.',
-  entre_primeiro:'Entre com e-mail e senha para continuar.', loja_nao_esta_em_teste:'Sua loja não está em período de teste.', kit_ja_comprado:'O kit desta loja já foi comprado.', pedido_em_aberto:'Você já tem um pedido do kit em aberto. Pague pelo link recebido ou fale com a gente.'
+  entre_primeiro:'Entre com e-mail e senha para continuar.', loja_nao_esta_em_teste:'Sua loja não está em período de teste.', kit_ja_comprado:'O kit desta loja já foi comprado.', kit_invalido:'Esse kit não está disponível. Escolha outro.', pedido_em_aberto:'Você já tem um pedido do kit em aberto. Pague pelo link recebido ou fale com a gente.'
 };
 const UPG = new URLSearchParams(location.search).has('upgrade');
-const S = {delivery:'correios', cepOk:false, orderId:null, coupon:null, promo:null};
-const isPromo = () => !!(S.promo && S.promo.left > 0 && !S.coupon);
+const S = {delivery:'correios', cepOk:false, orderId:null, coupon:null, promo:null, kits:null, kit:'medio'};
+const SHOWKITS = new URLSearchParams(location.search).has('kits');
+/* kit escolhido (preço, frete e itens vêm do banco; os valores abaixo só valem enquanto a lista não carrega) */
+const K = () => (S.kits && S.kits.find(k => k.code === S.kit)) || {code:'medio', name:'Médio', wands:2, plates:1, price:KIT, shipping:FRETE};
+/* a escolha de kit aparece quando a promoção de lançamento acaba (ou com ?kits na URL, para testar) */
+const tiersOn = () => !UPG && !!S.kits && S.kits.length > 1 && (SHOWKITS || (!!S.promo && S.promo.left === 0));
+const isPromo = () => !!(S.promo && S.promo.left > 0 && !S.coupon && (!tiersOn() || S.kit === 'medio'));
+const plural = (n, a, b) => n + ' ' + (n === 1 ? a : b);
 const maskDoc = v => { const d = v.replace(/\D/g, '').slice(0, 14); if(d.length <= 11) return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2'); return d.replace(/(\d{2})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2'); };
 function validDoc(v){ const n = v.replace(/\D/g, ''); if(/^(\d)\1+$/.test(n)) return false;
   if(n.length === 11){ for(const t of [9, 10]){ let s = 0; for(let i = 0; i < t; i++) s += +n[i] * (t + 1 - i); if(((s * 10) % 11) % 10 !== +n[t]) return false; } return true; }
   if(n.length === 14){ for(const t of [12, 13]){ const w = t === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2]; let s = 0; for(let i = 0; i < t; i++) s += +n[i] * w[i]; const dv = s % 11 < 2 ? 0 : 11 - (s % 11); if(dv !== +n[t]) return false; } return true; }
   return false; }
-const kitNet = () => Math.round(KIT * (100 - (S.coupon ? S.coupon.pct : 0))) / 100;
-const total = () => isPromo() ? PROMO_PRICE : kitNet() + FRETE;
+const kitNet = () => Math.round(K().price * (100 - (S.coupon ? S.coupon.pct : 0))) / 100;
+const total = () => isPromo() ? PROMO_PRICE : kitNet() + K().shipping;
 
 function view(){
   app.innerHTML = `<div class="grid">
     <section><h1>Peça o seu kit Carimbô</h1>
       <p class="lead">Leva 2 minutos. Você já cria o acesso ao seu painel e a gente prepara o kit.</p>
+      <div id="kits" hidden></div>
       <form id="f" class="card" style="margin-top:22px" novalidate>
         <div class="sec"><h3><b>1</b>Sobre você e a loja</h3>
           <div class="two"><div><label class="l" for="nm">Seu nome</label><input id="nm" autocomplete="name" required><p class="fe" id="e-nm"></p></div>
@@ -298,12 +305,12 @@ function view(){
         <p class="fine">Ao fazer o pedido, você aceita os <a href="privacidade">Termos e Política de Privacidade</a>.</p>
       </form></section>
     <aside class="card sum"><h2>Kit de boas-vindas</h2>
-      <img class="kitimg" src="img/kit.webp" width="1100" height="882" alt="O que você recebe: 2 bastões Carimbô e 1 placa NFC de avaliação do Google">
-      <p class="kitcap">2 bastões + placa NFC de avaliação do Google</p>
+      <img class="kitimg" id="kitimg" src="img/kit.webp" width="1100" height="882" alt="O que você recebe: bastões Carimbô e placa NFC de avaliação do Google">
+      <p class="kitcap" id="kitcap">2 bastões + placa NFC de avaliação do Google</p>
       <div id="prbox"></div>
       <ul class="in">
-        <li><i>✓</i><span><b>2 bastões Carimbô</b> para o balcão</span></li>
-        <li><i>✓</i><span><b>Placa NFC de avaliação do Google</b></span></li>
+        <li><i>✓</i><span id="li1"><b>2 bastões Carimbô</b> para o balcão</span></li>
+        <li><i>✓</i><span id="li2"><b>Placa NFC de avaliação do Google</b></span></li>
         <li><i>✓</i><span><b>30 dias de painel</b> já incluídos</span></li>
         <li><i>✓</i><span><b>Configuração</b> da sua loja</span></li></ul>
       <div class="tot" id="tot"></div>
@@ -329,20 +336,41 @@ async function setupUpgrade(){
 const maskPhone = v => { const d = v.replace(/\D/g, '').slice(0, 11); if(d.length <= 2) return d ? '(' + d : ''; if(d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`; if(d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`; return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`; };
 const maskCep = v => { const d = v.replace(/\D/g, '').slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; };
 
+function renderKits(){
+  const box = $('#kits'); if(!box) return;
+  if(!tiersOn()){ box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = `<h2 style="font-size:1.05rem;margin:22px 0 10px">Escolha o seu kit</h2><div class="kopts" role="radiogroup" aria-label="Escolha o kit" style="display:grid;gap:10px">${S.kits.map(k => `<button type="button" class="kopt" role="radio" aria-checked="${k.code === S.kit}" data-kit="${esc(k.code)}" style="text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:2px solid ${k.code === S.kit ? '#3A5BC7' : '#E3E6EE'};background:${k.code === S.kit ? '#F2F5FF' : '#fff'};font:inherit;color:inherit;cursor:pointer">
+    <span style="display:flex;align-items:center;gap:12px"><img src="img/kit-${esc(k.code)}.webp" alt="" width="64" height="51" loading="lazy" style="width:64px;height:auto;flex:none"><span><b>${esc(k.name)}</b>${k.code === 'medio' ? ' <small style="background:#3A5BC7;color:#fff;border-radius:99px;padding:2px 8px;font-size:.72rem;margin-left:4px">mais pedido</small>' : ''}<br><small style="color:var(--mut)">${plural(k.wands, 'bastão', 'bastões')} + ${plural(k.plates, 'placa', 'placas')} do Google${+k.shipping === 0 ? ' · frete grátis' : ''}</small></span></span>
+    <span style="text-align:right;white-space:nowrap"><b>${brl(+k.price)}</b></span></button>`).join('')}</div>`;
+  box.querySelectorAll('[data-kit]').forEach(b => b.addEventListener('click', () => {
+    if(S.kit === b.dataset.kit) return;
+    S.kit = b.dataset.kit; S.orderId = null; refresh();
+  }));
+}
 function refresh(){
+  renderKits();
+  const kk = K(), tiers = tiersOn();
+  const ki = $('#kitimg'); if(ki && !UPG){ const src = 'img/kit-' + kk.code + '.webp'; if(ki.getAttribute('src') !== src && tiers) ki.src = src; }
+  const cap = $('#kitcap'); if(cap && !UPG) cap.textContent = plural(+kk.wands, 'bastão', 'bastões') + ' + ' + plural(+kk.plates, 'placa NFC', 'placas NFC') + ' de avaliação do Google';
+  const l1 = $('#li1'), l2 = $('#li2');
+  if(l1) l1.innerHTML = '<b>' + plural(+kk.wands, 'bastão Carimbô', 'bastões Carimbô') + '</b> para o balcão';
+  if(l2) l2.innerHTML = '<b>' + (+kk.plates === 1 ? 'Placa NFC de avaliação do Google' : plural(+kk.plates, 'placa', 'placas') + ' NFC de avaliação do Google') + '</b>';
   const p = isPromo();
-  const sgb = document.getElementById("sg-cta"); if(sgb) sgb.textContent = "Quero o kit por " + brl(p ? PROMO_PRICE : kitNet());
+  const sgs = document.getElementById('sg-small'); if(sgs && !UPG) sgs.textContent = plural(+kk.wands, 'bastão', 'bastões') + ' + ' + plural(+kk.plates, 'placa NFC', 'placas NFC') + ' do Google + 30 dias de painel incluídos';
+  const sgb = document.getElementById("sg-cta"); if(sgb) sgb.textContent = UPG ? "Quero o kit por " + brl(p ? PROMO_PRICE : kitNet()) : "Quero o kit · a partir de " + brl(S.kits && S.kits.length ? Math.min(...S.kits.map(k => +k.price)) : 79.97);
   $('#addr').style.display = '';
   $('#prbox').innerHTML = p
     ? `<div class="price"><b>${brl(PROMO_PRICE)}</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · já com o envio · condição de lançamento${S.promo.left <= 10 ? ` · restam <b>${S.promo.left}</b> de ${S.promo.limit}` : ''}</small>`
-    : `<div class="price"><b>R$ 99,97</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · mais o envio pelos Correios</small>`;
+    : `<div class="price"><b>${brl(+kk.price)}</b>${kk.code === 'medio' ? '<s>R$ 249</s>' : ''}</div><small style="color:var(--mut)">pagamento único · ${+kk.shipping === 0 ? 'frete grátis' : 'mais o envio pelos Correios'}</small>`;
   $('#tot').innerHTML = p
     ? `<div><span>Kit + envio (lançamento)</span><span>${brl(PROMO_PRICE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`
-    : `<div><span>Kit</span><span>${S.coupon ? `<s style="opacity:.6">${brl(KIT)}</s> ${brl(kitNet())}` : brl(KIT)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete (Correios)</span><span>${brl(FRETE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
+    : `<div><span>Kit${tiers ? ' ' + esc(kk.name) : ''}</span><span>${S.coupon ? `<s style="opacity:.6">${brl(+kk.price)}</s> ${brl(kitNet())}` : brl(+kk.price)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete (Correios)</span><span>${+kk.shipping === 0 ? '<b class="g">grátis</b>' : brl(+kk.shipping)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
   $('#go').textContent = 'Ir para o pagamento · ' + brl(total());
 }
 async function loadPromo(){
   try { const {data} = await sb.rpc('fid_promo_state'); if(data && typeof data.left === 'number'){ S.promo = data; refresh(); } } catch(_){}
+  try { const {data} = await sb.rpc('fid_kits_state'); if(Array.isArray(data) && data.length){ S.kits = data; if(!data.some(k => k.code === S.kit)) S.kit = data[0].code; refresh(); } } catch(_){}
 }
 function promoMismatch(d){
   if(d && !d.dup && d.promo !== undefined && !!d.promo !== isPromo()){
@@ -474,7 +502,7 @@ async function submit(ev){
     }
     if(!S.orderId){
     const {data, error} = await sb.rpc('fid_order_create', {p_code:CODE, p_store_name:v('lj'), p_buyer_name:v('nm'), p_whatsapp:v('wa'), p_delivery:S.delivery,
-      p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null, p_coupon:S.coupon ? S.coupon.code : null});
+      p_cep:c ? v('cep') : null, p_street:c ? v('rua') : null, p_number:c ? v('num') : null, p_complement:c ? v('comp') : null, p_district:c ? v('bai') : null, p_city:c ? v('cid') : null, p_state:c ? $('#uf').value : null, p_coupon:S.coupon ? S.coupon.code : null, p_kit:tiersOn() ? S.kit : 'medio'});
     if(error) throw new Error(error.message);
     if(data && data.error) throw new Error(MSG[data.error] || data.error);
     S.orderId = data.order; promoMismatch(data);
