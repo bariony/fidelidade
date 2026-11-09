@@ -53,7 +53,9 @@ Deno.serve(async (req) => {
     }
     const CM = Deno.env.get("CALLMEBOT_APIKEY");
     if (CM) {
-      const r = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${OWNER_PHONE}&apikey=${encodeURIComponent(CM)}&text=${encodeURIComponent(subject + "\n" + linhas.map(([k, v]) => `${k}: ${v}`).join("\n"))}`);
+      const data = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date());
+      const msg = `Nova venda realizada\nData: ${data}\nValor: ${brl(valor)}`;
+      const r = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${OWNER_PHONE}&apikey=${encodeURIComponent(CM)}&text=${encodeURIComponent(msg)}`);
       out.push("whatsapp:" + r.status);
     }
     return new Response(out.join(",") || "nenhum_canal", { status: 200 });
