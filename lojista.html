@@ -257,6 +257,7 @@
   #tum .m.u{align-self:flex-end;background:var(--kraft)}
   #tum .m.a{align-self:flex-start;background:#fff}
   #tum .m.a ul{margin:6px 0 2px;padding-left:18px}
+  #tum .m .tumwa{display:inline-block;margin-top:8px;background:#25D366;color:#fff;border:2px solid var(--ink);border-radius:99px;padding:7px 14px;font-weight:800;font-size:.88rem;text-decoration:none}
   #tum .m .cp{display:inline-block;margin-top:8px;background:none;border:2px solid var(--ink);border-radius:99px;padding:3px 10px;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--ink)}
   #tum .m.err{background:#FDECEA}
   #tum .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px;background:var(--paper)}
@@ -880,7 +881,13 @@ function tumDraw(){
   if(!TUM.msgs.length) h = `<div class="m a">Tum! Eu sou o Tum, assistente da <b>${esc(nome)}</b>. Posso te contar como a loja está indo, quem são seus clientes, escrever mensagem de campanha, sugerir prêmio e te ajudar com a configuração. Pergunte à vontade.</div>`;
   TUM.msgs.forEach((m, i) => {
     if(m.role === 'user') h += `<div class="m u">${esc(m.content)}</div>`;
-    else h += `<div class="m a ${m.err ? 'err' : ''}">${tumFmt(m.content)}${m.err ? '' : `<br><button class="cp" type="button" data-i="${i}">Copiar</button>`}</div>`;
+    else {
+      const wantWa = !m.err && m.content.includes('[[WHATSAPP]]');
+      const body = m.content.replace(/\s*\[\[WHATSAPP\]\]\s*/g, '').trim();
+      let lastQ = ''; for(let k = i - 1; k >= 0; k--) if(TUM.msgs[k].role === 'user'){ lastQ = TUM.msgs[k].content; break; }
+      const waTxt = encodeURIComponent('Oi, sou da loja ' + nome + (S.user && S.user.email ? ' (' + S.user.email + ')' : '') + ' e preciso de ajuda' + (lastQ ? ': ' + lastQ.slice(0, 300) : '.'));
+      h += `<div class="m a ${m.err ? 'err' : ''}">${tumFmt(body)}${wantWa ? `<br><a class="tumwa" href="https://wa.me/551151230615?text=${waTxt}" target="_blank" rel="noopener">Chamar a Carimbô no WhatsApp</a>` : ''}${m.err ? '' : `<br><button class="cp" type="button" data-i="${i}">Copiar</button>`}</div>`;
+    }
   });
   if(TUM.busy) h += '<div class="m a"><span class="dots"><span></span><span></span><span></span></span></div>';
   box.innerHTML = h; box.scrollTop = box.scrollHeight;
@@ -1618,7 +1625,8 @@ function viewPerfil(){
     <section class="panel"><h2>Avisos no celular</h2>${pushBox}</section>
     <section class="panel"><h2>Instalar o app no celular</h2><p class="sub2">Fica um ícone do Carimbô na tela do celular, como qualquer aplicativo. Abre mais rápido e permite receber avisos.</p>${instBox}</section>
     <section class="panel"><h2>Carimbô</h2>
-      <div class="row2" style="margin-top:6px"><a class="btn line" href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener" style="text-decoration:none">Seguir @carimbo.io no Instagram</a></div>
+      <div class="row2" style="margin-top:6px"><a class="btn" href="https://wa.me/551151230615" target="_blank" rel="noopener" style="text-decoration:none">Falar com a Carimbô no WhatsApp</a></div>
+      <div class="row2"><a class="btn line" href="https://www.instagram.com/carimbo.io" target="_blank" rel="noopener" style="text-decoration:none">Seguir @carimbo.io no Instagram</a></div>
       <div class="row2"><button class="btn line" id="pfout" type="button">Sair da conta</button></div></section>
   </div>`;
   return {html, bind(){
