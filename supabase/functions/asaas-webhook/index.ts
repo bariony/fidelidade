@@ -26,6 +26,18 @@ function same(a: string, b: string) {
 
 const ok = (m = "ok") => new Response(m, { status: 200 });
 
+// Aviso de venda paga ao dono (e-mail + WhatsApp). Nunca derruba o webhook.
+async function notifySale(body: Record<string, unknown>) {
+  try {
+    const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/notify-sale`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) console.error("notify-sale", r.status, await r.text());
+  } catch (e) { console.error("notify-sale", String(e)); }
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("method", { status: 405 });
   if (!TOKEN || !same(req.headers.get("asaas-access-token") ?? "", TOKEN)) return new Response("unauthorized", { status: 401 });
@@ -54,12 +66,14 @@ Deno.serve(async (req) => {
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
         result = "mensalidade";
+        await notifySale({ kind: "renewal", payment: pay.id, value: pay.value, subscription: pay.subscription });
       } else if (pay.externalReference) {
         const { data, error } = await admin.rpc("fid_asaas_pay_order", { p_order: pay.externalReference, p_payment: pay.id, p_value: pay.value });
         if (error) throw error;
         if (data?.error && data.error !== "pedido_nao_esta_aguardando_pagamento") throw new Error(data.error);
         result = data?.error ? "pedido_ja_tratado" : "kit_pago";
         if (!data?.error) {
+          await notifySale({ kind: "kit", payment: pay.id, value: pay.value, order_id: pay.externalReference });
           // e-mail "pedido confirmado" ao comprador (não bloqueia o webhook se falhar)
           try {
             const r = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-email`, {
