@@ -320,6 +320,7 @@
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
+<script src="js/cash.js"></script>
 <script>
 const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true}});;
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){} /* pede ao navegador para não apagar o login guardado */

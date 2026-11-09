@@ -1,8 +1,10 @@
 // Avisa o dono quando entra uma venda paga (kit ou mensalidade).
 // - Chamada interna pelo asaas-webhook (Authorization: Bearer service role).
 // - Canal 1: e-mail (Resend). Canal 2: WhatsApp via CallMeBot, só se o secret CALLMEBOT_APIKEY existir.
+// - Canal 3: push no celular/PWA, SÓ para superadmins (fid_superadmins).
 // - Idempotente por pagamento (fid_email_log kind='sale_alert', ref=payment id).
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 const OWNER_EMAIL = Deno.env.get("SALE_ALERT_EMAIL") ?? "igor.barioni@hotmail.com";
 const OWNER_PHONE = Deno.env.get("SALE_ALERT_PHONE") ?? "5511986683737";
@@ -58,6 +60,25 @@ Deno.serve(async (req) => {
       const r = await fetch(`https://api.callmebot.com/whatsapp.php?phone=${OWNER_PHONE}&apikey=${encodeURIComponent(CM)}&text=${encodeURIComponent(msg)}`);
       out.push("whatsapp:" + r.status);
     }
+    // push só para superadmins (nunca para lojistas)
+    try {
+      const { data: sa } = await admin.from("fid_superadmins").select("user_id");
+      const uids = (sa ?? []).map((r: any) => r.user_id);
+      const { data: sec } = await admin.from("fid_app_secrets").select("key, value").in("key", ["vapid_public", "vapid_private", "vapid_subject"]);
+      const m = Object.fromEntries((sec ?? []).map((r: any) => [r.key, r.value]));
+      if (uids.length && m.vapid_public && m.vapid_private) {
+        webpush.setVapidDetails(m.vapid_subject || "mailto:contato@carimbo.io", m.vapid_public, m.vapid_private);
+        const { data: subs } = await admin.from("fid_push_subs").select("id, endpoint, p256dh, auth").in("user_id", uids);
+        const dia = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date());
+        const payload = JSON.stringify({ kind: "sale", title: "💰 Nova venda realizada", body: `${brl(valor)} · ${dia}`, url: "https://carimbo.io/super" });
+        let ok = 0;
+        await Promise.all((subs ?? []).map(async (x: any) => {
+          try { await webpush.sendNotification({ endpoint: x.endpoint, keys: { p256dh: x.p256dh, auth: x.auth } }, payload, { TTL: 3600, urgency: "high" }); ok++; }
+          catch (e: any) { if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("fid_push_subs").delete().eq("id", x.id); else console.error("push", e?.statusCode); }
+        }));
+        out.push("push:" + ok);
+      }
+    } catch (e) { console.error("push", String(e)); }
     return new Response(out.join(",") || "nenhum_canal", { status: 200 });
   } catch (e) {
     console.error("notify-sale", String(e));
