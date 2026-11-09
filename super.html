@@ -326,7 +326,9 @@
   .dc{display:inline-block;font-size:.74rem;font-weight:800;border-radius:99px;padding:1px 8px}
   .dc.up{background:#DDF5EA;color:#0F6B49}.dc.dn{background:#FDE1DE;color:#A52A1E}
   .up{color:var(--good)}.dn{color:var(--bad)}
-  .dgrid{display:grid;gap:12px;margin:0 0 14px;align-items:start}
+  .dgrid{display:grid;gap:12px;margin:0 0 12px}
+  .dgrid+.dcard,.dgrid+.dgrid{margin-top:0}.wrap>.dcard,.pad>.dcard{margin:0 0 14px}
+  .insl.cols{display:block;columns:2;column-gap:32px}.insl.cols .ins{break-inside:avoid}
   .g-wide{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g-even{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
   .dcard header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
@@ -366,7 +368,7 @@
   .trd{display:inline-flex;align-items:center;gap:8px}.msp{width:70px;height:22px}.trd small{font-weight:700;font-size:.76rem}
   .tag{font-size:.7rem;font-weight:800;border-radius:6px;padding:1px 6px}.tag.bad{background:#FDE1DE;color:#A52A1E}
   #tipbox{position:fixed;z-index:120;display:none;pointer-events:none;background:#14296B;color:#fff;border-radius:8px;padding:8px 11px;font-size:.78rem;line-height:1.45;max-width:280px;box-shadow:0 8px 24px -8px rgba(0,0,0,.4)}
-  @media (max-width:900px){.g-wide,.g3,.g-even{grid-template-columns:1fr}.subtabs .note{margin-left:0;flex-basis:100%}}
+  @media (max-width:900px){.insl.cols{columns:1}.g-wide,.g3,.g-even{grid-template-columns:1fr}.subtabs .note{margin-left:0;flex-basis:100%}}
   @media (max-width:720px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .kvv{font-size:1.3rem}.tb select,.tb input[type=date],.tb .search{width:100%;max-width:none;flex-basis:100%}.tb .seg{width:100%}.tb .seg button{flex:1}}
 </style>
 </head>
@@ -604,14 +606,14 @@ function viewList(){
       ${kpi('Precisam de atenção', attn + stalled.length, `${attn} com plano em risco · ${stalled.length} sem carimbo na semana`, attn + stalled.length ? 'warn' : '')}
     </div>
     <div class="dgrid g-wide">
-      ${dcard('Carimbos por dia', areaChart(days, sp, {aria:'Carimbos por dia nos últimos 14 dias'}), `<span class="dl">últimos 14 dias</span>`)}
+      ${dcard('Carimbos por dia', areaChart(days, sp, {aria:'Carimbos por dia nos últimos 14 dias', h:185}), `<span class="dl">últimos 14 dias</span>`)}
       ${dcard('Saúde da base', `<p class="mini-t">Situação do plano</p>${stackBar([{n:'Ativas', v:c('ativa'), c:C.good}, {n:'Em teste', v:c('trial'), c:C.kit}, {n:'Tolerância', v:c('tolerancia'), c:C.amb}, {n:'Vencidas', v:c('vencida'), c:C.bad}, {n:'Bloqueadas', v:c('bloqueada'), c:'#14296B'}])}<p class="mini-t">Uso nos últimos 7 dias (lojas ativas)</p>${stackBar([{n:'Muito ativas', v:hc('good'), c:C.good}, {n:'Boas', v:hc('ok'), c:C.kit}, {n:'Pouco uso', v:hc('low'), c:C.amb}, {n:'Paradas', v:hc('warn'), c:C.bad}, {n:'Nunca carimbou', v:hc('bad'), c:C.mut}])}`)}
     </div>
-    <div class="dgrid g3">
+    <div class="dgrid g-even">
       ${dcard('Quem mais carimba', hbars(top), '<span class="dl">30 dias</span>')}
       ${dcard('Quem tem mais clientes', hbars(topC), '<span class="dl">total</span>')}
-      ${dcard('Insights', `<ul class="insl">${sortIns(I) || '<li class="ins info"><i></i><div><b>Sem alertas agora</b></div></li>'}</ul>`)}
     </div>
+    ${dcard('Insights', `<ul class="insl cols">${sortIns(I) || '<li class="ins info"><i></i><div><b>Sem alertas agora</b></div></li>'}</ul>`)}
     <div class="bar tb"><label class="search" style="margin:0">${I0.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou representante" value="${esc(S.q)}"></label>
       <select id="repf" aria-label="Representante"><option value="">Todos os representantes</option><option value="-" ${S.rep === '-' ? 'selected' : ''}>Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${S.rep === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
     <div class="bar">${chipsH}</div>
@@ -870,8 +872,8 @@ function viewFin(){
     if(+topay > 0) I.push({tone:'warn', t:`${brl(topay)} a pagar aos representantes`, s:'Comissões já liberadas ou em repasse.'});
     const nPaid = M.st.filter(fpayer).length, nRen = M.st.filter(x => x.renewals_n > 0).length;
     const labs = mths.map(x => mLabel(x.month).slice(0, 3) + (mths.length > 6 ? '/' + x.month.slice(2, 4) : ''));
-    const rev = colChart(labs, [{name:'Kits', color:C.kit, vals:mths.map(x => +x.sales)}, {name:'Mensalidades', color:C.men, vals:mths.map(x => +x.renewals)}], {aria:'Receita por mês', tip: i => `${mLabel(mths[i].month)}\nKits: ${brl(mths[i].sales)}\nMensalidades: ${brl(mths[i].renewals)}\nReembolsos: ${brl(mths[i].refunds)}\nComissões: ${brl(mths[i].commissions)}\nResultado: ${brl(nm(mths[i]) - +mths[i].commissions)}`});
-    const prev = colChart(M.weeks.map(w => dd(w.d)), [{name:'Mensalidades previstas', color:C.men, vals:M.weeks.map(w => w.v)}], {aria:'Caixa previsto por semana', w:innerWidth < 720 ? undefined : 420, h:200, tip: i => `Semana de ${dd(M.weeks[i].d)}\n${brl(M.weeks[i].v)}` + (M.weeks[i].l.length ? '\n' + M.weeks[i].l.join('\n') : '\nnenhuma renovação')});
+    const rev = colChart(labs, [{name:'Kits', color:C.kit, vals:mths.map(x => +x.sales)}, {name:'Mensalidades', color:C.men, vals:mths.map(x => +x.renewals)}], {aria:'Receita por mês', h:315, tip: i => `${mLabel(mths[i].month)}\nKits: ${brl(mths[i].sales)}\nMensalidades: ${brl(mths[i].renewals)}\nReembolsos: ${brl(mths[i].refunds)}\nComissões: ${brl(mths[i].commissions)}\nResultado: ${brl(nm(mths[i]) - +mths[i].commissions)}`});
+    const prev = colChart(M.weeks.map(w => dd(w.d)), [{name:'Mensalidades previstas', color:C.men, vals:M.weeks.map(w => w.v)}], {aria:'Caixa previsto por semana', h:230, tip: i => `Semana de ${dd(M.weeks[i].d)}\n${brl(M.weeks[i].v)}` + (M.weeks[i].l.length ? '\n' + M.weeks[i].l.join('\n') : '\nnenhuma renovação')});
     body = `<div class="kpis">
       ${kpi('Mensalidade recorrente', brl(mrr), `${M.payers.length} ${pl(M.payers.length, 'loja pagante', 'lojas pagantes')} · por mês`)}
       ${kpi('Receita no mês', brl(nm(cur)), dchip(nm(cur), nm(prv)) + ' <span class="dl">vs mês anterior</span>')}
@@ -882,13 +884,14 @@ function viewFin(){
     </div>
     <div class="dgrid g-wide">
       ${dcard('Receita por mês', rev + `<div class="lg"><span><u style="background:${C.kit}"></u>Kits</span><span><u style="background:${C.men}"></u>Mensalidades</span></div>`, `<div class="seg" role="group" aria-label="Período">${[3, 6, 12].map(d => `<button data-m="${d}" aria-pressed="${S.finMonths === d}">${d} meses</button>`).join('')}</div>`)}
-      ${dcard('Insights', `<ul class="insl">${sortIns(I) || '<li class="ins info"><i></i><div><b>Sem alertas agora</b></div></li>'}</ul>`)}
+      ${dcard('Próximas renovações', M.next.length ? `<ul class="nx">${M.next.slice(0, 6).map(r => `<li data-oid="${r.x.id}"><span class="nd"><b>${dd(r.d)}</b><small>${r.n === 0 ? 'hoje' : 'em ' + r.n + ' ' + pl(r.n, 'dia', 'dias')}</small></span><span class="nn">${esc(r.x.name)}<small>${r.x.auto ? 'Asaas automática' : 'manual'}${r.x.custom_price ? ' · combinado' : ''}</small></span><b>${brl(r.v)}</b></li>`).join('')}</ul>` : '<p class="sub">Nenhuma renovação nas próximas 8 semanas.</p>', '<button class="btn line small" data-ft="clientes">Ver todas</button>')}
     </div>
-    <div class="dgrid g3">
-      ${dcard('Caixa previsto · 8 semanas', prev + '<p class="dl" style="margin:6px 0 0">Estimativa: considera que todas as lojas ativas renovam.</p>')}
-      ${dcard('Próximas renovações', M.next.length ? `<ul class="nx">${M.next.map(r => `<li data-oid="${r.x.id}"><span class="nd"><b>${dd(r.d)}</b><small>${r.n === 0 ? 'hoje' : 'em ' + r.n + ' ' + pl(r.n, 'dia', 'dias')}</small></span><span class="nn">${esc(r.x.name)}<small>${r.x.auto ? 'Asaas automática' : 'manual'}${r.x.custom_price ? ' · combinado' : ''}</small></span><b>${brl(r.v)}</b></li>`).join('')}</ul>` : '<p class="sub">Nenhuma renovação nas próximas 8 semanas.</p>', '<button class="btn line small" data-ft="clientes">Ver todas</button>')}
+    <div class="dgrid g-wide">
+      ${dcard('Caixa previsto · próximas 8 semanas', prev + '<p class="dl" style="margin:6px 0 0">Estimativa: considera que todas as lojas ativas renovam.</p>')}
       ${dcard('Funil e base', `<p class="mini-t">Da cadastrada ao cliente recorrente</p>${hbars([{n:'Cadastradas', v:M.st.length, c:C.mut}, {n:'Pagaram o kit', v:nPaid, c:C.kit}, {n:'Já renovaram', v:nRen, c:C.men}])}<p class="mini-t">Situação das lojas</p>${stackBar([{n:'Pagantes ativas', v:M.payers.length, c:C.good}, {n:'Em teste', v:+b.trial, c:C.kit}, {n:'Sem pagamento', v:M.st.filter(x => x.status === 'ativa' && !fpayer(x)).length, c:C.mut}, {n:'Em risco', v:M.risk.length, c:C.bad}])}`)}
-    </div>`;
+    </div>
+    ${dcard('Insights', `<ul class="insl cols">${sortIns(I) || '<li class="ins info"><i></i><div><b>Sem alertas agora</b></div></li>'}</ul>`)}
+`;
   } else if(S.finTab === 'clientes'){
     const R = finRows(), cnt = k => M.st.filter(x => k === 'pagantes' ? fpayer(x) : fstate(x) === k).length;
     const totMen = R.filter(x => !x.cancelled_at && fpayer(x) && x.status === 'ativa').reduce((a, x) => a + +x.monthly, 0), totPaid = R.reduce((a, x) => a + +x.paid_total, 0);
