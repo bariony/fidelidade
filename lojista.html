@@ -1607,7 +1607,7 @@ function viewPerfil(){
     ${tab === 'ios' ? stepsIOS : stepsAnd}`;
   const html = head('Perfil', 'Seus dados, os avisos e o app no celular') + `<div class="pf">
     <section class="panel"><h2>Seus dados</h2>
-      <label for="pfn">Nome da loja</label><input id="pfn" value="${esc(S.store.name)}" disabled>
+      <label for="pfn">Seu nome</label><input id="pfn" value="${esc(S.personName || '')}" placeholder="Não informado" disabled>
       <label for="pfe">E-mail de acesso</label><input id="pfe" type="email" value="${esc(S.user.email || '')}" disabled>
       <div class="lock">${ICON.lock}<span>O e-mail não pode ser alterado por aqui. Para trocar, peça ajuda pelo botão ? no painel.</span></div></section>
     <section class="panel"><h2>Trocar a senha</h2>
@@ -1644,7 +1644,7 @@ async function boot(){
   const {data:{session}} = await sb.auth.getSession();
   S.user = session ? session.user : null;
   const r0 = parseHash(); if(r0) S.view = r0.view === 'cliente' ? 'clientes' : r0.view;
-  if(S.user){ await load(); loadNotifs(); refreshPush().then(() => { if(S.view === 'perfil') render(); }); if(r0 && r0.id) await openCustomer(r0.id, true); else syncHash(); } else render();
+  if(S.user){ await load(); sb.rpc('fid_my_person_name').then(({data}) => { S.personName = data || ''; if(S.view === 'perfil') render(); }); loadNotifs(); refreshPush().then(() => { if(S.view === 'perfil') render(); }); if(r0 && r0.id) await openCustomer(r0.id, true); else syncHash(); } else render();
 }
 boot();
 </script>
