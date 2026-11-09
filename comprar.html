@@ -96,6 +96,76 @@
   .fine{font-size:.82rem;color:var(--mut);margin-top:14px}
   @media (max-width:860px){.grid{grid-template-columns:1fr}.sum{order:-1;position:static}.kitimg{max-width:230px}}
   @media (max-width:520px){.two,.opts{grid-template-columns:1fr}.row3{grid-template-columns:130px 1fr}.card{padding:20px 18px}}
+
+  /* ===== Carrossel de segmentos (topo da página) ===== */
+  .sg{--ink:#14296B;--ink-deep:#0E1E52;--ink-lift:#223F94;--red-deep:#9E231B;--paper-mut:#C9D2F0;--kraft:#EAD9B6}
+  .sg button{font-family:inherit}
+  .sg :focus-visible{outline:3px solid var(--kraft);outline-offset:3px}
+  .sg::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:14px;background:radial-gradient(circle at 12px 14px,var(--paper) 9px,transparent 9.5px) 0 0/24px 14px repeat-x;pointer-events:none}
+  .sg{position:relative;overflow:hidden;color:var(--paper);background:radial-gradient(1100px 520px at 50% 38%,var(--ink-lift) 0%,var(--ink) 55%,var(--ink-deep) 100%);padding-block:34px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .sg::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(251,247,238,.09) 1.5px,transparent 1.7px);background-size:24px 24px;pointer-events:none}
+  .sg-wrap{position:relative;max-width:1240px;margin:0 auto}
+  .sg-head{text-align:center;max-width:820px;margin:0 auto}
+  .sg-kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 12px;font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--kraft)}
+    .sg-h{margin:0;font-family:'Fredoka',system-ui,sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,50px);line-height:1.1;text-wrap:balance}
+  .sg-h .sg-hl{background:linear-gradient(transparent 64%,rgba(224,58,47,.92) 64% 92%,transparent 92%);padding:0 .08em}
+  .sg-lead{margin:14px auto 0;max-width:600px;font-size:clamp(16px,1.9vw,19px);line-height:1.5;color:var(--paper-mut)}
+
+  /* palco do carrossel */
+  .sg-stage{position:relative;height:calc(var(--ch,340px) + 64px);margin-top:18px;perspective:1500px;touch-action:pan-y;user-select:none;-webkit-user-select:none;outline-offset:-6px}
+  .sg-glow{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:50%;filter:blur(96px);opacity:.5;background-color:#8FB4FF;transition:background-color .9s ease;pointer-events:none}
+  .sg-track{position:absolute;inset:0;transform-style:preserve-3d}
+  .sg-card{position:absolute;left:50%;top:50%;width:var(--cw,260px);height:var(--ch,340px);margin:calc(var(--ch,340px)/-2) 0 0 calc(var(--cw,260px)/-2);display:flex;flex-direction:column;background:var(--c);border:3px solid var(--ink-deep);border-radius:22px;box-shadow:6px 7px 0 rgba(8,16,48,.55);overflow:hidden;transition:transform .75s cubic-bezier(.22,1,.36,1),opacity .5s ease,filter .5s ease;will-change:transform,opacity;cursor:pointer}
+  .sg-card.on{cursor:default;box-shadow:7px 9px 0 rgba(8,16,48,.6)}
+  .sg-art{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:14px 14px 0}
+  .sg-art svg{width:min(70%,190px);height:100%;max-height:100%;filter:drop-shadow(0 5px 0 rgba(20,41,107,.18));transition:transform .6s cubic-bezier(.22,1,.36,1)}
+  .sg-card.on .sg-art svg{transform:scale(1.06) rotate(-2deg)}
+  .sg-info{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+  .sg-nm{margin:0;font-family:'Fredoka',system-ui,sans-serif;font-weight:700;font-size:clamp(19px,2.1vw,23px);line-height:1.1;color:var(--ink-deep);text-align:center;text-wrap:balance}
+  .sg-chip{align-self:center;background:var(--ink-deep);color:var(--paper);font-weight:800;font-size:12.5px;border-radius:99px;padding:4px 11px;white-space:nowrap}
+  .sg-stamps{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:2px}
+  .sg-st{aspect-ratio:1;border-radius:50%;border:2.5px solid var(--ink-deep);background:rgba(251,247,238,.55);display:grid;place-items:center;font-size:10px;line-height:1;color:var(--ink-deep)}
+  .sg-st.on{background:var(--red)}
+  .sg-st.gift.on{background:#FFD23F}
+  .sg-st.gift.on::after{content:"★"}
+  .sg-st.pop{animation:sg-pop .42s cubic-bezier(.3,1.7,.5,1)}
+  @keyframes sg-pop{0%{transform:scale(.2) rotate(-30deg);opacity:0}70%{transform:scale(1.35)}100%{transform:scale(1) rotate(0);opacity:1}}
+
+  .sg-nav{position:absolute;top:50%;z-index:40;width:54px;height:54px;margin-top:-27px;border-radius:50%;background:var(--paper);border:3px solid var(--ink-deep);box-shadow:3px 4px 0 var(--red);display:grid;place-items:center;transition:transform .15s ease,box-shadow .15s ease}
+  .sg-nav:hover{transform:translate(-1px,-1px);box-shadow:4px 5px 0 var(--red)}
+  .sg-nav:active{transform:translate(2px,3px);box-shadow:1px 1px 0 var(--red)}
+  .sg-nav svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+  .sg-nav.prev{left:2px}.sg-nav.next{right:2px}
+
+  .sg-cap{position:relative;text-align:center;margin:10px auto 0;max-width:640px;min-height:104px}
+  .sg-cap h2{margin:0;font-family:'Fredoka',system-ui,sans-serif;font-weight:700;font-size:clamp(26px,3.4vw,34px);line-height:1.1}
+  .sg-cap p{margin:8px 0 0;font-size:clamp(16px,1.8vw,18px);line-height:1.5;color:var(--paper-mut)}
+  .sg-cap .swap{animation:sg-swap .5s cubic-bezier(.22,1,.36,1)}
+  @keyframes sg-swap{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .sg-dots{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .sg-dots button{width:10px;height:10px;padding:0;border-radius:99px;border:0;background:rgba(251,247,238,.35);transition:width .35s ease,background-color .35s ease}
+  .sg-dots button[aria-current="true"]{width:30px;background:var(--kraft)}
+
+  .sg-cta{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:26px;text-align:center}
+  .sg-cta small{color:var(--paper-mut);font-weight:700;font-size:14px}
+
+
+  @media (max-width:759px){
+    .sg{padding-block:24px 32px}
+    .sg-nav{width:46px;height:46px;top:auto;bottom:4px;margin-top:0}
+    .sg-nav.prev{left:6px}.sg-nav.next{right:6px}
+    .sg-cap{min-height:128px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .sg-card,.sg-art svg,.sg-glow,.sg-dots button{transition-duration:.01s!important}
+    .sg-st.pop,.sg-cap .swap{animation:none!important}
+  }
+
+  .sg-btn{appearance:none;cursor:pointer;border:3px solid var(--paper);background:var(--red);color:#fff;font-family:'Fredoka',system-ui,sans-serif;font-weight:600;font-size:clamp(1.12rem,2.3vw,1.3rem);padding:18px 30px;border-radius:16px;box-shadow:5px 5px 0 var(--paper);transition:transform .12s ease,box-shadow .12s ease}
+  .sg-btn:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--paper)}
+  .sg-btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--paper)}
+  body:has(#app .ok) .sg{display:none}
 </style>
 <!-- Meta Pixel Code -->
 <script>
@@ -126,6 +196,32 @@ src="https://www.facebook.com/tr?id=1763604958058018&ev=PageView&noscript=1"
 </head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="./"><span class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></svg></span><span>carimb<em>ô</em></span></a></div></header>
+<!-- SEGMENTOS (carrossel) -->
+<section class="sg" id="segmentos" aria-labelledby="sg-h">
+  <div class="sg-wrap">
+    <div class="sg-head">
+      <p class="sg-kicker">Carimbô fidelidade digital</p>
+      <h2 class="sg-h" id="sg-h">Funciona muito bem para <span class="sg-hl">todos esses segmentos</span></h2>
+      <p class="sg-lead">Se você vende ou presta serviço para clientes que voltam com frequência, o Carimbô é para você.</p>
+    </div>
+    <div class="sg-stage" id="sg-stage" tabindex="0" role="region" aria-roledescription="carrossel" aria-label="Segmentos em que o Carimbô funciona">
+      <div class="sg-glow" id="sg-glow"></div>
+      <div class="sg-track" id="sg-track"></div>
+      <button class="sg-nav prev" id="sg-prev" type="button" aria-label="Segmento anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="sg-nav next" id="sg-next" type="button" aria-label="Próximo segmento"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="sg-cap" aria-live="polite" aria-atomic="true">
+      <h3 id="sg-capName"></h3>
+      <p id="sg-capLine"></p>
+    </div>
+    <div class="sg-dots" id="sg-dots" role="group" aria-label="Escolher segmento"></div>
+    <div class="sg-cta">
+      <button class="sg-btn" id="sg-cta" type="button">Quero o kit por R$ 99,97</button>
+      <small>2 bastões + placa NFC do Google + 30 dias de painel incluídos</small>
+    </div>
+  </div>
+</section>
+
 <main><div class="wrap" id="app"></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -235,6 +331,7 @@ const maskCep = v => { const d = v.replace(/\D/g, '').slice(0, 8); return d.leng
 
 function refresh(){
   const p = isPromo();
+  const sgb = document.getElementById("sg-cta"); if(sgb) sgb.textContent = "Quero o kit por " + brl(p ? PROMO_PRICE : kitNet());
   $('#addr').style.display = '';
   $('#prbox').innerHTML = p
     ? `<div class="price"><b>${brl(PROMO_PRICE)}</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · já com o envio · condição de lançamento${S.promo.left <= 10 ? ` · restam <b>${S.promo.left}</b> de ${S.promo.limit}` : ''}</small>`
@@ -411,6 +508,170 @@ function done(store, name){
 }
 view();
 try { fbq('track', 'ViewContent', {content_name:'Kit Carimbô', content_type:'product', currency:'BRL'}); } catch(_){}
+</script>
+<script>
+
+(function(){
+  var O = '<svg viewBox="0 0 120 120" fill="none" stroke="#14296B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">';
+  var PAPER = '#FBF7EE', RED = '#E03A2F', KRAFT = '#EAD9B6', INK = '#14296B';
+  function stripes(){
+    var s = '', i, y;
+    for (i = 0; i < 3; i++) { y = 34 + i * 40; s += '<path d="M30 ' + y + ' L90 ' + (y - 30) + '" stroke="#E03A2F"/>'; }
+    var b = '';
+    for (i = 0; i < 3; i++) { y = 54 + i * 40; b += '<path d="M30 ' + y + ' L90 ' + (y - 30) + '" stroke="#2F5BD0"/>'; }
+    return '<g clip-path="url(#cpb)" stroke-width="10" stroke-linecap="butt">' + s + b + '</g>';
+  }
+  var SEGS = [
+    { n: 'Barbearia', c: '#8FB4FF', chip: 'Corte grátis', line: 'Quem corta todo mês merece um corte por conta da casa.',
+      svg: O + '<defs><clipPath id="cpb"><rect x="42" y="26" width="36" height="70" rx="4"/></clipPath></defs><rect x="42" y="26" width="36" height="70" fill="' + PAPER + '"/>' + stripes() + '<rect x="42" y="26" width="36" height="70" rx="4"/><rect x="36" y="14" width="48" height="14" rx="5" fill="' + INK + '"/><rect x="36" y="94" width="48" height="14" rx="5" fill="' + INK + '"/></svg>' },
+    { n: 'Pet shop', c: '#FFD27A', chip: 'Banho grátis', line: 'Banho e tosa toda semana viram um banho de graça no fim do cartão.',
+      svg: O + '<path d="M60 62C46 62 36 74 38 86 40 96 50 98 60 94 70 98 80 96 82 86 84 74 74 62 60 62Z" fill="' + PAPER + '"/><ellipse cx="34" cy="54" rx="8" ry="11" transform="rotate(-22 34 54)" fill="' + PAPER + '"/><ellipse cx="49" cy="36" rx="8" ry="12" transform="rotate(-8 49 36)" fill="' + PAPER + '"/><ellipse cx="71" cy="36" rx="8" ry="12" transform="rotate(8 71 36)" fill="' + PAPER + '"/><ellipse cx="86" cy="54" rx="8" ry="11" transform="rotate(22 86 54)" fill="' + PAPER + '"/><path d="M60 88C52 82 53 76 57 76 59 76 60 78 60 78S61 76 63 76C67 76 68 82 60 88Z" fill="' + RED + '" stroke-width="3"/></svg>' },
+    { n: 'Manicure', c: '#FFA8B8', chip: 'Esmaltação grátis', line: 'A cliente fiel volta toda semana. Dê um motivo para ela não trocar de manicure.',
+      svg: O + '<rect x="49" y="12" width="22" height="32" rx="6" fill="' + INK + '"/><rect x="54" y="44" width="12" height="12" fill="' + PAPER + '"/><rect x="34" y="55" width="52" height="52" rx="14" fill="' + RED + '"/><rect x="43" y="64" width="8" height="32" rx="4" fill="#fff" stroke="none" opacity=".55"/></svg>' },
+    { n: 'Estúdio de beleza', c: '#D4B8FF', chip: 'Hidratação grátis', line: 'Cabelo, cílios, sobrancelha: o retorno já é certo. Agora ele vem com prêmio.',
+      svg: O + '<circle cx="58" cy="48" r="32" fill="' + KRAFT + '"/><circle cx="58" cy="48" r="23" fill="' + PAPER + '"/><path d="M45 40C48 33 54 30 61 30" stroke="#8FB4FF" stroke-width="5"/><rect x="51" y="80" width="14" height="30" rx="7" fill="' + RED + '"/><path d="M92 14l3.5 8.5 8.5 3.5-8.5 3.5L92 38l-3.5-8.5L80 26l8.5-3.5z" fill="' + PAPER + '" stroke-width="3"/></svg>' },
+    { n: 'Distribuidora de bebidas', c: '#FFC78A', chip: 'Brinde na 10ª compra', line: 'Bar e mercadinho compram toda semana. Fidelize antes que o concorrente apareça.',
+      svg: O + '<rect x="40" y="10" width="12" height="8" rx="2" fill="' + INK + '"/><rect x="40" y="16" width="12" height="26" rx="4" fill="#D9A441"/><rect x="33" y="38" width="26" height="70" rx="10" fill="#D9A441"/><rect x="33" y="64" width="26" height="22" fill="' + PAPER + '"/><rect x="68" y="42" width="30" height="66" rx="9" fill="' + RED + '"/><rect x="68" y="62" width="30" height="22" fill="' + PAPER + '"/><rect x="70" y="36" width="26" height="10" rx="4" fill="' + KRAFT + '"/><circle cx="80" cy="24" r="4" fill="' + PAPER + '" stroke-width="3"/><circle cx="92" cy="14" r="3" fill="' + PAPER + '" stroke-width="3"/></svg>' },
+    { n: 'Ótica', c: '#9BE0D0', chip: 'Limpeza e ajuste grátis', line: 'Quem usa óculos volta para ajuste, limpeza e troca. Cada visita vale um carimbo.',
+      svg: O + '<circle cx="36" cy="64" r="24" fill="' + PAPER + '" stroke-width="6"/><circle cx="84" cy="64" r="24" fill="' + PAPER + '" stroke-width="6"/><path d="M60 60Q60 52 60 60" stroke-width="6"/><path d="M58 58Q60 50 62 58" stroke-width="6"/><path d="M12 60L6 46M108 60L114 46" stroke-width="6"/><path d="M24 56C27 51 31 49 36 49M72 56C75 51 79 49 84 49" stroke="#8FB4FF" stroke-width="4"/></svg>' },
+    { n: 'Farmácia', c: '#9EE6A8', chip: 'Brinde de higiene', line: 'Compra de todo mês, remédio de uso contínuo: cliente que volta sem você precisar chamar.',
+      svg: O + '<path d="M48 18h24v28h28v24H72v28H48V70H20V46h28z" fill="' + RED + '" stroke-width="5"/><path d="M54 26v26H28M54 26h12" stroke="#fff" stroke-width="4" opacity=".55"/></svg>' },
+    { n: 'Motel', c: '#B7A4FF', chip: 'Cortesia na 5ª estadia', line: 'O casal que volta ganha uma cortesia. Sem cadastro complicado e sem baixar app.',
+      svg: O + '<path d="M60 52C34 36 24 18 38 12 48 8 56 16 60 22 64 16 72 8 82 12 96 18 86 36 60 52Z" fill="' + RED + '" transform="translate(0 -2) scale(.9) translate(7 8)" stroke-width="4.5"/><rect x="14" y="52" width="10" height="52" rx="3" fill="#B07A4A"/><rect x="24" y="76" width="82" height="16" rx="4" fill="' + PAPER + '"/><rect x="28" y="64" width="26" height="14" rx="7" fill="' + PAPER + '"/><path d="M52 76V92H106V80Q106 76 100 76Z" fill="' + RED + '"/><rect x="100" y="68" width="10" height="36" rx="3" fill="#B07A4A"/></svg>' },
+    { n: 'Restaurante', c: '#FFB68F', chip: 'Sobremesa grátis', line: 'O almoço de todo dia vira hábito quando o 10º vem com sobremesa.',
+      svg: O + '<circle cx="60" cy="62" r="31" fill="' + PAPER + '"/><circle cx="60" cy="62" r="20" stroke="' + KRAFT + '" stroke-width="5"/><path d="M12 24v20c0 6 3 10 8 10s8-4 8-10V24M20 24v26M20 54v50" stroke-width="5"/><path d="M104 104V24c-10 6-14 22-14 40h14" fill="' + PAPER + '" stroke-width="5"/></svg>' },
+    { n: 'Sorveteria', c: '#A7E3FF', chip: 'Bola extra', line: 'Calor, criança, família: todo mundo volta. A bola extra fecha o cartão.',
+      svg: O + '<path d="M38 60L82 60 60 108Z" fill="' + KRAFT + '"/><path d="M46 70L66 96M58 62L74 88M72 62L52 100" stroke-width="2.5"/><path d="M36 56C34 42 44 34 60 34S86 42 84 56C84 64 78 64 76 58 74 66 68 66 66 58 63 66 57 66 54 58 52 66 46 66 44 58 42 64 36 64 36 56Z" fill="#F28B9B"/><circle cx="60" cy="28" r="18" fill="' + PAPER + '"/><circle cx="62" cy="9" r="6" fill="' + RED + '" stroke-width="3"/><path d="M62 4C66 0 70 1 72 4" stroke-width="3"/></svg>' },
+    { n: 'Cafeteria', c: '#E8C9A0', chip: 'Café grátis', line: 'O cafezinho da manhã é o cliente mais fiel que existe. Premie esse hábito.',
+      svg: O + '<path d="M30 54H86V72C86 90 74 102 58 102S30 90 30 72Z" fill="' + PAPER + '"/><ellipse cx="58" cy="54" rx="28" ry="6" fill="#7A4B2A"/><path d="M86 62H94a10 10 0 0 1 0 20H83" stroke-width="5"/><ellipse cx="58" cy="106" rx="38" ry="7" fill="' + KRAFT + '"/><path d="M46 42c-6-7 6-11 0-19M62 42c-6-7 6-11 0-19M78 42c-6-7 6-11 0-19" stroke="' + PAPER + '" stroke-width="4.5"/></svg>' },
+    { n: 'Lava rápido', c: '#8EE0F0', chip: 'Lavagem grátis', line: 'O carro volta todo mês. A 6ª lavagem fica por conta da casa.',
+      svg: O + '<path d="M12 86V72C12 66 16 62 22 60L38 57 48 43C50 40 53 39 56 39H80C84 39 87 41 89 44L98 57 100 59C106 61 109 65 109 71V86Z" fill="' + RED + '"/><path d="M50 56L57 45H78L86 56Z" fill="' + PAPER + '" stroke-width="3.5"/><circle cx="34" cy="88" r="12" fill="' + INK + '"/><circle cx="34" cy="88" r="4.5" fill="' + PAPER + '" stroke="none"/><circle cx="88" cy="88" r="12" fill="' + INK + '"/><circle cx="88" cy="88" r="4.5" fill="' + PAPER + '" stroke="none"/><circle cx="28" cy="28" r="9" fill="' + PAPER + '" stroke-width="3"/><circle cx="48" cy="17" r="5" fill="' + PAPER + '" stroke-width="3"/><circle cx="98" cy="26" r="10" fill="' + PAPER + '" stroke-width="3"/><circle cx="80" cy="14" r="4" fill="' + PAPER + '" stroke-width="3"/></svg>' }
+    ,
+    { n: 'O seu segmento', c: '#FBF7EE', g: '#8FB4FF', own: 1, chip: 'Você escolhe o prêmio', line: 'O seu segmento só precisa da sua criatividade para fidelizar. Escolha o prêmio e a meta, o Carimbô cuida do resto.',
+      svg: O + '<g transform="translate(60 66) scale(.82) translate(-50 -50)" stroke="none"><circle cx="50" cy="22" r="13" fill="#14296B"/><rect x="44" y="30" width="12" height="26" fill="#14296B"/><rect x="22" y="54" width="56" height="16" rx="6" fill="#14296B"/><rect x="14" y="78" width="72" height="9" rx="4.5" fill="#E03A2F"/></g><path d="M96 12l3 7.5 7.5 3-7.5 3-3 7.5-3-7.5-7.5-3 7.5-3z" fill="#FFD23F" stroke-width="3"/><path d="M20 18l2.2 5.3 5.3 2.2-5.3 2.2L20 33l-2.2-5.3-5.3-2.2 5.3-2.2z" fill="#E03A2F" stroke-width="3"/></svg>' }
+  ];
+
+  var N = SEGS.length, idx = 0, side = 2, mobile = false, timers = [], auto = null, hold = false;
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  var stage = document.getElementById('sg-stage'), track = document.getElementById('sg-track'), glow = document.getElementById('sg-glow');
+  var capName = document.getElementById('sg-capName'), capLine = document.getElementById('sg-capLine'), dotsEl = document.getElementById('sg-dots');
+  var cards = [], dots = [];
+
+  SEGS.forEach(function (s, i) {
+    var el = document.createElement('div');
+    el.className = 'sg-card';
+    el.style.setProperty('--c', s.c);
+    el.setAttribute('role', 'group');
+    el.setAttribute('aria-roledescription', 'segmento');
+    el.setAttribute('aria-label', (i + 1) + ' de ' + N + ': ' + s.n);
+    var st = '';
+    for (var k = 0; k < 8; k++) st += '<span class="sg-st' + (k === 7 ? ' gift' : '') + '"></span>';
+    el.innerHTML = '<div class="sg-art">' + s.svg + '</div><div class="sg-info"><h3 class="sg-nm">' + s.n + '</h3><span class="sg-chip">' + (s.own ? '' : 'Exemplo: ') + s.chip + '</span><div class="sg-stamps">' + st + '</div></div>';
+    el.addEventListener('click', function () { if (!moved && i !== idx) { idx = i; render(true); restart(); } });
+    track.appendChild(el); cards.push(el);
+    var d = document.createElement('button');
+    d.type = 'button'; d.setAttribute('aria-label', s.n);
+    d.addEventListener('click', function () { idx = i; render(true); restart(); });
+    dotsEl.appendChild(d); dots.push(d);
+  });
+
+  function mod(n) { return ((n % N) + N) % N; }
+  function idle(card) { card.querySelectorAll('.sg-st').forEach(function (s, k) { s.classList.remove('pop', 'gift'); s.classList.toggle('on', k < 5); if (k === 7) s.classList.add('gift'); }); }
+  function stamp(card) {
+    timers.forEach(clearTimeout); timers = [];
+    var sts = card.querySelectorAll('.sg-st');
+    sts.forEach(function (s) { s.classList.remove('on', 'pop'); });
+    sts.forEach(function (s, k) {
+      var show = function () { s.classList.add('on'); if (!reduce) { void s.offsetWidth; s.classList.add('pop'); } };
+      if (reduce) show(); else timers.push(setTimeout(show, 450 + k * 120));
+    });
+  }
+
+  function size() {
+    var w = stage.clientWidth;
+    mobile = w < 760; side = mobile ? 1 : 2;
+    var cw = mobile ? Math.min(250, w * 0.54) : Math.min(290, w / 3.9);
+    var ch = Math.round(cw * (mobile ? 1.36 : 1.3));
+    stage.style.setProperty('--cw', Math.round(cw) + 'px');
+    stage.style.setProperty('--ch', ch + 'px');
+    return cw;
+  }
+
+  var X_D = [0, 0.80, 1.42, 1.9], X_M = [0, 0.72, 1.25, 1.6];
+  var S_D = [1, 0.84, 0.69, 0.6], S_M = [1, 0.82, 0.66, 0.6];
+  var R_D = [0, 26, 34, 38], R_M = [0, 20, 28, 30];
+
+  function render(animateStamp) {
+    var cw = size();
+    cards.forEach(function (el, i) {
+      var d = mod(i - idx); if (d > N / 2) d -= N;
+      var ad = Math.min(Math.abs(d), 3), sg = d < 0 ? -1 : 1;
+      var x = (mobile ? X_M : X_D)[ad] * cw * sg, sc = (mobile ? S_M : S_D)[ad], rot = (mobile ? R_M : R_D)[ad];
+      el.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + (-ad * 70) + 'px) rotateY(' + (-sg * rot) + 'deg) scale(' + sc + ')';
+      el.style.opacity = ad <= side ? 1 : 0;
+      el.style.filter = ad === 0 ? 'none' : 'brightness(' + (ad === 1 ? 0.86 : 0.7) + ') saturate(.9)';
+      el.style.zIndex = 20 - ad;
+      el.style.pointerEvents = ad <= side ? 'auto' : 'none';
+      var on = ad === 0;
+      el.classList.toggle('on', on);
+      el.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    dots.forEach(function (b, i) { b.setAttribute('aria-current', i === idx ? 'true' : 'false'); });
+    var s = SEGS[idx];
+    glow.style.backgroundColor = s.g || s.c;
+    if (capName.textContent !== s.n) {
+      capName.textContent = s.n; capLine.textContent = s.line;
+      [capName, capLine].forEach(function (e) { e.classList.remove('swap'); void e.offsetWidth; e.classList.add('swap'); });
+    }
+    cards.forEach(function (el, i) { if (i !== idx) idle(el); });
+    if (animateStamp !== false) stamp(cards[idx]);
+  }
+
+  function go(dir) { idx = mod(idx + dir); render(true); restart(); try { gtag('event', 'segmento_carrossel', { segmento: SEGS[idx].n }); } catch (e) {} }
+  document.getElementById('sg-prev').addEventListener('click', function () { go(-1); });
+  document.getElementById('sg-next').addEventListener('click', function () { go(1); });
+  stage.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+  });
+
+  /* arrastar com o dedo ou mouse */
+  var sx = 0, sy = 0, down = false, moved = false;
+  stage.addEventListener('pointerdown', function (e) { if (e.target.closest('.sg-nav')) return; down = true; moved = false; sx = e.clientX; sy = e.clientY; hold = true; });
+  function end(e) {
+    if (!down) return; down = false;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 42 && Math.abs(dx) > Math.abs(dy)) { moved = true; go(dx < 0 ? 1 : -1); setTimeout(function () { moved = false; }, 60); }
+    hold = false;
+  }
+  stage.addEventListener('pointerup', end);
+  stage.addEventListener('pointercancel', function () { down = false; hold = false; });
+
+  /* troca sozinho, pausa quando a pessoa mexe */
+  function restart() { clearInterval(auto); if (reduce) return; auto = setInterval(function () { if (!hold && !document.hidden) { idx = mod(idx + 1); render(true); } }, 4600); }
+  stage.addEventListener('mouseenter', function () { hold = true; });
+  stage.addEventListener('mouseleave', function () { hold = false; });
+  stage.addEventListener('focusin', function () { hold = true; });
+  stage.addEventListener('focusout', function () { hold = false; });
+
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { render(false); }, 80); });
+  render(true); restart();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { render(false); });
+})();
+
+(function(){
+  var b = document.getElementById('sg-cta'); if (!b) return;
+  b.addEventListener('click', function(){
+    try { if (window.fbq) fbq('track', 'Lead'); } catch (e) {}
+    try { if (window.gtag) gtag('event', 'cta_click', { cta_id: 'segmentos_comprar' }); } catch (e) {}
+    var f0 = document.getElementById('f'), f = (f0 && f0.closest('section')) || f0 || document.getElementById('app');
+    var rm = false; try { rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    f.scrollIntoView({ behavior: rm ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(function () { var n = document.getElementById('nm'); if (n) n.focus({ preventScroll: true }); }, rm ? 0 : 650);
+  });
+})();
+
 </script>
 </body>
 </html>
