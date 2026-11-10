@@ -264,6 +264,7 @@
   td{vertical-align:middle}
   td .dl,.dl{font-size:.78rem}
   tr.r{cursor:pointer}
+  td,th:not(.srt),.dl,code,.card,.dcard,.kpi{user-select:text;-webkit-user-select:text}
   tr.r.on td{background:var(--paper);border-bottom-color:transparent}
   tr.x td{background:var(--paper);padding:12px 16px 16px}
   tr.x .tw{background:#fff}
@@ -382,6 +383,17 @@ const sb = supabase.createClient(FID.SUPABASE_URL, FID.SUPABASE_KEY, {auth:{pers
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){} /* pede ao navegador para não apagar o login guardado */
 document.addEventListener('visibilitychange', () => { if(!document.hidden) sb.auth.getSession().catch(() => {}); }); /* ao voltar para o app, renova o login se precisar */
 const root = document.getElementById('app');
+/* Clique em linha/cartão que abre algo, sem atrapalhar quem quer copiar texto:
+   ignora o clique se há texto selecionado, e o duplo clique (selecionar palavra) cancela a ação. */
+const hasSel = () => { try { return String(getSelection()).trim() !== ''; } catch(_) { return false; } };
+function onTap(el, fn, skip){
+  el.onclick = e => {
+    if(skip && e.target.closest(skip)) return;
+    clearTimeout(el._tap);
+    if(e.detail > 1 || hasSel()) return;
+    el._tap = setTimeout(() => { if(!hasSel()) fn(e); }, 230);
+  };
+}
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pl = (n, a, b) => n === 1 ? a : b;
@@ -631,7 +643,7 @@ function viewList(){
   $('#repf').onchange = e => { S.rep = e.target.value; render(false); };
   root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(false); });
   root.querySelectorAll('[data-s]').forEach(h => { const go = () => { const k = h.dataset.s; S.sort = S.sort.k === k ? {k, d:-S.sort.d} : {k, d:['name', 'status', 'rep', 'ren'].includes(k) ? 1 : -1}; render(false); }; h.onclick = go; h.onkeydown = e => { if(e.key === 'Enter') go(); }; });
-  root.querySelectorAll('tr[data-id],[data-oid]').forEach(r => { r.onclick = () => openStore(r.dataset.id || r.dataset.oid); });
+  root.querySelectorAll('tr[data-id],[data-oid]').forEach(r => onTap(r, () => openStore(r.dataset.id || r.dataset.oid)));
 }
 
 
@@ -807,7 +819,7 @@ const repLink = code => baseUrl() + 'comprar?r=' + code;
 const KIND2 = {aquisicao:'Venda do kit', recorrencia:'Mensalidade', estorno:'Estorno'};
 const xrow = (key, cells, detail, n) => `<tr class="r${S.open[key] ? ' on' : ''}" data-row="${key}">${cells}</tr>${S.open[key] ? `<tr class="x"><td colspan="${n}">${detail}</td></tr>` : ''}`;
 function bindRows(){
-  root.querySelectorAll('[data-row]').forEach(tr => tr.onclick = e => { if(e.target.closest('button:not([data-toggle]),a,input,select,textarea,label')) return; const k = tr.dataset.row; S.open[k] = !S.open[k]; render(false); });
+  root.querySelectorAll('[data-row]').forEach(tr => onTap(tr, () => { const k = tr.dataset.row; S.open[k] = !S.open[k]; render(false); }, 'button:not([data-toggle]),a,input,select,textarea,label'));
   root.querySelectorAll('[data-toggle]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.toggle; S.open[k] = !S.open[k]; render(false); });
 }
 function heroTab(title, sub){
