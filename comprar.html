@@ -232,7 +232,7 @@ const app = document.getElementById('app');
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',');
-const KIT = 99.97, FRETE = 15.99, PROMO_PRICE = 39.97; /* promoção de lançamento: preço total (kit + envio) das primeiras lojas; limite e valor reais ficam no banco (fid_promo_state) */
+const KIT = 99.97, FRETE = 14.99, PROMO_PRICE = 39.97; /* promoção de lançamento: preço total (kit + envio) das primeiras lojas; limite e valor reais ficam no banco (fid_promo_state) */
 const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 
 /* Representante: o código vem no link (?r=) e fica guardado no aparelho por 60 dias. Fica invisível para o cliente. */
@@ -255,7 +255,7 @@ const MSG = {
   entre_primeiro:'Entre com e-mail e senha para continuar.', loja_nao_esta_em_teste:'Sua loja não está em período de teste.', kit_ja_comprado:'O kit desta loja já foi comprado.', kit_invalido:'Esse kit não está disponível. Escolha outro.', pedido_em_aberto:'Você já tem um pedido do kit em aberto. Pague pelo link recebido ou fale com a gente.'
 };
 const UPG = new URLSearchParams(location.search).has('upgrade');
-const S = {delivery:'correios', cepOk:false, orderId:null, coupon:null, promo:null, kits:null, kit:'medio'};
+const S = {delivery:'correios', cepOk:false, cep8:false, orderId:null, coupon:null, promo:null, kits:null, kit:'medio'};
 const SHOWKITS = new URLSearchParams(location.search).has('kits');
 /* kit escolhido (preço, frete e itens vêm do banco; os valores abaixo só valem enquanto a lista não carrega) */
 const K = () => (S.kits && S.kits.find(k => k.code === S.kit)) || {code:'medio', name:'Médio', wands:2, plates:1, price:KIT, shipping:FRETE};
@@ -343,7 +343,7 @@ function renderKits(){
   box.hidden = false;
   box.innerHTML = `<h2 style="font-size:1.05rem;margin:22px 0 10px">Escolha o seu kit</h2><div class="kopts" role="radiogroup" aria-label="Escolha o kit" style="display:grid;gap:10px">${S.kits.map(k => `<button type="button" class="kopt" role="radio" aria-checked="${k.code === S.kit}" data-kit="${esc(k.code)}" style="text-align:left;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:2px solid ${k.code === S.kit ? '#3A5BC7' : '#E3E6EE'};background:${k.code === S.kit ? '#F2F5FF' : '#fff'};font:inherit;color:inherit;cursor:pointer">
     <span style="display:flex;align-items:center;gap:12px"><img src="img/kit-${esc(k.code)}.webp" alt="" width="64" height="51" loading="lazy" style="width:64px;height:auto;flex:none"><span><b>${esc(k.name)}</b>${k.code === 'medio' ? ' <small style="background:#3A5BC7;color:#fff;border-radius:99px;padding:2px 8px;font-size:.72rem;margin-left:4px">mais pedido</small>' : ''}<br><small style="color:var(--mut)">${plural(k.wands, 'bastão', 'bastões')} + ${plural(k.plates, 'placa', 'placas')} do Google</small></span></span>
-    <span style="text-align:right;white-space:nowrap"><b>${brl(+k.price)}</b><br><small style="color:var(--mut)">${+k.shipping === 0 ? 'frete grátis' : '+ ' + brl(+k.shipping) + ' de frete'}</small></span></button>`).join('')}</div>`;
+    <span style="text-align:right;white-space:nowrap"><b>${brl(+k.price)}</b>${+k.shipping === 0 ? '<br><small style="color:#0E7A47;font-weight:700">frete grátis</small>' : ''}</span></button>`).join('')}</div>`;
   box.querySelectorAll('[data-kit]').forEach(b => b.addEventListener('click', () => {
     if(S.kit === b.dataset.kit) return;
     S.kit = b.dataset.kit; S.orderId = null; refresh();
@@ -363,12 +363,13 @@ function refresh(){
   $('#addr').style.display = '';
   $('#prbox').innerHTML = p
     ? `<div class="price"><b>${brl(PROMO_PRICE)}</b><s>R$ 249</s></div><small style="color:var(--mut)">pagamento único · já com o envio · condição de lançamento${S.promo.left <= 10 ? ` · restam <b>${S.promo.left}</b> de ${S.promo.limit}` : ''}</small>`
-    : `<div class="price"><b>${brl(+kk.price)}</b>${kk.code === 'medio' ? '<s>R$ 249</s>' : ''}</div><small style="color:var(--mut)">pagamento único · ${+kk.shipping === 0 ? 'frete grátis' : '+ ' + brl(+kk.shipping) + ' de frete (Correios)'}</small>`;
+    : `<div class="price"><b>${brl(+kk.price)}</b>${kk.code === 'medio' ? '<s>R$ 249</s>' : ''}</div><small style="color:var(--mut)">pagamento único${+kk.shipping === 0 ? ' · frete grátis' : ''}</small>`;
   $('#tot').innerHTML = p
     ? `<div><span>Kit + envio (lançamento)</span><span>${brl(PROMO_PRICE)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`
-    : `<div><span>Kit${tiers ? ' ' + esc(kk.name) : ''}</span><span>${S.coupon ? `<s style="opacity:.6">${brl(+kk.price)}</s> ${brl(kitNet())}` : brl(+kk.price)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}<div><span>Frete (Correios)</span><span>${+kk.shipping === 0 ? '<b class="g">grátis</b>' : brl(+kk.shipping)}</span></div><div class="t"><span>Total</span><span>${brl(total())}</span></div>`;
-  $('#go').textContent = 'Ir para o pagamento · ' + brl(total());
-  const gn = $('#gonote'); if(gn) gn.textContent = (!p && +kk.shipping > 0) ? `Total: kit ${brl(kitNet())} + frete ${brl(+kk.shipping)} (Correios) = ${brl(total())}` : (!p ? `Total: kit ${brl(kitNet())}, com frete grátis` : '');
+    : `<div><span>Kit${tiers ? ' ' + esc(kk.name) : ''}</span><span>${S.coupon ? `<s style="opacity:.6">${brl(+kk.price)}</s> ${brl(kitNet())}` : brl(+kk.price)}</span></div>${S.coupon ? `<div><span>Cupom ${esc(S.coupon.code.toUpperCase())}</span><span class="g">−${S.coupon.pct}%</span></div>` : ''}${+kk.shipping === 0 ? '<div><span>Frete (Correios)</span><span><b class="g">grátis</b></span></div>' : S.cep8 ? `<div><span>Frete (Correios)</span><span>${brl(+kk.shipping)}</span></div>` : '<div><span>Frete (Correios)</span><span style="color:var(--mut)">informe o CEP</span></div>'}${(+kk.shipping === 0 || S.cep8) ? `<div class="t"><span>Total</span><span>${brl(total())}</span></div>` : ''}`;
+  const showTot = p || +kk.shipping === 0 || S.cep8;
+  $('#go').textContent = showTot ? 'Ir para o pagamento · ' + brl(total()) : 'Ir para o pagamento';
+  const gn = $('#gonote'); if(gn) gn.textContent = (!p && +kk.shipping > 0 && !S.cep8) ? 'O frete aparece assim que você informar o CEP.' : (!p && +kk.shipping > 0) ? `Total: kit ${brl(kitNet())} + frete ${brl(+kk.shipping)} (Correios) = ${brl(total())}` : (!p ? `Total: kit ${brl(kitNet())}, com frete grátis` : '');
 }
 async function loadPromo(){
   try { const {data} = await sb.rpc('fid_promo_state'); if(data && typeof data.left === 'number'){ S.promo = data; refresh(); } } catch(_){}
@@ -405,7 +406,7 @@ async function lookupCep(cep){
 }
 async function onCep(){
   const raw = $('#cep').value.replace(/\D/g, ''), st = $('#cepst'); setErr('cep', '');
-  S.cepOk = false;
+  S.cepOk = false; const had8 = S.cep8; S.cep8 = raw.length === 8; if(had8 !== S.cep8) refresh();
   if(raw.length < 8){ st.textContent = ''; st.className = 'cepst'; return; }
   const my = ++cepSeq; st.className = 'cepst'; st.innerHTML = '<span class="spin"></span>Buscando endereço…';
   const r = await lookupCep(raw); if(my !== cepSeq) return;
