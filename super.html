@@ -35,6 +35,12 @@
   .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.5);box-shadow:none}
   .btn.ghost:hover{background:rgba(255,255,255,.18)}
   .btn.danger{background:#fff;color:var(--bad);border:2.5px solid var(--bad);box-shadow:none}
+  .ovl{position:fixed;inset:0;background:rgba(14,29,78,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:var(--sh);padding:22px;max-width:460px;width:100%;max-height:90vh;overflow:auto}
+  .modal h2{margin:0 0 4px;font-family:'Fredoka',sans-serif}
+  .modal label{display:block;font-size:.85rem;font-weight:700;color:var(--ink);margin:14px 0 5px}
+  .modal input[type=text],.modal textarea,.modal select{width:100%;padding:10px 12px;border:2.5px solid var(--ink);border-radius:12px;font:inherit;background:#fff}
+  .modal textarea{resize:vertical}
   .btn.danger:hover{background:#FDECEA}
   .btn.small{min-height:36px;padding:6px 14px;font-size:.9rem}
   .btn:disabled{opacity:.55;cursor:default;transform:none}
@@ -375,6 +381,7 @@
 </head>
 <body>
 <div id="app"></div>
+<div id="pushModal"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="js/cash.js"></script>
@@ -412,7 +419,7 @@ const I = {
   search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
 };
 
-const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repReqs:[], repForm:null, trials:{items:[], reps:[]}, leads:[], leadsF:'pend', tum:null, tumDays:30, open:{}, fin:null, finMonths:6};
+const S = {user:null, today:null, stores:[], spark:[], filter:'todas', q:'', view:'cards', detail:null, tab:'lojas', tickets:[], orders:[], reps:[], next:null, preview:null, payouts:[], repOpen:null, repReqs:[], repForm:null, trials:{items:[], reps:[]}, leads:[], leadsF:'pend', tum:null, tumDays:30, open:{}, fin:null, finMonths:6, push:null};
 
 function toast(msg, bad){
   let t = $('#toast');
@@ -627,7 +634,8 @@ function viewList(){
     </div>
     ${dcard('Insights', `<ul class="insl cols">${sortIns(I) || '<li class="ins info"><i></i><div><b>Sem alertas agora</b></div></li>'}</ul>`)}
     <div class="bar tb"><label class="search" style="margin:0">${I0.search}<input type="search" id="q" placeholder="Buscar loja, e-mail ou representante" value="${esc(S.q)}"></label>
-      <select id="repf" aria-label="Representante"><option value="">Todos os representantes</option><option value="-" ${S.rep === '-' ? 'selected' : ''}>Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${S.rep === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
+      <select id="repf" aria-label="Representante"><option value="">Todos os representantes</option><option value="-" ${S.rep === '-' ? 'selected' : ''}>Sem representante</option>${S.reps.map(r => `<option value="${r.id}" ${S.rep === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select>
+      <button class="btn line small" id="pushall" type="button">📣 Enviar aviso</button></div>
     <div class="bar">${chipsH}</div>
     <p class="dl" style="margin:0 0 8px">${rows.length} ${pl(rows.length, 'loja', 'lojas')} · clique no título da coluna para ordenar</p>
     ${!rows.length ? '<p class="sub" style="text-align:center;padding:40px">Nenhuma loja neste filtro.</p>' :
@@ -644,6 +652,7 @@ function viewList(){
   root.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(false); });
   root.querySelectorAll('[data-s]').forEach(h => { const go = () => { const k = h.dataset.s; S.sort = S.sort.k === k ? {k, d:-S.sort.d} : {k, d:['name', 'status', 'rep', 'ren'].includes(k) ? 1 : -1}; render(false); }; h.onclick = go; h.onkeydown = e => { if(e.key === 'Enter') go(); }; });
   root.querySelectorAll('tr[data-id],[data-oid]').forEach(r => onTap(r, () => openStore(r.dataset.id || r.dataset.oid)));
+  $('#pushall').onclick = () => openPush();
 }
 
 
@@ -699,6 +708,8 @@ function viewDetail(){
           ${payBox}
           <div class="steps">${step('Aquisição', s.acquired_at, s.acquired_at <= today)}${step('+ ' + s.ship_days + ' dias de envio', dShip, dShip <= today)}${step('+ ' + s.plan_days + ' dias de plano', dPlan, dPlan <= today)}${step('Renovação atual', s.renews_at, s.renews_at <= today, 'last')}</div>
           <p class="sub">O 1º mês já vem no kit. Depois do vencimento, a loja tem 10 dias de carência antes de parar os carimbos e as tags.</p>
+          <div class="sect"><h3>Avisos</h3>
+            <div class="acts"><button class="btn line small" id="pushone">📣 Enviar aviso para esta loja</button></div></div>
           <div class="sect"><h3>Acesso</h3>
             <div class="acts">${s.blocked ? '<button class="btn" id="unblock">Desbloquear acesso</button>' : '<button class="btn danger small" id="block">Bloquear acesso</button>'}</div>
             <p class="sub">Bloqueada ou vencida: o cartão do cliente deixa de dar carimbos novos. Prêmios já resgatados continuam valendo.</p>
@@ -742,6 +753,7 @@ function viewDetail(){
   return {html, bind(){
     $('#out').onclick = async () => { await sb.auth.signOut(); S.detail = null; boot(); };
     $('#back').onclick = () => { S.detail = null; render(); };
+    $('#pushone').onclick = () => openPush(s.id, s.name);
     const prev = () => { const a = $('#sd').value, sh = +$('#ss').value, pn = +$('#sp').value; $('#sprev').innerHTML = a ? `Renovação em <b>${fmtDate(addDays(a, sh + pn))}</b> (${sh} de envio + ${pn} de plano).` : ''; };
     ['sd', 'ss', 'sp'].forEach(i => $('#' + i).oninput = prev); prev();
     const run = async (btn, fn, args, ok) => { btn.disabled = true; const r = await rpc(fn, args); btn.disabled = false; if(r){ await refreshDetail(); toast(ok); } };
@@ -1395,8 +1407,41 @@ function labelCells(){
     t.querySelectorAll('tbody tr').forEach(r => { if(r.classList.contains('x')) return; [...r.children].forEach((c, i) => { if(c.tagName === 'TD' && !c.hasAttribute('data-label')) c.setAttribute('data-label', hs[i] || ''); }); });
   });
 }
+function openPush(store_id, store_name){ S.push = {store_id:store_id || '', store_name:store_name || '', title:'', body:'', link:''}; renderPush(); }
+function renderPush(){
+  const m = document.getElementById('pushModal');
+  if(!S.push){ m.innerHTML = ''; return; }
+  const p = S.push, opts = S.stores.slice().sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  m.innerHTML = `<div class="ovl" id="pov"><div class="modal">
+    <h2>📣 Enviar aviso</h2><p class="sub" style="margin:0 0 4px">Chega no sino e, se a loja tiver os avisos ativados, também como notificação no celular.</p>
+    <label for="pdest">Para quem</label>
+    <select id="pdest"><option value="">Todas as lojas ativas</option>${opts.map(s => `<option value="${esc(s.id)}" ${p.store_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
+    <label for="ptit">Título</label><input id="ptit" type="text" maxlength="80" placeholder="Ex.: Novidade no Carimbô" value="${esc(p.title)}">
+    <label for="pbod">Mensagem</label><textarea id="pbod" rows="4" maxlength="500" placeholder="Escreva o aviso...">${esc(p.body)}</textarea>
+    <label for="plnk">Link (opcional)</label><input id="plnk" type="text" maxlength="200" placeholder="Ex.: /lojista#/campanhas" value="${esc(p.link)}">
+    <div class="acts" style="margin-top:16px;justify-content:flex-end"><button class="btn line" id="pcancel" type="button">Cancelar</button><button class="btn" id="psend" type="button">Enviar</button></div>
+  </div></div>`;
+  $('#pdest').onchange = e => { S.push.store_id = e.target.value; const s = opts.find(x => x.id === e.target.value); S.push.store_name = s ? s.name : ''; };
+  $('#ptit').oninput = e => S.push.title = e.target.value;
+  $('#pbod').oninput = e => S.push.body = e.target.value;
+  $('#plnk').oninput = e => S.push.link = e.target.value;
+  $('#pcancel').onclick = () => { S.push = null; renderPush(); };
+  $('#pov').onclick = e => { if(e.target.id === 'pov'){ S.push = null; renderPush(); } };
+  $('#psend').onclick = async () => {
+    const title = $('#ptit').value.trim(), body = $('#pbod').value.trim(), link = $('#plnk').value.trim(), store_id = $('#pdest').value;
+    if(!title || !body){ toast('Preencha título e mensagem.', true); return; }
+    const alvo = store_id ? (opts.find(x => x.id === store_id) || {}).name : `todas as ${opts.filter(s => s.status !== 'bloqueada').length} lojas ativas`;
+    if(!confirm(`Enviar para ${alvo}?\n\n"${title}" — ${body}`)) return;
+    $('#psend').disabled = true;
+    const {data, error} = await sb.functions.invoke('notify', {body:{title, body, link, store_id: store_id || undefined}});
+    $('#psend').disabled = false;
+    if(error || !data || data.error){ toast('Não foi possível enviar: ' + (data && data.error || 'erro'), true); return; }
+    S.push = null; renderPush();
+    toast(`Aviso enviado ✓ ${data.stores} ${pl(data.stores, 'loja', 'lojas')} · ${data.push_sent} ${pl(data.push_sent, 'notificação', 'notificações')} no celular.`);
+  };
+}
 function render(top = true){
-  render0(top); labelCells();
+  render0(top); labelCells(); renderPush();
 }
 function render0(top = true){
   syncHash();
