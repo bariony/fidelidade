@@ -295,6 +295,19 @@
   .ktl .tt{font-weight:800;line-height:1.2;padding-top:4px}
   .ktl li:not(.kok):not(.now) .tt{color:var(--muted);font-weight:700}
   .ktl .ds{font-size:.92rem;color:var(--muted);margin-top:2px}
+  .mlwrap{margin:4px 0 20px}
+  .mleta{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .mleta i{width:9px;height:9px;border-radius:50%;background:var(--good);flex:none}
+  .mleta b{color:var(--muted);font-weight:700}
+  .mlhead{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.3rem;margin:0 0 16px}
+  .mltrack{display:flex;align-items:center;margin:0 4px 6px}
+  .mltrack .seg{flex:1;height:4px;background:var(--line);border-radius:2px}
+  .mltrack .seg.on{background:var(--ink)}
+  .mltrack .node{width:14px;height:14px;border-radius:50%;background:var(--ink);flex:none}
+  .mltrack .node.off{background:var(--line)}
+  .mltrack .node.cur{width:40px;height:40px;background:var(--red);border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:3px 3px 0 var(--ink)}
+  .mltrack .node.cur svg{width:20px;height:20px}
+  .mltrack .node.end{background:#fff;border:3px solid var(--line)}
   .brow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1.5px solid var(--line);flex-wrap:wrap}
   .brow:first-child{border-top:0}
   .brow b{font-family:'Fredoka',sans-serif}
@@ -639,24 +652,42 @@ async function loadBill(quiet){
   try{ const k = await sb.rpc('fid_my_kit'); S.kit = k && !k.error ? k.data : null; }catch(e){ S.kit = null; }
   if(S.user && S.store) render();
 }
+function mlTrack(cur, done){
+  // 4 nós: pago, preparando, enviado(caminhão), entregue — igual ao estilo Mercado Livre
+  const n = 4, pos = done ? 3 : cur;
+  const truck = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="10"/><path d="M15 9h4l3 3v4h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>';
+  let h = '';
+  for(let i = 0; i < n; i++){
+    if(i > 0) h += `<div class="seg${i <= pos ? ' on' : ''}"></div>`;
+    if(i < pos) h += `<div class="node"></div>`;
+    else if(i === pos) h += done ? `<div class="node"></div>` : `<div class="node cur">${truck}</div>`;
+    else h += `<div class="node ${i === n - 1 ? 'end' : 'off'}"></div>`;
+  }
+  return `<div class="mltrack">${h}</div>`;
+}
 function kitCard(){
   const k = S.kit; if(!k) return '';
-  const ship = k.shipped_at, done = k.delivered_at, tr = (k.tracking || '').trim();
+  const ship = k.shipped_at, done = k.delivered_at, tr = (k.tracking || '').trim(), eta = (k.eta_text || '').trim();
   const steps = [
     {t:'Pedido pago', at:k.paid_at, d:'Recebemos o seu pagamento.'},
     {t:'Preparando', at:k.prep_at, d:'Estamos separando e montando o seu kit.'},
-    {t:'Enviado', at:ship, d: tr ? `Código de rastreio: <b>${esc(tr)}</b> · <a href="https://rastreamento.correios.com.br/app/index.php?objetos=${encodeURIComponent(tr)}" target="_blank" rel="noopener">rastrear nos Correios</a>` : 'Postado nos Correios. Chega em até ' + k.ship_days + ' dias.'},
+    {t:'Enviado', at:ship, d: tr ? `Código de rastreio: <b>${esc(tr)}</b> · <a href="https://rastreamento.correios.com.br/app/index.php?objetos=${encodeURIComponent(tr)}" target="_blank" rel="noopener">rastrear nos Correios</a>` : (eta ? esc(eta) : 'Postado. Chega em até ' + k.ship_days + ' dias.')},
     {t:'Entregue', at:done, d:'Confirmamos quando você der o 1º toque no bastão.'},
   ];
   let cur = -1; steps.forEach((x, i) => { if(x.at) cur = i; });
-  const pending = {1:'Em breve: assim que começarmos a separar o seu kit, aparece aqui.', 2:'Assim que for postado, o código de rastreio aparece aqui e chega por e-mail.', 3:'Quando o kit chegar, grave o link da tag no bastão (app NFC Tools) e dê o 1º toque.'};
+  const pending = {1:'Em breve: assim que começarmos a separar o seu kit, aparece aqui.', 2:'Assim que for postado, a previsão de entrega aparece aqui e chega por e-mail.', 3:'Quando o kit chegar, grave o link da tag no bastão (app NFC Tools) e dê o 1º toque.'};
   const li = steps.map((x, i) => {
     const st = i < cur || (i === cur && i === 3) ? 'kok' : i === cur ? 'now' : '';
     const desc = x.at ? x.d : (i === cur + 1 ? pending[i] : '');
     return `<li class="${st}"><span class="dotk">${st === 'kok' ? '✓' : i + 1}</span><div><div class="tt">${x.t}${x.at ? ` <span class="sub2" style="font-weight:600">· ${fdt(x.at)}</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div></li>`;
   }).join('');
+  const mlBlock = (ship && !done) ? `<div class="mlwrap">
+    ${eta ? `<div class="mleta"><i></i>No prazo <b>· ${esc(eta)}</b></div>` : ''}
+    <div class="mlhead">Seu kit já está a caminho</div>
+    ${mlTrack(cur, done)}
+  </div>` : '';
   return `<section class="panel"><div class="phead"><h2>Acompanhe seu pedido</h2><span class="pill"${done ? ' style="background:#DDF5EA"' : ''}>${done ? 'Entregue' : steps[Math.max(cur, 0)].t}</span></div>
-    ${done ? '<div class="pbanner info" style="margin:10px 0 0">Kit entregue e funcionando. Seu primeiro carimbo já foi registrado. 🎉</div>' : ''}<ol class="ktl">${li}</ol></section>`;
+    ${done ? '<div class="pbanner info" style="margin:10px 0 0">Kit entregue e funcionando. Seu primeiro carimbo já foi registrado. 🎉</div>' : ''}${mlBlock}<ol class="ktl">${li}</ol></section>`;
 }
 async function callConta(body){
   const r = await sb.functions.invoke('asaas-conta', {body});
